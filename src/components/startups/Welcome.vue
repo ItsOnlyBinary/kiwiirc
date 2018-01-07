@@ -207,6 +207,11 @@ export default {
     box-sizing: border-box;
     transition: right 0.3s, left 0.3s;
     overflow-y: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    flex-direction: column;
 }
 
 
@@ -246,7 +251,6 @@ export default {
 
 .kiwi-welcome-simple-section-connection {
     left: 0;
-    padding-top: 3em;
     font-size: 1.2em;
 }
 
@@ -279,7 +283,7 @@ export default {
     cursor: not-allowed;
 }
 .kiwi-welcome-simple-form {
-    max-width: 300px;
+    width: 300px;
     margin: 2em auto;
 }
 

@@ -1,4 +1,4 @@
-# kiwiirc
+# kiwiirc test
 
 > The next generation of the KiwiIRC web based IRC client
 

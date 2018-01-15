@@ -3,8 +3,8 @@
  *   @param      {String}    realname
  *   @returns    {Object}    agl
  */
-import Logger from 'src/libs/Logger';
-import state from 'src/libs/state';
+/* import Logger from '@/libs/Logger';
+import state from '@/libs/state'; */
 export function addAglToUser(realname) {
     let age = '';
     let gender = 'U';

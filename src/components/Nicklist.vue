@@ -41,7 +41,6 @@ function strCompare(a, b) {
         1 :
         -1;
 }
->>>>>>> master
 
 export default {
     data: function data() {

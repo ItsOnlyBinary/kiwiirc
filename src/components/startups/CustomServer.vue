@@ -5,6 +5,8 @@
 
         <transition name="connectingloader">
         <form v-if="!is_connecting" v-on:submit.prevent="startUp" class="u-form kiwi-customserver-form">
+            <div class="kiwi-customserver-error" v-if="network && network.state_error">We couldn't connect to the server :( <span>{{readableStateError(network.state_error)}}</span></div>
+
             <template v-if="server_type === 'default'">
                 <input-text :label="$t('server')" v-model="server">
                     <span class="fa-stack fa-lg kiwi-customserver-tls" :class="[tls ? 'kiwi-customserver-tls--enabled' : '']" @click="tls=!tls">
@@ -66,8 +68,8 @@
 <script>
 
 import _ from 'lodash';
-import state from 'src/libs/state';
-import * as Misc from 'src/helpers/Misc';
+import state from '@/libs/state';
+import * as Misc from '@/helpers/Misc';
 
 export default {
     data: function data() {
@@ -84,6 +86,7 @@ export default {
             znc_network: '',
             znc_network_support: true,
             direct: false,
+            direct_path: '',
             show_type_switcher: true,
             show_password_box: false,
             is_connecting: false,
@@ -91,6 +94,9 @@ export default {
         };
     },
     methods: {
+        readableStateError(err) {
+            return Misc.networkErrorMessage(err);
+        },
         startUp: function startUp() {
             let net;
 
@@ -122,6 +128,7 @@ export default {
                     tls: this.tls,
                     password: this.password,
                     direct: this.direct,
+                    path: this.direct_path,
                     encoding: this.encoding,
                 });
             }
@@ -239,6 +246,7 @@ export default {
             this.nick = this.processNickRandomNumber(state.settings.startupOptions.nick);
             this.channel = state.settings.startupOptions.channel;
             this.direct = state.settings.startupOptions.direct;
+            this.direct_path = state.settings.startupOptions.direct_path;
             this.encoding = state.settings.startupOptions.encoding;
 
             // Only include the port in the server box if it's not the default
@@ -353,19 +361,33 @@ export default {
     height: 100%;
     overflow-y: auto;
     box-sizing: border-box;
+    text-align: center;
+    padding-top: 1em;
+}
+.kiwi-customserver-start {
+    font-size: 1.1em;
+    cursor: pointer;
 }
 .kiwi-customserver-form {
-    width: 300px;
+    max-width: 300px;
     margin: 0 auto;
     max-height: 500px;
     overflow: hidden;
 }
-.kiwi-customserver .input-text {
-    margin-bottom: 1em;
+.kiwi-customserver .input-text,
+.kiwi-customserver .kiwi-customserver-have-password input {
+    margin-bottom: 1.5em;
+}
+.kiwi-customserver-have-password input:checked {
+    margin-bottom: 0;
 }
 .kiwi-customserver-tls {
     cursor: pointer;
     top: 6px;
+    color: #bfbfbf;
+}
+.kiwi-customserver-tls--enabled {
+    color: green;
 }
 .kiwi-customserver-tls-lock {
     font-size: 1.2em;
@@ -381,6 +403,17 @@ export default {
     font-size: 2em;
 }
 
+.kiwi-customserver-channel {
+    margin-top: 1em;
+}
+.kiwi-customserver-server-types {
+    font-size: 0.9em;
+    text-align: center;
+}
+.kiwi-customserver-server-types a {
+    margin: 0 1em;
+}
+
 .kiwi-customserver h2 {
     margin-bottom: 1.5em;
 }
@@ -391,6 +424,16 @@ export default {
 .kiwi-customserver--connecting h2 {
     transition: margin-top .7s;
     margin-top: 100px;
+}
+
+.kiwi-customserver-error {
+    text-align: center;
+    margin: 1em 0;
+    padding: 0.3em;
+}
+.kiwi-customserver-error span {
+    display: block;
+    font-style: italic;
 }
 
 .connectingloader-enter-active, .connectingloader-leave-active {

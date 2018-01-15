@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import AliasRewriter from './AliasRewriter';
-import * as Misc from 'src/helpers/Misc';
+import * as Misc from '@/helpers/Misc';
 
 // Map of commandName=commandHandlerFn
 const inputCommands = {};
@@ -167,7 +167,7 @@ inputCommands.ctcp = function inputCommandCtcp(event, command, line) {
     }
 
     let network = this.state.getActiveNetwork();
-    network.ircClient.ctcpRequest.apply(network.ircClient, [target, ctcpType].concat(params));
+    network.ircClient.ctcpRequest(...[target, ctcpType].concat(params));
 };
 
 
@@ -453,6 +453,8 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
             mask: '{{nick}}!{{user}}@{{host}} ({{real_name}})',
             idle: 'Idle for {{idle}} seconds',
             logon: 'Connected at {{logon}}',
+            actualip: 'Real IP: {{actualip}}',
+            actualhost: 'Real hostname: {{actualhost}}',
 
             // The following entries will be ignored from whoisData as display() ignores
             // empty lines.
@@ -493,13 +495,19 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
         }
         if (whoisData.logon) {
             let logonTime = parseInt(whoisData.logon, 10);
-            if (!isNaN(logonTime)) {
+            if (!Number.isNaN(logonTime)) {
                 let logonDate = new Date(logonTime * 1000);
                 display(formats.logon.replace('{{logon}}', logonDate));
             }
         }
         if (whoisData.channels) {
             display(formats.channels.replace('{{channels}}', whoisData.channels));
+        }
+        if (whoisData.actualip) {
+            display(formats.actualip.replace('{{actualip}}', whoisData.actualip));
+        }
+        if (whoisData.actualhost) {
+            display(formats.actualhost.replace('{{actualhost}}', whoisData.actualhost));
         }
 
         _.each(whoisData, (val, key) => {
@@ -509,10 +517,12 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
             }
         });
 
-        this.state.addMessage(buffer, {
-            nick: parts[0],
-            message: out.join('\n'),
-            type: 'whois',
+        out.forEach(l => {
+            this.state.addMessage(buffer, {
+                nick: parts[0],
+                message: l,
+                type: 'whois',
+            });
         });
     });
 };

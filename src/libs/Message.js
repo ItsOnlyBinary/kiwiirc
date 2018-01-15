@@ -1,14 +1,20 @@
 import _ from 'lodash';
-import * as TextFormatting from 'src/helpers/TextFormatting';
+import * as TextFormatting from '@/helpers/TextFormatting';
+import formatIrcMessage from '@/libs/MessageFormatter';
+import GlobalApi from '@/libs/GlobalApi';
+import state from './state';
 
 let nextId = 0;
 
 export default class Message {
     constructor(message, user) {
-        this.id = nextId++;
+        this.id = message.tags && message.tags['draft/msgid'] ?
+            message.tags['draft/msgid'] :
+            nextId++;
         this.time = message.time || Date.now();
         this.nick = message.nick;
         this.message = message.message;
+        this.tags = message.tags;
         this.type = message.type || 'message';
         this.type_extra = message.type_extra;
         this.ignore = false;
@@ -21,13 +27,79 @@ export default class Message {
         });
     }
 
-    parseHtml(messageList) {
+    toHtml(messageList) {
         if (this.html) {
             return this.html;
         }
 
-        let words = this.message.split(' ');
-        words = words.map(word => {
+        // Allow plugins to render their own messages if needed
+        GlobalApi.singleton().emit('message:render', { message: this });
+        if (this.html) {
+            return this.html;
+        }
+
+        let showEmoticons = state.setting('buffers.show_emoticons') &&
+            !messageList.buffer.isSpecial();
+        let emojiList = state.setting('emojis');
+        let emojiLocation = state.setting('emojiLocation');
+        let userList = messageList.buffer.users;
+        let useExtraFormatting = !messageList.buffer.isSpecial() &&
+            messageList.useExtraFormatting &&
+            this.type === 'privmsg';
+
+        let html = '';
+        let blocks = formatIrcMessage(this.message, {
+            extras: useExtraFormatting,
+        });
+
+        blocks.forEach((bl, idx) => {
+            let style = '';
+            let classes = '';
+
+            Object.keys(bl.styles).forEach(s => {
+                if (s === 'underline') {
+                    style += 'text-decoration:underline;';
+                } else if (s === 'bold') {
+                    style += 'font-weight:bold;';
+                } else if (s === 'italic') {
+                    style += 'font-style:italic;';
+                } else if (s === 'quote') {
+                    classes += 'kiwi-formatting-extras-quote ';
+                } else if (s === 'block') {
+                    classes += 'kiwi-formatting-extras-block ';
+                } else if (s === 'color') {
+                    classes += `irc-fg-colour-${bl.styles[s]} `;
+                } else if (s === 'background') {
+                    classes += `irc-bg-colour-${bl.styles[s]} `;
+                }
+            });
+
+            let content = this.enrichText(
+                bl.content,
+                showEmoticons,
+                emojiList,
+                emojiLocation,
+                userList
+            );
+
+            if (style === '' && classes === '') {
+                html += content;
+            } else if (style !== '' && classes !== '') {
+                html += `<span style="${style}" class="${classes}">${content}</span>`;
+            } else if (style !== '') {
+                html += `<span style="${style}">${content}</span>`;
+            } else if (classes !== '') {
+                html += `<span class="${classes}">${content}</span>`;
+            }
+        });
+
+        this.html = html;
+        return this.html;
+    }
+
+    enrichText(text, showEmoticons, emojiList, emojiLocation, userList) {
+        let words = text.split(' ');
+        words = words.map((word, wordIdx) => {
             let parsed;
 
             let linkified = TextFormatting.linkifyUrls(word, {
@@ -42,20 +114,21 @@ export default class Message {
             parsed = TextFormatting.linkifyChannels(word);
             if (parsed !== word) return parsed;
 
-            parsed = TextFormatting.linkifyUsers(word, messageList.buffer.users);
+            parsed = TextFormatting.linkifyUsers(word, userList);
             if (parsed !== word) return parsed;
+
+            if (showEmoticons) {
+                parsed = TextFormatting.addEmojis(
+                    { word, words, wordIdx },
+                    emojiList,
+                    emojiLocation
+                );
+                if (parsed !== word) return parsed;
+            }
 
             return _.escape(word);
         });
 
-        let parsed = words.join(' ');
-        let useExtraFormatting = messageList.useExtraFormatting && this.type === 'privmsg';
-
-        parsed = TextFormatting.ircCodesToHtml(parsed, useExtraFormatting);
-
-        this.html = parsed;
-        return this.html;
+        return words.join(' ');
     }
-
-
 }

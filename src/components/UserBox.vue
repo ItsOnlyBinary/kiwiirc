@@ -40,9 +40,9 @@
             </template>
         </div>
 
-        <div v-if="isUserOnBuffer && buffer.isChannel() && areWeAnOp" class="kiwi-userbox-actions-op">
+        <div v-if="buffer.isChannel() && areWeAnOp" class="kiwi-userbox-actions-op">
             <form class="u-form" @submit.prevent="">
-                <label>
+                <label v-if="isUserOnBuffer">
                     {{$t('user_access')}} <select v-model="userMode">
                         <option v-for="mode in availableChannelModes" v-bind:value="mode.mode">
                             {{mode.description}}
@@ -50,13 +50,13 @@
                         <option value="">{{$t('user_normal')}}</option>
                     </select>
                 </label>
-                <label>
+                <label v-if="isUserOnBuffer">
                     <button @click="kickUser" class="u-button u-button-secondary">{{$t('user_kick')}}</button>
                 </label>
                 <label>
                     <button @click="banUser" class="u-button u-button-secondary">{{$t('user_ban')}}</button>
                 </label>
-                <label>
+                <label v-if="isUserOnBuffer">
                     <button @click="kickbanUser" class="u-button u-button-secondary">{{$t('user_kickban')}}</button>
                 </label>
             </form>
@@ -66,7 +66,7 @@
 
 <script>
 
-import state from 'src/libs/state';
+import state from '@/libs/state';
 
 export default {
     data: function data() {
@@ -183,15 +183,23 @@ export default {
             });
         },
         kickUser: function kickUser() {
-            let reason = 'Your behavior is not conducive to the desired environment.';
+            let reason = state.setting('buffers.default_kick_reason');
             this.network.ircClient.raw('KICK', this.buffer.name, this.user.nick, reason);
+        },
+        createBanMask: function banMask() {
+            let mask = state.setting('buffers.default_ban_mask');
+            mask = mask.replace('%n', this.user.nick);
+            mask = mask.replace('%i', this.user.username);
+            mask = mask.replace('%h', this.user.host);
+
+            return mask;
         },
         banUser: function banUser() {
             if (!this.user.username || !this.user.host) {
                 return;
             }
 
-            let banMask = `*!${this.user.username}@${this.user.host}`;
+            let banMask = this.createBanMask();
             this.network.ircClient.raw('MODE', this.buffer.name, '+b', banMask);
         },
         kickbanUser: function kickbanuser() {
@@ -199,8 +207,8 @@ export default {
                 return;
             }
 
-            let banMask = `*!${this.user.username}@${this.user.host}`;
-            let reason = 'Your behavior is not conducive to the desired environment.';
+            let banMask = this.createBanMask();
+            let reason = state.setting('buffers.default_kick_reason');
             this.network.ircClient.raw('MODE', this.buffer.name, '+b', banMask);
             this.network.ircClient.raw('KICK', this.buffer.name, this.user.nick, reason);
         },
@@ -236,5 +244,48 @@ export default {
 <style>
 .kiwi-userbox {
     box-sizing: border-box;
+    padding: 10px;
+}
+@media screen and (max-width: 500px) {
+    .kiwi-userbox {
+        left: 0;
+        right: 0;
+        bottom: 40px;
+        top: auto !important;
+        max-width: 100%;
+        border-width: 1px 0;
+    }
+}
+.kiwi-userbox-icon {
+    font-size: 2.8em;
+    margin-right: 0.3em;
+    position: absolute;
+}
+.kiwi-userbox-header h3 {
+    margin: 0 0 0 40px;
+    padding: 0;
+}
+.kiwi-userbox-usermask {
+    display: block;
+    margin: 0 0 0 40px;
+    font-size: 0.9em;
+}
+.kiwi-userbox-actions a {
+    margin-right: 1em;
+}
+.kiwi-userbox-whois {
+    padding: 5px;
+    line-height: 1.4em;
+}
+.kiwi-userbox-whois-line {
+    display: block;
+}
+.kiwi-userbox-actions-op {
+    margin: 0.7em 0 0 0;
+    padding: 0.7em 0;
+}
+.kiwi-userbox-actions-op form label {
+    display: block;
+    margin-bottom: 0.7em;
 }
 </style>

@@ -1,229 +1,9 @@
 import _ from 'lodash';
 import * as Colours from './Colours';
 import { md5 } from './Md5';
-import ThemeManager from 'src/libs/ThemeManager';
+import ThemeManager from '@/libs/ThemeManager';
 
-/**
- *   Formats a message. Adds bold, underline and colouring
- *   @param      {String}    msg The message to format
- *   @returns    {String}        The HTML formatted message
- */
-const colourMatchRegexp = /^\x03(([0-9][0-9]?)(,([0-9][0-9]?))?)/;
-export function ircCodesToHtml(input, enableExtras) {
-    function spanFromOpen() {
-        let style = '';
-        let colours;
-        let classes = [];
-        let result = '';
-
-        if (isTagOpen()) {
-            style += (openTags.bold) ? 'font-weight: bold; ' : '';
-            style += (openTags.italic) ? 'font-style: italic; ' : '';
-            style += (openTags.underline) ? 'text-decoration: underline; ' : '';
-            if (openTags.colour) {
-                colours = openTags.colour.split(',');
-                classes.push(colours[0]);
-                if (colours[1]) {
-                    classes.push(colours[1]);
-                }
-            }
-            result = '<span class="' + classes.join(' ') + '" style="' + style + '">';
-        }
-
-        return result;
-    }
-    function colourMatch(str) {
-        return colourMatchRegexp.exec(str);
-    }
-    function colourFromNum(num) {
-        switch (parseInt(num, 10)) {
-        case 0:
-            return 'white';
-        case 1:
-            return 'black';
-        case 2:
-            return 'blue';
-        case 3:
-            return 'green';
-        case 4:
-            return 'light-red';
-        case 5:
-            return 'brown';
-        case 6:
-            return 'purple';
-        case 7:
-            return 'orange';
-        case 8:
-            return 'yellow';
-        case 9:
-            return 'light-green';
-        case 10:
-            return 'cyan';
-        case 11:
-            return 'light-cyan';
-        case 12:
-            return 'light-blue';
-        case 13:
-            return 'pink';
-        case 14:
-            return 'grey';
-        case 15:
-            return 'light-grey';
-        default:
-            return null;
-        }
-    }
-    function isTagOpen() {
-        return (openTags.bold || openTags.italic || openTags.underline || openTags.colour);
-    }
-    function openTag() {
-        currentTag = spanFromOpen();
-    }
-    function closeTag() {
-        if (isTagOpen()) {
-            out += currentTag + '</span>';
-        }
-    }
-    function addContent(content) {
-        if (isTagOpen()) {
-            currentTag += content;
-        } else {
-            out += content;
-        }
-    }
-    // Invisible characters are still selectable. Ie. when copying text
-    function addInvisibleContent(content) {
-        let tag = `<span class="kiwi-formatting-extras-invisible">${content}</span>`;
-        if (isTagOpen()) {
-            currentTag += tag;
-        } else {
-            out += tag;
-        }
-    }
-
-    let msg = input || '';
-    let out = '';
-    let currentTag = '';
-    let openTags = {
-        bold: false,
-        italic: false,
-        underline: false,
-        colour: false,
-    };
-    let i = 0;
-    let colours = [];
-    let match = null;
-
-    for (i = 0; i < msg.length; i++) {
-        let char = msg[i];
-
-        if (enableExtras) {
-            if (char === '&' && i === 0 && msg.indexOf('&gt; ') === 0) {
-                // Starting with '> '
-                out += '<span class="kiwi-formatting-extras-block">' + msg.substr(5);
-                i = msg.length;
-                break;
-            } else if (char === '`') {
-                let nextQuotePos = msg.indexOf('`', i + 1);
-                // Only quote if there is a closing quote later in the string
-                if (nextQuotePos > -1) {
-                    closeTag();
-
-                    out += '<span class="kiwi-formatting-extras-quote">';
-                    addInvisibleContent('`');
-                    out += msg.substring(i + 1, nextQuotePos);
-                    addInvisibleContent('`');
-                    out += '</span>';
-                    i = nextQuotePos;
-                    continue;
-                }
-            } else if (char === '*') {
-                let isBold = msg.substr(i, 2) === '**';
-                let moreBoldExists = isBold && msg.indexOf('**', i + 2) > -1;
-                let isItalic = !isBold;
-                let moreItalicExists = isItalic && msg.indexOf('*', i + 1) > -1;
-
-                if (isBold && moreBoldExists && !openTags.bold) {
-                    closeTag();
-                    openTags.bold = true;
-                    openTag();
-                    addInvisibleContent('**');
-                    // Skip the next *
-                    i++;
-                    continue;
-                } else if (isBold && openTags.bold) {
-                    addInvisibleContent('**');
-                    closeTag();
-                    openTags.bold = false;
-                    openTag();
-                    // Skip the next *
-                    i++;
-                    continue;
-                } else if (isItalic && moreItalicExists && !openTags.italic) {
-                    closeTag();
-                    openTags.italic = true;
-                    openTag();
-                    addInvisibleContent('*');
-                    continue;
-                } else if (isItalic && openTags.italic) {
-                    addInvisibleContent('*');
-                    closeTag();
-                    openTags.italic = false;
-                    openTag();
-                    continue;
-                }
-            } else if (char === '\n') {
-                addContent('<br>');
-                continue;
-            }
-        }
-
-        if (char === '\x02') {
-            closeTag();
-            openTags.bold = !openTags.bold;
-            openTag();
-            continue;
-        } else if (char === '\x1D') {
-            closeTag();
-            openTags.italic = !openTags.italic;
-            openTag();
-            continue;
-        } else if (char === '\x1F') {
-            closeTag();
-            openTags.underline = !openTags.underline;
-            openTag();
-            continue;
-        } else if (char === '\x03') {
-            closeTag();
-            match = colourMatch(msg.substr(i, 6));
-            if (match) {
-                i += match[1].length;
-                // 2 & 4
-                colours[0] = 'irc-fg-colour-' + colourFromNum(match[2]);
-                if (match[4]) {
-                    colours[1] = 'irc-bg-colour-' + colourFromNum(match[4]);
-                }
-                openTags.colour = colours.join(',');
-            } else {
-                openTags.colour = false;
-            }
-            openTag();
-            continue;
-        } else if (char === '\x0F') {
-            closeTag();
-            openTags.bold = openTags.italic = openTags.underline = openTags.colour = false;
-            continue;
-        }
-
-        addContent(msg[i]);
-    }
-
-    closeTag();
-
-    return out;
-}
-
-const urlRegex = new RegExp('' +
+const urlRegex = new RegExp(
     // Detect either a protocol or 'www.' to start a URL
     /(([A-Za-z][A-Za-z0-9-]*:\/\/)|(www\.))/.source +
     // The hostname..
@@ -236,15 +16,17 @@ const urlRegex = new RegExp('' +
     /(\/[\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF!:.?$'()[\]*,;~+=&%@!\-/]*)?/.source +
     // Optional fragment
     /(#.*)?/.source,
-    'ig'
+    'i'
 );
 
 export function linkifyUrls(input, _opts) {
     let opts = _opts || {};
     let foundUrls = [];
+    let urls = Object.create(null);
     let result = input.replace(urlRegex, _url => {
         let url = _url;
-        let nice = url;
+        let nice = '';
+        let suffix = '';
 
         // Don't allow javascript execution
         if (url.match(/^javascript:/i)) {
@@ -255,6 +37,17 @@ export function linkifyUrls(input, _opts) {
         if (url.match(/^www\./i)) {
             url = 'http://' + url;
         }
+
+        // Links almost always contain an opening bracket if the last character is a closing
+        // bracket and should be part of the URL.
+        // If there isn't an opening bracket but the URL ends in a closing bracket, consider the
+        // closing bracket as punctuation outside of the URL.
+        if (url.indexOf('(') === -1 && url[url.length - 1] === ')') {
+            suffix += ')';
+            url = url.substr(0, url.length - 1);
+        }
+
+        nice = url;
 
         // Shorten the displayed URL if it's going to be too long
         if (nice.length > 100) {
@@ -270,8 +63,20 @@ export function linkifyUrls(input, _opts) {
             out += `<a data-url="${url}" class="${cssClass}">${content}</a>`;
         }
 
+        // Pretty hacky, but replace all URLs with random keys that won't get caught up in the HTML
+        // escaping. Once escaped, replace the random keys back with the URL links.
+        let urlId = '---url' + (Math.random() * 1e+17) + '---';
+        urls[urlId] = out;
+        out = urlId;
+
         foundUrls.push(url);
-        return out;
+        return out + suffix;
+    });
+
+    // Replace the random URL keys back with their URL links
+    result = _.escape(result);
+    Object.keys(urls).forEach(urlId => {
+        result = result.replace(urlId, urls[urlId]);
     });
 
     return {
@@ -280,12 +85,48 @@ export function linkifyUrls(input, _opts) {
     };
 }
 
+export function addEmojis(wordCtx, emojiList, emojiLocation) {
+    let word = '';
+    let words = [word];
+
+    // wordCtx may be an object with extra context about the word
+    if (typeof wordCtx === 'object') {
+        word = wordCtx.word;
+        words = wordCtx.words;
+    } else {
+        word = wordCtx;
+    }
+
+    // If emojiList.hasOwnProperty exists then use it to check that the word
+    // is actually part of the object
+    if (emojiList.hasOwnProperty && !emojiList.hasOwnProperty(word)) {
+        return word;
+    }
+
+    let emoji = emojiList[word];
+    if (emoji) {
+        let classes = 'kiwi-messagelist-emoji';
+        if (_.compact(words).length === 1) {
+            classes += ' kiwi-messagelist-emoji--single';
+        }
+
+        let src = `${emojiLocation}${emoji}.png`;
+        return `<img class="${classes}" src="${src}" alt="${word}" />`;
+    }
+
+    return word;
+}
+
+const channelMatch = /(^|\s|[@+~&%}]+)([#&][^ .,\007<>\n\r]+)([.,<>\n\r]+)?$/i;
 export function linkifyChannels(word) {
-    return word.replace(/(^|\s)([#&][^ .,\007<>]+)$/i, _channel => {
-        let channelName = _channel.trim();
-        return `<a class="u-link kiwi-channel" data-channel-name="${_.escape(channelName)}">` +
-            _.escape(_channel) +
-        '</a>';
+    // "@#kiwiirc," = 3 parts. (prefix=@)(channel=#kiwiirc)(suffix=,)
+    return word.replace(channelMatch, (match, mPrefix, mChannel, mSuffix) => {
+        let chan = _.escape(mChannel.trim());
+        let prefix = _.escape(mPrefix);
+        let suffix = _.escape(mSuffix);
+
+        let link = `<a class="u-link kiwi-channel" data-channel-name="${chan}">${chan}</a>`;
+        return `${prefix}${link}${suffix}`;
     });
 }
 
@@ -299,7 +140,7 @@ export function linkifyUsers(word, userlist) {
     let normWord = word.toLowerCase();
     let hasProp = Object.prototype.hasOwnProperty;
 
-      // Checking for a nick in order of processing cost
+    // Checking for a nick in order of processing cost
     if (hasProp.call(userlist, normWord)) {
         nick = word;
     } else if (hasProp.call(userlist, normWord.substr(0, normWord.length - 1)) && validLastChar) {
@@ -416,6 +257,7 @@ const textFormats = {
     selfmode: 'ⓘ %nick %text',
     nickname_alreadyinuse: '⚠ %text',
     network_disconnected: '⚠ %text',
+    network_connected: '⚠ %text',
     whois_channels: '%text',
     whois_idle_and_signon: '%text',
     whois_away: '%text',

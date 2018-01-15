@@ -47,7 +47,7 @@
             v-bind:data-nick="message.nick"
             @mouseover="ml.hover_nick=message.nick.toLowerCase();"
             @mouseout="ml.hover_nick='';"
-        >{{message.nick}}</div>
+        >{{message.user ? userModePrefix(message.user) : ''}}{{message.nick}}</div>
         <div class="kiwi-messagelist-body" v-html="ml.formatMessage(message)"></div>
 
         <message-info
@@ -61,7 +61,8 @@
 
 <script>
 
-// import state from 'src/libs/state';
+// import state from '@/libs/state';
+import * as Misc from '@/helpers/Misc';
 import MessageInfo from './MessageInfo';
 
 
@@ -80,61 +81,66 @@ export default {
         isHoveringOverMessage: function isHoveringOverMessage(message) {
             return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();
         },
+        userModePrefix: function userModePrefix(user) {
+            return Misc.userModePrefix(user, this.ml.buffer);
+        },
     },
 };
 </script>
 
-<style>
-.kiwi-messagelist-message--compact .kiwi-messagelist-message-privmsg:hover,
-.kiwi-messagelist-message--compact .kiwi-messagelist-message-action:hover,
-.kiwi-messagelist-message--compact .kiwi-messagelist-message-notice:hover, {
-    cursor: pointer;
-    border-left-color: #80ab52;
-}
-.kiwi-messagelist-message--compact .kiwi-messagelist-message--blur {
-    opacity: 0.5;
-}
-.kiwi-messagelist-message--compact .kiwi-messagelist-nick {
-    width: 120px;
-    display: inline-block;
-    float: left;
-}
-.kiwi-messagelist-message--compact .kiwi-messagelist-time {
-    display: inline-block;
-    float: right;
-}
-.kiwi-messagelist-message--compact .kiwi-messagelist-body {
-    display: block;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin-left: 130px;
-}
-.kiwi-messagelist-body a {
-    word-break: break-all;
-}
-.kiwi-messagelist-message--compact .kiwi-messageinfo {
-    padding-left: 130px;
-}
-@media screen and (max-width: 700px) {
-    .kiwi-messagelist-message--compact .kiwi-messagelist-nick {
-        display: inline;
-        width: auto;
-        float: none;
+<style lang="less">
+.kiwi-messagelist-message--compact {
+    .kiwi-messagelist-message-privmsg:hover,
+    .kiwi-messagelist-message-action:hover,
+    .kiwi-messagelist-message-notice:hover, {
+        cursor: pointer;
+        border-left-color: #80ab52;
     }
-    .kiwi-messagelist-message--compact .kiwi-messagelist-body {
-        margin-left: 2px;
+    .kiwi-messagelist-message--blur {
+        opacity: 0.5;
     }
-    .kiwi-messagelist-message--compact .kiwi-messagelist-time {
+    .kiwi-messagelist-nick {
+        width: 120px;
+        display: inline-block;
+        float: left;
     }
-    .kiwi-messagelist-message--compact .kiwi-messagelist-message-repeat .kiwi-messagelist-nick {
+    .kiwi-messagelist-time {
+        display: inline-block;
+        float: right;
+    }
+    .kiwi-messagelist-body {
+        display: block;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin-left: 130px;
+    }
+    .kiwi-messagelist-body a {
+        word-break: break-all;
+    }
+    .kiwi-messageinfo {
+        padding-left: 130px;
+    }
+    @media screen and (max-width: 700px) {
+        .kiwi-messagelist-nick {
+            display: inline;
+            width: auto;
+            float: none;
+        }
+        .kiwi-messagelist-body {
+            margin-left: 2px;
+        }
+        .kiwi-messagelist-time {
+        }
+        .kiwi-messagelist-message-repeat .kiwi-messagelist-nick {
+            display: none;
+        }
+        .kiwi-messageinfo {
+            padding-left: 2px;
+        }
+    }
+    .kiwi-messagelist-message-traffic .kiwi-messagelist-nick {
         display: none;
     }
-    .kiwi-messagelist-message--compact .kiwi-messageinfo {
-        padding-left: 2px;
-    }
-}
-.kiwi-messagelist-message--compact .kiwi-messagelist-message-traffic .kiwi-messagelist-nick {
-    display: none;
 }
 
 </style>

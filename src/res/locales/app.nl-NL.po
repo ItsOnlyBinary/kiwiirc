@@ -1,487 +1,556 @@
+#: Start
+msgid "start_button"
+msgstr "Starten"
+
+#: Welcome to Kiwi IRC!
+msgid "start_greeting"
+msgstr "Welkom bij Kiwi IRC!"
+
 #: Close
 msgid "close"
-msgstr ""
+msgstr "Sluiten"
 
 #: Connect
 msgid "connect"
-msgstr ""
+msgstr "Verbinden"
 
 #: Connecting...
 msgid "connecting"
-msgstr ""
+msgstr "Verbinden..."
 
 #: Connected
 msgid "connected"
-msgstr ""
+msgstr "Verbonden"
 
 #: Settings
 msgid "settings"
-msgstr ""
+msgstr "Instellingen"
 
-#: Banned
+#: Channels
+msgid "channels"
+msgstr "Kanalen"
+
+#: Banned Users
 msgid "banned"
-msgstr ""
+msgstr "Verbannen gebruikers"
 
 #: Notifications
 msgid "notifications"
-msgstr ""
+msgstr "Meldingen"
 
 #: Username
 msgid "username"
-msgstr ""
+msgstr "Gebruikersnaam"
 
 #: Password
 msgid "password"
-msgstr ""
+msgstr "Wachtwoord"
 
 #: I have a password
 msgid "password_have"
-msgstr ""
+msgstr "Ik heb een wachtwoord"
 
 #: Server
 msgid "server"
-msgstr ""
+msgstr "Server"
 
-#: Nick (Nickname)
+#: Nick
 msgid "nick"
-msgstr ""
+msgstr "Bijnaam"
 
 #: Channel
 msgid "channel"
-msgstr ""
+msgstr "Kanaal"
 
 #: Network
 msgid "network"
-msgstr ""
+msgstr "Netwerk"
 
 #: ZNC
 msgid "znc"
-msgstr ""
+msgstr "ZNC"
 
 #: Logging in...
 msgid "logging_in"
-msgstr ""
+msgstr "Aanmelden..."
 
 #: Invalid login
 msgid "invalid_login"
-msgstr ""
+msgstr "Ongeldige aanmelding"
 
-#: Realname field in a users whois
+#: Search...
+msgid "do_search"
+msgstr "Zoeken..."
+
+#: OK
+msgid "ok"
+msgstr "OK"
+
+#: Cancel
+msgid "cancel"
+msgstr "Annuleren"
+
+#: This will close all KiwiIRC conversations. Are you sure you want to close this window?
+msgid "window_unload"
+msgstr "Hierdoor worden alle KiwiIRC-gesprekken gesloten. Weet je zeker dat je dit venster wilt sluiten?"
+
+#: Real name
 msgid "whois_realname"
-msgstr ""
+msgstr "Echte naam"
 
-#: Away status in a users whois
+#: Status
 msgid "whois_status"
-msgstr ""
+msgstr "Status"
 
-#: Away status in a users whois
+#: Is available
 msgid "whois_status_available"
-msgstr ""
+msgstr "Is beschikbaar"
 
-#: Send user a message button
+#: Send a message
 msgid "send_a_message"
-msgstr ""
+msgstr "Een bericht sturen"
 
-#: Show more information
+#: More information
 msgid "more_information"
-msgstr ""
+msgstr "Meer informatie"
 
-#: Ignore user toggle box
+#: Ignore user
 msgid "ignore_user"
-msgstr ""
+msgstr "Gebruiker negeren"
 
-#: Channel input box
+#: Channel
 msgid "connection_channel"
-msgstr ""
+msgstr "Kanaal"
 
-#: General Title
+#: General
 msgid "settings_general"
-msgstr ""
+msgstr "Algemeen"
 
-#: Theme Title
+#: Theme
 msgid "settings_theme"
-msgstr ""
+msgstr "Thema"
 
 #: Theme URL
 msgid "settings_themeurl"
-msgstr ""
+msgstr "Thema-URL"
 
-#: Use Monospace
+#: Use monospace
 msgid "settings_use_monospace"
-msgstr ""
+msgstr "Monospace gebruiken"
+
+#: Traditional IRC layout
+msgid "settings_layout_compact"
+msgstr "Traditionele IRC-indeling"
 
 #: Show autocomplete list
 msgid "settings_show_autocomplete"
-msgstr ""
+msgstr "Auto-aanvullenlijst tonen"
 
-#: Messages Title
+#: Chat Messages
 msgid "settings_messages_title"
-msgstr ""
+msgstr "Chatberichten"
 
 #: Show timestamps
 msgid "settings_timestamps"
-msgstr ""
+msgstr "Tijdstempels tonen"
 
 #: Use 24-hour timestamps
 msgid "settings_24hour_timestamps"
-msgstr ""
+msgstr "24-uurs tijdstempels gebruiken"
 
 #: Show emoticons
 msgid "settings_emoticons"
-msgstr ""
+msgstr "Emoticons tonen"
 
 #: Block new Private messages
 msgid "settings_block_private"
-msgstr ""
+msgstr "Nieuwe privéberichten blokkeren"
 
 #: Messages in scrollback
 msgid "settings_scrollback"
-msgstr ""
+msgstr "Berichten in scrollback"
 
 #: Extra formatting
 msgid "settings_formatting"
-msgstr ""
+msgstr "Extra opmaak"
+
+#: Colour nicknames in messages
+msgid "settings_nick_colouring"
+msgstr "Gekleurde bijnamen in berichten"
 
 #: Include join/part messages as activity
 msgid "settings_show_joinpart"
-msgstr ""
+msgstr "Berichten bij binnenkomst/vertrek als activiteit beschouwen"
 
 #: Mute sound notifications
 msgid "settings_mute_sound"
-msgstr ""
+msgstr "Geluidsmeldingen dempen"
 
-#: Highlight on words
+#: Highlight on words (space seperated)
 msgid "settings_highlight"
-msgstr ""
+msgstr "Markeren op woorden (gescheiden door spaties)"
 
-#: Aliases Title
+#: Aliases
 msgid "settings_aliases"
-msgstr ""
+msgstr "Aliassen"
 
 #: Send Message
 msgid "send_message"
-msgstr ""
+msgstr "Bericht sturen"
 
 #: Notify me when
 msgid "settings_notify"
-msgstr ""
+msgstr "Waarschuwen wanneer"
 
 #: All messages
 msgid "settings_notify_all"
-msgstr ""
+msgstr "Alle berichten"
 
 #: I am mentioned
 msgid "settings_notify_mentioned"
-msgstr ""
+msgstr "Ik word genoemd"
 
 #: Never
 msgid "settings_notify_never"
-msgstr ""
+msgstr "Nooit"
 
 #: Mute sounds
 msgid "settings_notify_mute"
-msgstr ""
+msgstr "Geluiden dempen"
+
+#: Operator tools
+msgid "operator_tools"
+msgstr "Operatorhulpmiddelen"
+
+#: Default ban mask
+msgid "settings_default_ban_mask"
+msgstr "Standaard banmasker"
+
+#: Default kick reason
+msgid "settings_default_kick_reason"
+msgstr "Standaard kickreden"
 
 #: Refresh banlist
 msgid "bans_refresh"
-msgstr ""
+msgstr "Banlijst vernieuwen"
 
 #: Banned user
 msgid "bans_user"
-msgstr ""
+msgstr "Verbannen gebruiker"
 
 #: Banned by
 msgid "bans_by"
-msgstr ""
+msgstr "Verbannen door"
 
-#: Refreshing banlist
+#: Refreshing banlist...
 msgid "bans_refreshing"
-msgstr ""
+msgstr "Banlijst vernieuwen..."
 
-#: Nobody is banned
+#: Nobody is banned!
 msgid "bans_nobody"
-msgstr ""
+msgstr "Er is niemand verbannen!"
 
 #: Topic
 msgid "channel_topic"
-msgstr ""
+msgstr "Topic"
 
 #: Moderated chat
 msgid "channel_moderated"
-msgstr ""
+msgstr "Kanaal is gemodereerd"
 
-#: Invite Only
+#: Invite only
 msgid "channel_invite"
-msgstr ""
+msgstr "Alleen op uitnodiging"
 
-#: Moderated topic
+#: Only moderators can change the topic
 msgid "channel_moderated_topic"
-msgstr ""
+msgstr "Alleen moderators kunnen het topic wijzigen"
 
-#: Block external messages
+#: Block messages from outside this channel
 msgid "channel_external"
-msgstr ""
+msgstr "Externe berichten blokkeren"
 
 #: Welcome to Kiwi IRC!
 msgid "container_welcome"
-msgstr ""
+msgstr "Welkom bij Kiwi IRC!"
 
 #: Show statebrowser
 msgid "container_statebrowser"
-msgstr ""
+msgstr "Statebrowser tonen"
 
 #: Join Channel
 msgid "container_join"
-msgstr ""
+msgstr "Kanaal binnengaan"
 
-#: Not connected
+#: Not Connected
 msgid "container_notconnected"
-msgstr ""
+msgstr "Niet verbonden"
 
-#: Private conversation with
+#: Private conversation with {{user}}
 msgid "container_privmsg"
-msgstr ""
+msgstr "Privégesprek met {{user}}"
 
-#: input wrap placeholder
+#: Send a message...
 msgid "input_placeholder"
-msgstr ""
+msgstr "Een bericht sturen..."
 
-#: Loading
+#: Loading {{url}}...
 msgid "media_loading"
-msgstr ""
+msgstr "{{url}} laden..."
 
-#: Load previous
+#: Load previous messages
 msgid "messages_load"
-msgstr ""
+msgstr "Vorige berichten laden"
 
-#: NetworkSettings $t('settings_')
+#: Unread Messages
+msgid "unread_messages"
+msgstr "Ongelezen berichten"
+
+#: Server details
 msgid "settings_server_details"
-msgstr ""
+msgstr "Serverdetails"
 
 #: Port
 msgid "settings_port"
-msgstr ""
+msgstr "Poort"
 
-#: Other networks on this ZNC account
+#: Other networks on this ZNC account will be listed in the network list
 msgid "settings_znc_other"
-msgstr ""
+msgstr "Andere netwerken op deze ZNC-account worden in de netwerklijst vermeld"
 
 #: Your details
 msgid "settings_your_details"
-msgstr ""
+msgstr "Je gegevens"
 
 #: Nickname
 msgid "settings_nickname"
-msgstr ""
+msgstr "Bijnaam"
 
 #: Advanced
 msgid "settings_advanced"
-msgstr ""
+msgstr "Geavanceerd"
 
 #: Encoding
 msgid "settings_encoding"
-msgstr ""
+msgstr "Codering"
 
 #: Show Raw
 msgid "settings_show_raw"
-msgstr ""
+msgstr "Ruwe berichten tonen"
 
 #: Run commands when connected
 msgid "settings_autorun"
-msgstr ""
+msgstr "Uit te voeren opdrachten bij verbinding"
 
-#: Danger zone
+#: Danger Zone
 msgid "settings_danger"
-msgstr ""
+msgstr "Gevarenzone"
 
 #: Remove network
 msgid "settings_remove"
-msgstr ""
+msgstr "Netwerk verwijderen"
 
-#: Person key
+#: {{count}} person here
 msgid "person"
-msgstr ""
+msgstr "{{count}} persoon aanwezig"
 
-#: Person plural key
+#: {{count}} people here
 msgid "person_plural"
-msgstr ""
+msgstr "{{count}} personen aanwezig"
 
-#: Reconnect Channel
+#: Reconnect to join {{channel}}
 msgid "reconnect_channel"
-msgstr ""
+msgstr "Verbind opnieuw om {{channel}} binnen te gaan"
 
-#: Reconnect to network
+#: Reconnect to {{network}} to start talking
 msgid "reconnect_network"
-msgstr ""
+msgstr "Verbind opnieuw met {{network}} om met praten te beginnen"
 
-#: Reconnect to query
+#: Reconnect to continue talking with {{user}}
 msgid "reconnect_query"
-msgstr ""
+msgstr "Verbind opnieuw om verder met {{user}} te praten"
 
 #: Connection settings
 msgid "reconnect_settings"
-msgstr ""
+msgstr "Verbindingsinstellingen"
 
-#: Close options $t('side_')
+#: Close options
 msgid "side_close"
-msgstr ""
+msgstr "Opties sluiten"
 
 #: Channel options
 msgid "side_options"
-msgstr ""
+msgstr "Kanaalopties"
 
 #: Your settings
 msgid "side_settings"
-msgstr ""
+msgstr "Je instellingen"
 
 #: Show when people join
 msgid "side_joins"
-msgstr ""
+msgstr "Tonen wanneer mensen het kanaal binnenkomen"
+
+#: Show when channel topic changes
+msgid "side_topics"
+msgstr "Tonen wanneer kanaaltopic wordt gewijzigd"
+
+#: Show when users change their nicks
+msgid "side_nick_changes"
+msgstr "Tonen wanneer gebruikers hun bijnamen wijzigen"
+
+#: Show when users change channel modes
+msgid "side_mode_changes"
+msgstr "Tonen wanneer gebruikers kanaalmodi wijzigen"
 
 #: Extra message formatting
 msgid "side_formatting"
-msgstr ""
+msgstr "Extra berichtenopmaak"
 
 #: Nick colours in the list"
 msgid "side_colours"
-msgstr ""
+msgstr "Gekleurde bijnamen in de lijst"
 
 #: No buffer set
 msgid "side_buffer"
-msgstr ""
+msgstr "Geen buffer ingesteld"
 
-#: Error starting
+#: There was an error starting Kiwi IRC :(
 msgid "error_starting"
-msgstr ""
+msgstr "Er is een fout opgetreden bij het starten van Kiwi IRC :("
 
+#: Make sure you have installed Kiwi IRC correctly and the configurartion can be loaded
 msgid "error_installed"
-msgstr ""
+msgstr "Zorg ervoor dat je Kiwi IRC goed hebt geïnstalleerd en dat de configuratie kan worden geladen"
 
-#: Leave
+#: Leave {{name}}
 msgid "state_leave"
-msgstr ""
+msgstr "{{name}} verlaten"
 
 #: Your account
 msgid "state_account"
-msgstr ""
+msgstr "Je account"
 
-#: Your settings and networks will be remembered on this computer
+#: Your settings and networks will be remembered on this computer.
 msgid "state_remembered"
-msgstr ""
+msgstr "Je instellingen en netwerken worden op deze computer onthouden."
 
 #: Forget me
 msgid "state_forget"
-msgstr ""
+msgstr "Mij vergeten"
 
 #: No networks here yet.
 msgid "state_network"
-msgstr ""
+msgstr "Nog geen netwerken."
 
 #: Add one?
 msgid "state_add"
-msgstr ""
+msgstr "Netwerk toevoegen?"
 
 #: Available networks
 msgid "state_available"
-msgstr ""
+msgstr "Beschikbare netwerken"
 
 #: Configure network
 msgid "state_configure"
-msgstr ""
+msgstr "Netwerk configureren"
 
 #: Not connected.
 msgid "state_disconnected"
-msgstr ""
+msgstr "Niet verbonden."
 
 #: Join new #channel
 msgid "state_join"
-msgstr ""
+msgstr "Nieuw #kanaal binnengaan"
 
-#: Account name
+#: Change nick
+msgid "change_nick"
+msgstr "Bijnaam wijzigen"
+
+#: Account name: {{user}}
 msgid "user_account"
-msgstr ""
+msgstr "Accountnaam: {{user}}"
 
-#: Real name
+#: Real name: {{realname}}
 msgid "user_realname"
-msgstr ""
+msgstr "Echte naam: {{realname}}"
 
 #: Is a bot
 msgid "user_bot"
-msgstr ""
+msgstr "Is een bot"
 
 #: Is available for help
 msgid "user_help"
-msgstr ""
+msgstr "Is beschikbaar voor hulp"
 
 #: Is an operator
 msgid "user_op"
-msgstr ""
+msgstr "Is een operator"
 
-#: Connected to
+#: Connected to {{server}} {{info}}
 msgid "user_server"
-msgstr ""
+msgstr "Verbonden met {{server}} {{info}}"
 
 #: Securely connected via SSL/TLS
 msgid "user_secure"
-msgstr ""
+msgstr "Veilig verbonden via SSL/TLS"
 
-#: Also in channels
+#: Also in channels {{channels}}
 msgid "user_channels"
-msgstr ""
+msgstr "Ook in kanalen {{channels}}"
 
 #: Access level
 msgid "user_access"
-msgstr ""
+msgstr "Toegangsniveau"
 
 #: Normal
 msgid "user_normal"
-msgstr ""
+msgstr "Normaal"
 
-#: Kick from channel
+#: Kick from the channel
 msgid "user_kick"
-msgstr ""
+msgstr "Uit het kanaal zetten"
 
 #: Ban from the channel
 msgid "user_ban"
-msgstr ""
+msgstr "Uit het kanaal verbannen"
 
-#: Kick + Ban from the channel
+#: Ban and kick from the channel
 msgid "user_kickban"
-msgstr ""
+msgstr "Uit het kanaal zetten en verbannen"
 
 #: Your IRC client
 msgid "personal_client"
-msgstr ""
+msgstr "Je IRC-client"
 
 #: Add your networks. Join your channels.
 msgid "personal_addjoin"
-msgstr ""
+msgstr "Voeg je netwerken toe. Ga je kanalen binnen."
 
 #: They will be here when you come back.
 msgid "personal_return"
-msgstr ""
+msgstr "Deze verschijnen hier bij je volgende bezoek."
 
 #: Add a Network
 msgid "personal_add"
-msgstr ""
+msgstr "Een netwerk toevoegen"
 
 #: Saved networks
 msgid "personal_saved"
-msgstr ""
+msgstr "Opgeslagen netwerken"
 
 #: Kiwi IRC (next gen) - Rizon preview
 msgid "rizon_title"
-msgstr ""
+msgstr "Kiwi IRC (next gen) - Rizon preview"
 
 #: Direct websockets. No Kiwi server or webirc involved.
 msgid "rizon_websockets"
-msgstr ""
+msgstr "Directe websockets. Geen Kiwi-server of webirc nodig."
 
 #: (Thanks to Adam @Rizon for the development websocket server support!)
 msgid "rizon_thanks"
-msgstr ""
+msgstr "(Dank aan Adam @Rizon voor de ontwikkeling van de websocket-serverondersteuning!)"
 
 #: Give the developer version of Kiwi IRC a try!
 msgid "rizon_dev"
-msgstr ""
+msgstr "Probeer de ontwikkelaarsversie van Kiwi IRC!"
 

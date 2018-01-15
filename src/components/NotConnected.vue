@@ -26,7 +26,7 @@
 
 <script>
 
-import state from 'src/libs/state';
+import state from '@/libs/state';
 
 export default {
     data: function data() {
@@ -87,5 +87,25 @@ export default {
 <style>
 .kiwi-notconnected {
     box-sizing: border-box;
+    margin: 3em 0;
+    text-align: center;
+}
+.kiwi-notconnected-bigicon {
+    display: inline-block;
+}
+.kiwi-notconnected-bigicon > i {
+    font-size: 4em;
+    cursor: pointer;
+}
+.kiwi-notconnected-caption {
+    display: inline-block;
+    font-size: 1.2em;
+    margin-left: 2em;
+    cursor: pointer;
+}
+.kiwi-notconnected-networksettings {
+    display: block;
+    font-size: 0.9em;
+    margin-top: 1em;
 }
 </style>

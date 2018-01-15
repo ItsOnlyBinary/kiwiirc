@@ -4,29 +4,37 @@ import i18next from 'i18next';
 import i18nextXHR from 'i18next-xhr-backend';
 import VueI18Next from '@panter/vue-i18next';
 
-import AvailableLocales from 'src/res/locales/available.json';
-import FallbackLocale from 'src/../static/locales/en-us.json';
-import App from 'src/components/App';
-import StartupError from 'src/components/StartupError';
-import Logger from 'src/libs/Logger';
-import ConfigLoader from 'src/libs/ConfigLoader';
-import state from 'src/libs/state';
-import ThemeManager from 'src/libs/ThemeManager';
-import StatePersistence from 'src/libs/StatePersistence';
-import * as Storage from 'src/libs/storage/Local';
-import GlobalApi from 'src/libs/GlobalApi';
+import AvailableLocales from '@/res/locales/available.json';
+import FallbackLocale from '@/../static/locales/en-us.json';
+import App from '@/components/App';
+import StartupError from '@/components/StartupError';
+import Logger from '@/libs/Logger';
+import ConfigLoader from '@/libs/ConfigLoader';
+import state from '@/libs/state';
+import ThemeManager from '@/libs/ThemeManager';
+import StatePersistence from '@/libs/StatePersistence';
+import * as Storage from '@/libs/storage/Local';
+import GlobalApi from '@/libs/GlobalApi';
 
 // Global utilities
-import 'src/components/utils/TabbedView';
-import 'src/components/utils/InputText';
-import 'src/components/utils/IrcInput';
-import 'src/components/utils/InputPrompt';
+import '@/components/utils/TabbedView';
+import '@/components/utils/InputText';
+import '@/components/utils/IrcInput';
+import '@/components/utils/InputPrompt';
+
+let logLevelMatch = window.location.href.match(/kiwi-loglevel=(\d)/);
+if (logLevelMatch && logLevelMatch[1]) {
+    Logger.setLevel(parseInt(logLevelMatch[1], 10));
+}
+
+let log = Logger.namespace('main');
 
 // Add the global API as soon as possible so that things can start listening to it
 let api = window.kiwi = GlobalApi.singleton();
 
 // Third party imports now have access to the state and api
-import 'src/thirdparty/';
+/* eslint-disable import/first */
+import '@/thirdparty/';
 
 function getQueryVariable(variable) {
     let query = window.location.search.substring(1);
@@ -65,6 +73,14 @@ Vue.mixin({
     },
 });
 
+// Allow adding existing raw elements to component templates
+// Eg: <div v-rawElement="domElement"></div>
+Vue.directive('rawElement', {
+    bind(el, binding) {
+        el.appendChild(binding.value);
+    },
+});
+
 
 loadApp();
 
@@ -89,7 +105,7 @@ function loadApp() {
         try {
             configObj = window.kiwiConfig();
         } catch (err) {
-            Logger.error('Config file: ' + err.stack);
+            log.error('Config file: ' + err.stack);
             showError();
         }
     } else if (document.querySelector('meta[name="kiwiconfig"]')) {
@@ -100,7 +116,7 @@ function loadApp() {
         try {
             configObj = JSON.parse(configContents);
         } catch (parseErr) {
-            Logger.error('Config file: ' + parseErr.stack);
+            log.error('Config file: ' + parseErr.stack);
             showError();
         }
     }
@@ -190,15 +206,33 @@ function initLocales() {
         },
     });
 
-    if (state.setting('language')) {
-        i18next.changeLanguage(state.setting('language'));
+    let defaultLang = state.setting('language');
+    let preferredLangs = (window.navigator && window.navigator.languages) || [];
+    let preferredLang = preferredLangs[0];
+
+    if (defaultLang) {
+        i18next.changeLanguage(defaultLang, (err, t) => {
+            if (err) {
+                i18next.changeLanguage('en-us');
+            }
+        });
+    } else if (preferredLang) {
+        i18next.changeLanguage(preferredLang, (err, t) => {
+            if (err) {
+                i18next.changeLanguage('en-us');
+            }
+        });
     }
 }
 
 
 async function initState() {
     let stateKey = state.settings.startupOptions.state_key;
-    let persist = new StatePersistence(stateKey || '', state, Storage, Logger);
+
+    let persistLog = Logger.namespace('StatePersistence');
+    let persist = new StatePersistence(stateKey || '', state, Storage, persistLog);
+    persist.includeBuffers = !!state.settings.startupOptions.remember_buffers;
+
     if (stateKey) {
         await persist.loadStateIfExists();
     }
@@ -231,9 +265,9 @@ function startApp() {
 
 function showError(err) {
     if (err) {
-        Logger.error('Error starting Kiwi IRC:', err);
+        log.error('Error starting Kiwi IRC:', err);
     } else {
-        Logger.error('Unknown error starting Kiwi IRC');
+        log.error('Unknown error starting Kiwi IRC');
     }
 
     /* eslint-disable no-new */

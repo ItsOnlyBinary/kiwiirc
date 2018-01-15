@@ -31,7 +31,7 @@
                     <div class="kiwi-appsettings-section kiwi-appsettings-messages">
                         <h3>{{$t('settings_messages_title')}}</h3>
                         <label>
-                            <span>Traditional IRC layout: </span>
+                            <span>{{$t('settings_layout_compact')}}: </span>
                             <input type="checkbox" v-model="settingMessageLayout" />
                         </label>
                         <label><span>{{$t('settings_timestamps')}}: </span> <input type="checkbox" v-model="settingBufferShowTimestamps" /></label>
@@ -40,6 +40,7 @@
                         <label><span>{{$t('settings_block_private')}}: </span> <input type="checkbox" v-model="settingBufferBlockPms" /></label>
                         <label><span>{{$t('settings_scrollback')}}: </span> <input type="number" class="u-input" v-model="settingBufferScrollbackSize" /></label>
                         <label><span>{{$t('settings_formatting')}}: </span> <input type="checkbox" v-model="settingBufferExtraFormatting" /></label>
+                        <label><span>{{$t('settings_nick_colouring')}}: </span> <input type="checkbox" v-model="settingBufferColourNicknames" /></label>
                     </div>
 
                     <div class="kiwi-appsettings-section kiwi-appsettings-notifications">
@@ -47,6 +48,12 @@
                         <label><span>{{$t('settings_show_joinpart')}}: </span> <input type="checkbox" v-model="settingBufferTrafficAsActivity" /></label>
                         <label><span>{{$t('settings_mute_sound')}}: </span> <input type="checkbox" v-model="settingBufferMuteSound" /></label>
                         <label><span>{{$t('settings_highlight')}}: </span> <input type="text" class="u-input" v-model="settingHighlights" /></label>
+                    </div>
+
+                    <div class="kiwi-appsettings-section kiwi-appsettings-operator-tools">
+                        <h3>{{$t('operator_tools')}}</h3>
+                        <label><span>{{$t('settings_default_ban_mask')}}: </span> <input type="text" class="u-input" v-model="settingDefaultBanMask" /></label>
+                        <label><span>{{$t('settings_default_kick_reason')}}: </span> <input type="text" class="u-input" v-model="settingDefaultKickReason" /></label>
                     </div>
                 </tabbed-tab>
 
@@ -63,9 +70,9 @@
 
 <script>
 
-import state from 'src/libs/state';
+import state from '@/libs/state';
 import SettingsAliases from './SettingsAliases';
-import ThemeManager from 'src/libs/ThemeManager';
+import ThemeManager from '@/libs/ThemeManager';
 
 /**
  * Returns an object for a vuejs computated property on a state settings value
@@ -114,6 +121,7 @@ export default {
         settingShowAutoComplete: bindSetting('showAutocomplete'),
         settingUseMonospace: bindSetting('useMonospace'),
         settingHighlights: bindSetting('highlights'),
+        settingBufferColourNicknames: bindSetting('buffers.colour_nicknames_in_messages'),
         settingBufferShowTimestamps: bindSetting('buffers.show_timestamps'),
         settingBufferShowEmoticons: bindSetting('buffers.show_emoticons'),
         settingBufferBlockPms: bindSetting('buffers.block_pms'),
@@ -121,6 +129,8 @@ export default {
         settingBufferExtraFormatting: bindSetting('buffers.extra_formatting'),
         settingBufferTrafficAsActivity: bindSetting('buffers.traffic_as_activity'),
         settingBufferMuteSound: bindSetting('buffers.mute_sound'),
+        settingDefaultBanMask: bindSetting('buffers.default_ban_mask'),
+        settingDefaultKickReason: bindSetting('buffers.default_kick_reason'),
         settingMessageLayout: {
             get: function getSettingMessageLayout() {
                 return state.setting('messageLayout') === 'compact';

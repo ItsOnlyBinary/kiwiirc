@@ -54,7 +54,7 @@
                 v-bind:data-nick="message.nick"
                 @mouseover="ml.hover_nick=message.nick.toLowerCase();"
                 @mouseout="ml.hover_nick='';"
-            >{{message.nick}}</div>
+            >{{message.user ? userModePrefix(message.user) : ''}}{{message.nick}}</div>
             <div
                 v-if="isMessage(message) && ml.bufferSetting('show_timestamps')"
                 class="kiwi-messagelist-time"
@@ -75,8 +75,9 @@
 
 <script>
 
-// import state from 'src/libs/state';
-import * as TextFormatting from 'src/helpers/TextFormatting';
+// import state from '@/libs/state';
+import * as TextFormatting from '@/helpers/TextFormatting';
+import * as Misc from '@/helpers/Misc';
 import MessageInfo from './MessageInfo';
 
 
@@ -96,78 +97,85 @@ export default {
             return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();
         },
         nickColour: function nickColour(nick) {
-            return TextFormatting.createNickColour(nick);
+            if (this.ml.bufferSetting('colour_nicknames_in_messages')) {
+                return TextFormatting.createNickColour(nick);
+            }
+            return '';
         },
         isMessage: function isMessage(message) {
             let types = ['privmsg', 'action', 'notice'];
             return types.indexOf(message.type) > -1;
         },
+        userModePrefix: function userModePrefix(user) {
+            return Misc.userModePrefix(user, this.ml.buffer);
+        },
     },
 };
 </script>
 
-<style>
-.kiwi-messagelist-message--modern .kiwi-messagelist-body {
-    display: block;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin-left: 130px;
-}
-.kiwi-messagelist-body a {
-    word-break: break-all;
-}
-
-
+<style lang="less">
 .kiwi-messagelist-message--modern {
     border-left: 7px solid transparent;
-}
-.kiwi-messagelist-modern-avatar {
-    background: #1869FE;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 50px;
-    color: #fff;
-    opacity: 0.8;
-    font-size: 25px;
-    float: left;
-    text-transform: uppercase;
-    cursor: pointer;
-}
 
-.kiwi-messagelist-modern-left {
-    width: 50px; /* Same as the avatar width */
-}
-.kiwi-messagelist-modern-right {
-    margin-left: 60px; /* Avatar width + margin space */
-}
+    .kiwi-messagelist-body {
+        display: block;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin-left: 130px;
+    }
+    .kiwi-messagelist-body a {
+        word-break: break-all;
+    }
 
-.kiwi-messagelist-message--modern .kiwi-messagelist-nick,
-.kiwi-messagelist-message--modern .kiwi-messagelist-time  {
-    display: inline-block;
-    width: auto;
-    float: none;
-}
-.kiwi-messagelist-message--modern .kiwi-messagelist-body {
-    display: block;
-    margin-left: 0;
-}
 
-.kiwi-messagelist-message--modern.kiwi-messagelist-message-repeat {
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-top: 0;
-}
-.kiwi-messagelist-message--modern.kiwi-messagelist-message-repeat .kiwi-messagelist-modern-avatar {
-    display: none;
-}
-.kiwi-messagelist-message--modern.kiwi-messagelist-message-repeat .kiwi-messagelist-nick,
-.kiwi-messagelist-message--modern.kiwi-messagelist-message-repeat .kiwi-messagelist-time {
-    display: none;
-}
+    .kiwi-messagelist-modern-avatar {
+        background: #1869FE;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 50px;
+        color: #fff;
+        opacity: 0.8;
+        font-size: 25px;
+        float: left;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
 
-.kiwi-messagelist-message--modern.kiwi-messagelist-message--highlight {
-    background: none;
+    .kiwi-messagelist-modern-left {
+        width: 50px; /* Same as the avatar width */
+    }
+    .kiwi-messagelist-modern-right {
+        margin-left: 60px; /* Avatar width + margin space */
+    }
+
+    .kiwi-messagelist-nick,
+    .kiwi-messagelist-time  {
+        display: inline-block;
+        width: auto;
+        float: none;
+    }
+    .kiwi-messagelist-body {
+        display: block;
+        margin-left: 0;
+    }
+
+    &.kiwi-messagelist-message-repeat {
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+    }
+    &.kiwi-messagelist-message-repeat .kiwi-messagelist-modern-avatar {
+        display: none;
+    }
+    &.kiwi-messagelist-message-repeat .kiwi-messagelist-nick,
+    &.kiwi-messagelist-message-repeat .kiwi-messagelist-time {
+        display: none;
+    }
+
+    &.kiwi-messagelist-message--highlight {
+        background: none;
+    }
 }
 </style>

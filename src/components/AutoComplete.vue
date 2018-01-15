@@ -26,7 +26,7 @@
 <script>
 
 import _ from 'lodash';
-import state from 'src/libs/state';
+import state from '@/libs/state';
 
 export default {
     data: function data() {
@@ -54,8 +54,8 @@ export default {
 
                 return s;
             })
-            .sort((a, b) => a.text.localeCompare(b.text))
-            .value();
+                .sort((a, b) => a.text.localeCompare(b.text))
+                .value();
         },
         filteredAndLimitedItems: function filteredAndLimitedItems() {
             return this.filteredItems.filter((item, itemIdx, items) => {
@@ -76,10 +76,10 @@ export default {
                 // * Item 4
                 // * Item 5 < selected
                 if (idxFrom < 0) {
-                    idxTo = idxTo + -idxFrom;
+                    idxTo += -idxFrom;
                     idxFrom = 0;
                 } else if (idxTo > numItems) {
-                    idxFrom = idxFrom - (idxTo - numItems);
+                    idxFrom -= (idxTo - numItems);
                     idxTo = numItems;
                 }
 
@@ -104,7 +104,6 @@ export default {
 
             let cancelKeyCodes = [
                 13, // return
-                32, // space
                 188, // comma
                 190, // period
             ];
@@ -161,7 +160,13 @@ export default {
         },
         selectCurrentItem: function selectCurrentItem() {
             let item = this.selectedItem;
-            this.$emit('selected', item.value || item.text, item);
+            let value = '';
+
+            if (item) {
+                value = item.value || item.text;
+            }
+
+            this.$emit('selected', value, item);
         },
         cancel: function cancel() {
             this.$emit('cancel');
@@ -205,5 +210,17 @@ export default {
     left: 0;
     z-index: 1;
     max-height: 300px;
+}
+.kiwi-autocomplete-item {
+    padding: 5px 2em;
+}
+.kiwi-autocomplete-item--selected {
+}
+.kiwi-autocomplete-item-value {
+    font-weight: bold;
+}
+.kiwi-autocomplete-item-action {
+    float: right;
+    font-size: 0.9em;
 }
 </style>

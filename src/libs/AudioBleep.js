@@ -1,4 +1,4 @@
-import * as Misc from 'src/helpers/Misc';
+import * as Misc from '@/helpers/Misc';
 
 export class AudioBleep {
     constructor() {
@@ -32,6 +32,10 @@ export function listenForHighlights(state) {
 
     state.$on('message.new', (message, buffer) => {
         if (buffer.setting('mute_sound')) {
+            return;
+        }
+
+        if (message.type === 'connection') {
             return;
         }
 

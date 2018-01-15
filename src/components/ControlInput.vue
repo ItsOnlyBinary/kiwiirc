@@ -1,8 +1,13 @@
 <template>
     <div class="kiwi-controlinput">
+        <div class="kiwi-controlinput-selfuser" :class="{'kiwi-controlinput-selfuser--open': selfuser_open}">
+            <self-user :network="buffer.getNetwork()" v-if="selfuser_open && networkState==='connected'"></self-user>
+        </div>
+
         <div class="kiwi-controlinput-inner">
-            <div v-if="currentNick" class="kiwi-controlinput-user">
-                {{ currentNick }}
+            <div v-if="currentNick" class="kiwi-controlinput-user" @click="toggleSelfUser">
+                <span class="kiwi-controlinput-user-nick">{{ currentNick }}</span>
+                <i class="fa fa-caret-up" aria-hidden="true"></i>
             </div>
             <form @submit.prevent="submitForm" class="kiwi-controlinput-form">
                 <auto-complete
@@ -28,13 +33,17 @@
                 <!--<button type="submit">Send</button>-->
             </form>
             <div class="kiwi-controlinput-tools" ref="plugins">
-                <a @click.prevent="onToolClickTextStyle">
+                <a @click.prevent="onToolClickTextStyle" class="kiwi-controlinput-tool">
                     <i class="fa fa-adjust" aria-hidden="true"></i>
                 </a>
+                <a @click.prevent="onToolClickEmoji" class="kiwi-controlinput-tool">
+                    <i class="fa fa-smile-o" aria-hidden="true"></i>
+                </a>
+                <div v-for="el in pluginUiElements" v-rawElement="el" class="kiwi-controlinput-tool"></div>
             </div>
         </div>
 
-        <div class="kiwi-controlinput-tool">
+        <div class="kiwi-controlinput-active-tool">
             <component v-bind:is="active_tool" v-bind="active_tool_props"></component>
         </div>
     </div>
@@ -43,17 +52,22 @@
 <script>
 
 import _ from 'lodash';
-import autocompleteCommands from 'src/res/autocompleteCommands';
-import state from 'src/libs/state';
+import autocompleteCommands from '@/res/autocompleteCommands';
+import state from '@/libs/state';
+import GlobalApi from '@/libs/GlobalApi';
 import AutoComplete from './AutoComplete';
 import ToolTextStyle from './inputtools/TextStyle';
+import ToolEmoji from './inputtools/Emoji';
+import SelfUser from './SelfUser';
 
 export default {
     components: {
         AutoComplete,
+        SelfUser,
     },
     data: function data() {
         return {
+            selfuser_open: false,
             value: '',
             history: [],
             history_pos: 0,
@@ -69,6 +83,7 @@ export default {
             autocomplete_filtering: true,
             active_tool: null,
             active_tool_props: {},
+            pluginUiElements: GlobalApi.singleton().controlInputPlugins,
         };
     },
     props: ['container', 'buffer'],
@@ -79,6 +94,12 @@ export default {
                 activeNetwork.nick :
                 '';
         },
+        networkState() {
+            let activeNetwork = state.getActiveNetwork();
+            return activeNetwork ?
+                activeNetwork.state :
+                '';
+        },
     },
     watch: {
         history_pos: function watchhistoryPos(newVal) {
@@ -87,11 +108,16 @@ export default {
         },
     },
     methods: {
-        addPlugin: function addPlugin(domEl) {
-            this.$refs.plugins.appendChild(domEl);
+        toggleSelfUser() {
+            if (this.networkState === 'connected') {
+                this.selfuser_open = !this.selfuser_open;
+            }
         },
         onToolClickTextStyle: function onToolClickTextStyle() {
             this.toggleInputTool(ToolTextStyle);
+        },
+        onToolClickEmoji() {
+            this.toggleInputTool(ToolEmoji);
         },
         closeInputTool: function closeInputTool() {
             this.active_tool = null;
@@ -143,6 +169,19 @@ export default {
             if (event.keyCode === 13) {
                 event.preventDefault();
                 this.submitForm();
+            } else if (event.keyCode === 32) {
+                // Hitting space after just typing an ascii emoji will get it replaced with
+                // its image
+                if (state.setting('buffers.show_emoticons')) {
+                    let currentWord = this.$refs.input.getCurrentWord();
+                    let emojiList = state.setting('emojis');
+                    if (emojiList.hasOwnProperty(currentWord.word)) {
+                        let emoji = emojiList[currentWord.word];
+                        let url = state.setting('emojiLocation') + emoji + '.png';
+                        this.$refs.input.setCurrentWord('');
+                        this.$refs.input.addImg(currentWord.word + ' ', url);
+                    }
+                }
             } else if (event.keyCode === 38) {
                 // Up
                 event.preventDefault();
@@ -273,6 +312,13 @@ export default {
                     return item;
                 });
 
+                if (this.buffer.isQuery()) {
+                    userList.push({
+                        text: this.buffer.name,
+                        type: 'user',
+                    });
+                }
+
                 list = list.concat(userList);
             }
 
@@ -331,9 +377,6 @@ export default {
             this.$refs.input.focus();
         });
     },
-    mounted: function mounted() {
-        state.$emit('controlinput:show', { controlinput: this });
-    },
 };
 </script>
 
@@ -341,15 +384,26 @@ export default {
 
 .kiwi-controlinput {
     box-sizing: border-box;
+    padding: 4px;
 }
 .kiwi-controlinput-inner {
     display: flex;
     position: relative;
     height: 100%;
     box-sizing: border-box;
+    padding: 3px;
 }
 .kiwi-controlinput-user {
     height: 100%;
+    padding: 0 15px;
+    margin-right: 15px;
+    font-weight: bold;
+    text-align: center;
+}
+@media screen and (max-width: 500px) {
+    .kiwi-controlinput-user-nick {
+        display: none;
+    }
 }
 .kiwi-controlinput-form {
     flex: 1;
@@ -365,20 +419,42 @@ export default {
 .kiwi-controlinput-input {
     height: 100%;
     outline: none;
+    border: none;
 }
 
-.kiwi-controlinput-tools > a {
-    display: inline-block;
-    padding: 0 1em;
-    cursor: pointer;
+.kiwi-controlinput-tools {
+    margin-left: 10px;
 }
 .kiwi-controlinput-tool {
+    display: inline-block;
+    padding: 0 1em;
+}
+.kiwi-controlinput-tool a {
+    cursor: pointer;
+}
+.kiwi-controlinput-active-tool {
     position: absolute;
     bottom: 100%;
     right: 0;
     z-index: 1;
     background: #f6f6f6;
     border: 1px solid #dddddd;
+}
+
+.kiwi-controlinput-user {
+    cursor: pointer;
+}
+
+.kiwi-controlinput-selfuser {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    max-height: 0;
+    transition: max-height 0.2s;
+    overflow: hidden;
+}
+.kiwi-controlinput-selfuser--open {
+    max-height: 300px;
 }
 
 </style>

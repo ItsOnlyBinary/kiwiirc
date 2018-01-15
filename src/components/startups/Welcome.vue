@@ -4,8 +4,10 @@
         <div class="kiwi-welcome-simple-section kiwi-welcome-simple-section-connection">
             <h2 v-html="greetingText"></h2>
 
-            <template v-if="!network">
+            <template v-if="!network || network.state === 'disconnected'">
                 <form @submit.prevent="formSubmit" class="u-form kiwi-welcome-simple-form">
+                    <div class="kiwi-welcome-simple-error" v-if="network && network.state_error">We couldn't connect to the server :( <span>{{readableStateError(network.state_error)}}</span></div>
+
                     <input-text v-if="showNick" class="kiwi-welcome-simple-nick" :label="$t('nick')" v-model="nick" />
                     <label v-if="showPass" class="kiwi-welcome-simple-have-password">
                         <input type="checkbox" v-model="show_password_box" /> {{$t('password_have')}}
@@ -24,7 +26,7 @@
                 <i class="fa fa-spin fa-spinner" style="font-size:2em; margin-top:1em;" aria-hidden="true"></i>
             </template>
         </div>
-        
+
         <div class="kiwi-welcome-simple-section kiwi-welcome-simple-section-info" :style="infoStyle">
             <div class="kiwi-welcome-simple-section-info-content" v-if="infoContent" v-html="infoContent"></div>
         </div>
@@ -34,8 +36,8 @@
 <script>
 
 import _ from 'lodash';
-import * as Misc from 'src/helpers/Misc';
-import state from 'src/libs/state';
+import * as Misc from '@/helpers/Misc';
+import state from '@/libs/state';
 
 export default {
     data: function data() {
@@ -56,13 +58,13 @@ export default {
             let greeting = state.settings.startupOptions.greetingText;
             return typeof greeting === 'string' ?
                 greeting :
-                'Welcome to Kiwi IRC!';
+                this.$t('start_greeting');
         },
         buttonText: function buttonText() {
             let greeting = state.settings.startupOptions.buttonText;
             return typeof greeting === 'string' ?
                 greeting :
-                'Start';
+                this.$t('start_button');
         },
         readyToStart: function readyToStart() {
             let ready = this.channel && this.nick;
@@ -92,9 +94,13 @@ export default {
         },
     },
     methods: {
+        readableStateError(err) {
+            return Misc.networkErrorMessage(err);
+        },
         close: function close() {
             this.closing = true;
             this.$el.addEventListener('transitionend', (event) => {
+                state.persistence.watchStateForChanges();
                 this.$emit('start');
             }, false);
         },
@@ -106,14 +112,21 @@ export default {
         startUp: function startUp() {
             let options = state.settings.startupOptions;
 
-            let net = this.network = state.addNetwork('Network', this.nick, {
-                server: _.trim(options.server),
-                port: options.port,
-                tls: options.tls,
-                password: this.password,
-                encoding: _.trim(options.encoding),
-                direct: !!options.direct,
-            });
+            let net;
+            if (!this.network) {
+                net = this.network = state.addNetwork('Network', this.nick, {
+                    server: _.trim(options.server),
+                    port: options.port,
+                    tls: options.tls,
+                    password: this.password,
+                    encoding: _.trim(options.encoding),
+                    direct: !!options.direct,
+                    path: options.direct_path || '',
+                    gecos: options.gecos,
+                });
+            } else {
+                net = this.network;
+            }
 
             // Only switch to the first channel we join if multiple are being joined
             let hasSwitchedActiveBuffer = false;
@@ -139,7 +152,6 @@ export default {
                 net.ircClient.off('close', onClosed);
             };
             let onClosed = () => {
-                setTimeout(() => { this.network = null; }, 1000);
                 net.ircClient.off('registered', onRegistered);
                 net.ircClient.off('close', onClosed);
             };
@@ -155,7 +167,7 @@ export default {
     created: function created() {
         let options = state.settings.startupOptions;
 
-        this.nick = this.processNickRandomNumber(options.nick || '');
+        this.nick = this.processNickRandomNumber(Misc.queryStringVal('nick') || options.nick || '');
         this.password = options.password || '';
         this.channel = window.location.hash || options.channel || '';
         this.showChannel = typeof options.showChannel === 'boolean' ?
@@ -163,6 +175,9 @@ export default {
             true;
         this.showNick = typeof options.showNick === 'boolean' ?
             options.showNick :
+            true;
+        this.showPass = typeof options.showPassword === 'boolean' ?
+            options.showPassword :
             true;
 
         if (options.autoConnect && this.nick && this.channel) {
@@ -176,6 +191,7 @@ export default {
 
 .kiwi-welcome-simple {
     height: 100%;
+    text-align: center;
 }
 
 .kiwi-welcome-simple h2 {
@@ -218,6 +234,16 @@ export default {
 
 
 /** Left side */
+.kiwi-welcome-simple-error {
+    text-align: center;
+    margin: 1em 0;
+    padding: 0.3em;
+}
+.kiwi-welcome-simple-error span {
+    display: block;
+    font-style: italic;
+}
+
 .kiwi-welcome-simple-section-connection {
     left: 0;
     padding-top: 3em;
@@ -237,12 +263,23 @@ export default {
     box-sizing: border-box;
 }
 
+.kiwi-welcome-simple .input-text,
+.kiwi-welcome-simple .kiwi-welcome-simple-have-password input {
+    margin-bottom: 1.5em;
+}
+.kiwi-welcome-simple-have-password input:checked {
+    margin-bottom: 0;
+}
+
 .kiwi-welcome-simple-start {
     font-size: 1.1em;
     cursor: pointer;
 }
+.kiwi-welcome-simple-start[disabled] {
+    cursor: not-allowed;
+}
 .kiwi-welcome-simple-form {
-    width: 300px;
+    max-width: 300px;
     margin: 2em auto;
 }
 

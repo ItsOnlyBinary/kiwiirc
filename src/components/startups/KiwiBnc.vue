@@ -37,8 +37,10 @@
 <script>
 
 import _ from 'lodash';
-import state from 'src/libs/state';
-import logger from 'src/libs/Logger';
+import state from '@/libs/state';
+import Logger from '@/libs/Logger';
+
+let log = Logger.namespace('Startup/kiwiBnc');
 
 export default {
     created: function created() {
@@ -58,7 +60,7 @@ export default {
             let greeting = state.settings.startupOptions.greetingText;
             return typeof greeting === 'string' ?
                 greeting :
-                'Welcome to Kiwi IRC!';
+                this.$t('start_greeting');
         },
         buttonText: function buttonText() {
             if (this.loading) {
@@ -68,7 +70,7 @@ export default {
             let greeting = state.settings.startupOptions.buttonText;
             return typeof greeting === 'string' ?
                 greeting :
-                'Start';
+                this.$t('start_button');
         },
         infoStyle: function infoStyle() {
             let style = {};
@@ -90,6 +92,7 @@ export default {
         close: function close() {
             this.closing = true;
             this.$el.addEventListener('transitionend', (event) => {
+                state.persistence.watchStateForChanges();
                 this.$emit('start');
             }, false);
         },
@@ -112,11 +115,12 @@ export default {
                 for (let network of bncNetworks) {
                     network.buffers = [];
                     try {
+                        /* eslint-disable no-await-in-loop */
                         let buffers = await bncnet.ircClient.bnc.getBuffers(network.name);
                         network.buffers = buffers;
                     } catch (err) {
                         // Log the error here or something
-                        logger.error(err);
+                        log.error(err);
                     }
 
                     this.addNetworkToState(network);
@@ -200,6 +204,9 @@ export default {
                 if (buffer.joined) {
                     newBuffer.enabled = true;
                 }
+                if (buffer.seen) {
+                    newBuffer.last_read = (new Date(buffer.seen)).getTime();
+                }
             });
         },
 
@@ -225,7 +232,7 @@ export default {
 
             rememberNetworks();
 
-            let debouncedSaveState = _.debounce(newVal => {
+            let saveState = newVal => {
                 state.networks.forEach(network => {
                     // Only deal with BNC networks
                     if (network.name === 'bnccontrol') {
@@ -274,13 +281,17 @@ export default {
                 });
 
                 rememberNetworks();
-            }, 2000);
+            };
+
+            let debouncedSaveState = _.debounce(saveState, 2000);
 
             state.$watch('networks', debouncedSaveState, { deep: true });
 
-            // Just before we connect to a network, make sure the BNC is connected to it or
-            // at least trying to connect.
+            // Just before we connect to a network, make sure the BNC is sabed and connected to
+            // it or at least trying to connect.
             state.$on('network.connecting', event => {
+                saveState();
+
                 let netName = event.network.connection.bncname;
                 let networkFromBnc = _.find(bncNetworks, { name: netName });
                 if (networkFromBnc && !networkFromBnc.connected) {

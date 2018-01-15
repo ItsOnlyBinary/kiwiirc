@@ -23,7 +23,7 @@
 
 <script>
 
-import state from 'src/libs/state';
+import state from '@/libs/state';
 
 let embedlyTagIncluded = false;
 
@@ -86,5 +86,14 @@ export default {
 <style>
 .kiwi-mediaviewer {
     box-sizing: border-box;
+}
+.kiwi-mediaviewer-controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+}
+.kiwi-mediaviewer-controls-close {
+    padding: 3px 15px;
 }
 </style>

@@ -1,8 +1,9 @@
 import _ from 'lodash';
+import strftime from 'strftime';
 import Irc from 'irc-framework/browser';
 import bouncerMiddleware from './BouncerMiddleware';
 import * as ServerConnection from './ServerConnection';
-import * as TextFormatting from 'src/helpers/TextFormatting';
+import * as TextFormatting from '@/helpers/TextFormatting';
 
 export function create(state, networkid) {
     let network = state.getNetwork(networkid);
@@ -15,8 +16,8 @@ export function create(state, networkid) {
         password: network.connection.password,
         nick: network.nick,
         username: network.username || network.nick,
-        gecos: 'https://kiwiirc.com/',
-        version: 'Kiwi IRC',
+        gecos: network.gecos || 'https://kiwiirc.com/',
+        version: null,
         auto_reconnect: false,
         encoding: network.connection.encoding,
     };
@@ -34,6 +35,7 @@ export function create(state, networkid) {
     }
 
     let ircClient = new Irc.Client(clientOpts);
+    ircClient.requestCap('znc.in/self-message');
     ircClient.use(clientMiddleware(state, networkid));
     ircClient.use(bouncerMiddleware());
 
@@ -65,6 +67,8 @@ export function create(state, networkid) {
             ircClient.options.tls = network.connection.tls;
             ircClient.options.password = network.connection.password;
             ircClient.options.nick = network.nick;
+            ircClient.options.username = network.username || network.nick;
+            ircClient.options.gecos = network.gecos || 'https://kiwiirc.com/';
             ircClient.options.encoding = network.connection.encoding;
         }
 
@@ -90,6 +94,9 @@ export function create(state, networkid) {
 
 function clientMiddleware(state, networkid) {
     let network = state.getNetwork(networkid);
+    let numConnects = 0;
+    // Requested chathistory for this connection yet
+    let requestedCh = false;
 
     return function middlewareFn(client, rawEvents, parsedEvents) {
         parsedEvents.use(parsedEventsHandler);
@@ -103,11 +110,47 @@ function clientMiddleware(state, networkid) {
         client.on('connected', () => {
             network.state_error = '';
             network.state = 'connected';
+
+            network.buffers.forEach(buffer => {
+                if (!buffer) {
+                    return;
+                }
+
+                let messageBody = TextFormatting.formatText('network_connected', {
+                    text: 'Connected',
+                });
+
+                state.addMessage(buffer, {
+                    time: Date.now(),
+                    nick: '',
+                    message: messageBody,
+                    type: 'connection',
+                    type_extra: 'connected',
+                });
+            });
         });
 
         client.on('socket close', (err) => {
             network.state = 'disconnected';
             network.state_error = err || '';
+
+            network.buffers.forEach(buffer => {
+                if (!buffer) {
+                    return;
+                }
+
+                let messageBody = TextFormatting.formatText('network_disconnected', {
+                    text: 'Disconnected',
+                });
+
+                state.addMessage(buffer, {
+                    time: Date.now(),
+                    nick: '',
+                    message: messageBody,
+                    type: 'connection',
+                    type_extra: 'disconnected',
+                });
+            });
         });
     };
 
@@ -144,6 +187,9 @@ function clientMiddleware(state, networkid) {
                 message: `Connected to ${client.network.name}!`,
             });
 
+            // Get some extra info about ourselves
+            client.raw('WHO ' + event.nick);
+
             if (network.auto_commands) {
                 network.auto_commands.split('\n').forEach(line => {
                     state.$emit('input.raw', line[0] === '/' ? line : `/${line}`);
@@ -151,17 +197,45 @@ function clientMiddleware(state, networkid) {
             }
 
             // Join our channels
-            network.buffers.forEach(buffer => {
-                if (buffer.isChannel() && buffer.enabled) {
-                    client.join(buffer.name, buffer.key);
-                }
-            });
+            // If under bouncer mode, the bouncer will send the channels were joined to instead.
+            if (!network.connection.bncname) {
+                network.buffers.forEach(buffer => {
+                    if (buffer.isChannel() && buffer.enabled) {
+                        client.join(buffer.name, buffer.key);
+                    }
+                });
+            }
+
+            // Haven't yet requested chathistory for this connection
+            requestedCh = false;
+            numConnects++;
         }
 
         if (command === 'server options') {
             // If the network name has changed from the irc-framework default, update ours
             if (client.network.name !== 'Network') {
                 network.name = client.network.name;
+            }
+
+            let historySupport = !!network.ircClient.network.supports('chathistory');
+
+            // If this is a reconnect then request chathistory from our last position onwards
+            // to get any missed messages. (bouncer mode only)
+            if (numConnects > 1 && !requestedCh && historySupport && network.connection.bncname) {
+                requestedCh = true;
+                network.buffers.forEach(buffer => {
+                    if (buffer.isChannel() || buffer.isQuery()) {
+                        buffer.requestScrollback('forward');
+                    }
+                });
+            }
+
+            // The first time we connect in bouncer mode, request the last 50 messages for every
+            // buffer we have
+            if (numConnects === 1 && !requestedCh && historySupport && network.connection.bncname) {
+                requestedCh = true;
+                let time = strftime('%FT%T.%L%:z', new Date());
+                network.ircClient.raw(`CHATHISTORY * timestamp=${time} message_count=-50`);
             }
         }
 
@@ -248,6 +322,7 @@ function clientMiddleware(state, networkid) {
                 nick: event.nick,
                 message: messageBody,
                 type: event.type,
+                tags: event.tags,
             });
         }
 
@@ -303,6 +378,7 @@ function clientMiddleware(state, networkid) {
 
             if (event.kicked === client.user.nick) {
                 buffer.joined = false;
+                buffer.clearUsers();
                 messageBody = TextFormatting.formatText('channel_selfkick', {
                     nick: event.nick,
                     username: event.ident,
@@ -336,6 +412,7 @@ function clientMiddleware(state, networkid) {
             state.removeUserFromBuffer(buffer, event.nick);
             if (event.nick === client.user.nick) {
                 buffer.joined = false;
+                buffer.clearUsers();
             }
 
             let messageBody = TextFormatting.formatText('channel_part', {
@@ -362,6 +439,7 @@ function clientMiddleware(state, networkid) {
 
                 if (event.nick === client.user.nick) {
                     buffer.joined = false;
+                    buffer.clearUsers();
                 }
 
                 let messageBody = TextFormatting.formatText('channel_quit', {
@@ -379,6 +457,25 @@ function clientMiddleware(state, networkid) {
                     type_extra: 'quit',
                 });
             });
+
+            // Mention the quit in any query windows
+            let queryBuffer = network.bufferByName(event.nick);
+            if (queryBuffer) {
+                let messageBody = TextFormatting.formatText('channel_quit', {
+                    nick: event.nick,
+                    username: event.ident,
+                    host: event.hostname,
+                    text: `has left (${event.message})`,
+                });
+
+                state.addMessage(queryBuffer, {
+                    time: Date.now(),
+                    nick: event.nick,
+                    message: messageBody,
+                    type: 'traffic',
+                    type_extra: 'quit',
+                });
+            }
 
             state.removeUser(networkid, {
                 nick: event.nick,
@@ -638,6 +735,10 @@ function clientMiddleware(state, networkid) {
                 message: messageBody,
                 type: 'error',
             });
+
+            if (command === 'ctcp request' && event.type === 'VERSION') {
+                client.ctcpResponse(event.nick, 'VERSION', 'Kiwi IRC');
+            }
         }
 
         if (command === 'irc error') {

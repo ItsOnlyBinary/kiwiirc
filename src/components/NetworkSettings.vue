@@ -49,7 +49,7 @@
             </div>
 
             <div class="kiwi-networksettings-section kiwi-networksettings-advanced">
-                <h3 @click="show_advanced=!show_advanced">Advanced <i class="fa" :class="['fa-caret-'+(show_advanced?'up':'down')]" aria-hidden="true"></i></h3>
+                <h3 @click="show_advanced=!show_advanced">{{$t('settings_advanced')}} <i class="fa" :class="['fa-caret-'+(show_advanced?'up':'down')]" aria-hidden="true"></i></h3>
                 <template v-if="show_advanced">
                     <label><span>{{$t('settings_encoding')}}: </span> <input v-model="network.connection.encoding" /></label><br />
                     <label><span>{{$t('settings_show_raw')}}: </span> <input v-model="settingShowRaw" type="checkbox" /></label><br />
@@ -70,7 +70,8 @@
 
 <script>
 
-import state from 'src/libs/state';
+import state from '@/libs/state';
+import * as Misc from '@/helpers/Misc';
 
 export default {
     data: function data() {
@@ -97,21 +98,13 @@ export default {
     },
     methods: {
         readableStateError(err) {
-            let errs = {
-                err_unknown_host: 'Unknown domain name or host',
-                err_forbidden: 'Forbidden to connect',
-                err_timeout: 'Took too long to connect',
-                err_refused: 'The server refused the connection',
-                err_tls: 'Could not connect securely',
-                err_proxy: 'The Kiwi IRC server had an error',
-            };
-
-            return errs[err] || 'Unknown error';
+            return Misc.networkErrorMessage(err);
         },
         reconnect: function reconnect() {
             this.network.ircClient.connect();
         },
         removeNetwork: function removeNetwork() {
+            /* eslint-disable no-restricted-globals */
             let confirmed = confirm('Really remove this network? This cannot be undone!');
             if (!confirmed) {
                 return;
@@ -172,16 +165,19 @@ export default {
 .kiwi-networksettings {
     box-sizing: border-box;
     height: 100%;
+    margin: 0 auto;
+    max-width: 400px;
 }
 .kiwi-networksettings-close {
     float: right;
 }
+.kiwi-networksettings-section {
+    margin: 0 10px 40px 10px;
+}
 .kiwi-networksettings form .input-text {
     margin-bottom: 10px;
 }
-.kiwi-networksettings {
-    max-width: 400px;
-}
+
 .kiwi-networksettings-error {
     text-align: center;
     margin: 1em;
@@ -198,7 +194,32 @@ export default {
 .kiwi-networksettings-server-types a {
     margin-right: 1em;
 }
+.kiwi-networksettings-server-types-info {
+    font-size: 0.9em;
+    font-style: italic;
+}
 .kiwi-networksettings-server-type-active {
     font-weight: bold;
+}
+.kiwi-networksettings-connection-address {
+    width: 70%;
+    display: inline-block;
+}
+.kiwi-networksettings-connection-port {
+    width: 25%;
+    float: right;
+}
+
+.kiwi-networksettings-connection-password {
+    width: 70%;
+}
+
+.kiwi-networksettings-user {
+    width: 70%;
+}
+.kiwi-networksettings-danger h3 {
+    padding: 5px 10px;
+    margin-top: 70px;
+    margin-bottom: 1em;
 }
 </style>

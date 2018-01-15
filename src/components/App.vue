@@ -44,21 +44,25 @@
 <script>
 
 import 'font-awesome-webpack';
+import '../res/globalStyle.css';
 
-import startupWelcome from 'src/components/startups/Welcome';
-import startupCustomServer from 'src/components/startups/CustomServer';
-import startupKiwiBnc from 'src/components/startups/KiwiBnc';
-import startupPersonal from 'src/components/startups/Personal';
-import StateBrowser from 'src/components/StateBrowser';
-import Container from 'src/components/Container';
-import ControlInput from 'src/components/ControlInput';
-import MediaViewer from 'src/components/MediaViewer';
-import * as Notifications from 'src/libs/Notifications';
-import * as AudioBleep from 'src/libs/AudioBleep';
-import ThemeManager from 'src/libs/ThemeManager';
-import logger from 'src/libs/Logger';
-import state from 'src/libs/state';
-import InputHandler from 'src/libs/InputHandler';
+import startupWelcome from '@/components/startups/Welcome';
+import startupZncLogin from '@/components/startups/ZncLogin';
+import startupCustomServer from '@/components/startups/CustomServer';
+import startupKiwiBnc from '@/components/startups/KiwiBnc';
+import startupPersonal from '@/components/startups/Personal';
+import StateBrowser from '@/components/StateBrowser';
+import Container from '@/components/Container';
+import ControlInput from '@/components/ControlInput';
+import MediaViewer from '@/components/MediaViewer';
+import * as Notifications from '@/libs/Notifications';
+import * as AudioBleep from '@/libs/AudioBleep';
+import ThemeManager from '@/libs/ThemeManager';
+import Logger from '@/libs/Logger';
+import state from '@/libs/state';
+import InputHandler from '@/libs/InputHandler';
+
+let log = Logger.namespace('App.vue');
 
 /* eslint-disable no-new */
 new InputHandler(state);
@@ -121,6 +125,7 @@ export default {
             welcome: startupWelcome,
             customServer: startupCustomServer,
             kiwiBnc: startupKiwiBnc,
+            znc: startupZncLogin,
             personal: startupPersonal,
         };
         let extraStartupScreens = state.getStartups();
@@ -129,7 +134,7 @@ export default {
         let startup = extraStartupScreens[startupName] || startupScreens[startupName];
 
         if (!startup) {
-            logger.error(`Startup screen "${startupName}" does not exist`);
+            Logger.error(`Startup screen "${startupName}" does not exist`);
         } else {
             this.startupComponent = startup;
         }
@@ -183,7 +188,7 @@ export default {
     methods: {
         // Triggered by a startup screen event
         startUp: function startUp(opts) {
-            logger('startUp()');
+            log('startUp()');
             if (opts && opts.fallbackComponent) {
                 this.fallbackComponent = opts.fallbackComponent;
             }
@@ -191,10 +196,18 @@ export default {
                 this.fallbackComponentProps = opts.fallbackComponentProps;
             }
 
+            // Make sure a startup screen can't trigger these more than once
+            if (!this.hasStarted) {
+                this.warnOnPageClose();
+                Notifications.requestPermission();
+                Notifications.listenForNewMessages(state);
+                AudioBleep.listenForHighlights(state);
+            }
+
             this.hasStarted = true;
-            Notifications.requestPermission();
-            Notifications.listenForNewMessages(state);
-            AudioBleep.listenForHighlights(state);
+        },
+        warnOnPageClose() {
+            window.onbeforeunload = () => this.$t('window_unload');
         },
         emitDocumentClick: function emitDocumentClick(event) {
             state.$emit('document.clicked', event);
@@ -226,8 +239,19 @@ body {
 
 
 .kiwi-wrap {
+    font-size: 90%;
+    line-height: 1.6em;
+    font-family: Source Sans Pro, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
     height: 100%;
     overflow: hidden;
+    --kiwi-nick-brightness: 50;
+    --kiwi-supports-monospace: 1;
+}
+
+.kiwi-wrap--monospace {
+    font-family: Consolas, monaco, monospace;
+    font-size: 80%;
 }
 
 .kiwi-statebrowser {
@@ -255,6 +279,14 @@ body {
     display: block;
     height: 100%;
     transition: left 0.5s, margin-left 0.5s;
+}
+.kiwi-workspace:before {
+    position: absolute;
+    content: '';
+    height: 4px;
+    right: 0;
+    left: 0;
+    top: 0;
 }
 /* When the statebrowser opens as a draw, darken the workspace */
 .kiwi-workspace:after {

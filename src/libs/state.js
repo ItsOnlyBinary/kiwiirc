@@ -4,7 +4,7 @@ import strftime from 'strftime';
 import * as IrcClient from './IrcClient';
 import Message from './Message';
 import batchedAdd from './batchedAdd';
-import * as Misc from 'src/helpers/Misc';
+import * as Misc from '@/helpers/Misc';
 import * as Agl from './Agl';
 
 const stateObj = {
@@ -43,12 +43,18 @@ const stateObj = {
             show_timestamps: true,
             scrollback_size: 250,
             show_joinparts: true,
+            show_topics: true,
+            show_nick_changes: true,
+            show_mode_changes: true,
             traffic_as_activity: false,
             coloured_nicklist: true,
+            colour_nicknames_in_messages: true,
             block_pms: false,
             show_emoticons: true,
             extra_formatting: true,
             mute_sound: false,
+            default_ban_mask: '*!%i@%h',
+            default_kick_reason: 'Your behavior is not conducive to the desired environment.',
         },
         // Startup screen default
         startupOptions: {
@@ -89,6 +95,125 @@ const stateObj = {
         embedly: {
             Key: '',
         },
+        /* eslint-disable quote-props */
+        emojis: {
+            '-___-': '1f611',
+            ':\'-)': '1f602',
+            '\':-)': '1f605',
+            '\':-D': '1f605',
+            '>:-)': '1f606',
+            '\':-(': '1f613',
+            '>:-(': '1f620',
+            ':\'-(': '1f622',
+            'O:-)': '1f607',
+            '0:-3': '1f607',
+            '0:-)': '1f607',
+            '0;^)': '1f607',
+            'O;-)': '1f607',
+            '0;-)': '1f607',
+            'O:-3': '1f607',
+            '-__-': '1f611',
+            ':-Þ': '1f61b',
+            '<3': '2764',
+            '</3': '1f494',
+            ':\')': '1f602',
+            ':-D': '1f603',
+            '\':)': '1f605',
+            '\'=)': '1f605',
+            '\':D': '1f605',
+            '\'=D': '1f605',
+            '>:)': '1f606',
+            '>;)': '1f606',
+            '>=)': '1f606',
+            'XD': '1f606',
+            ';-)': '1f609',
+            '*-)': '1f609',
+            ';-]': '1f609',
+            ';^)': '1f609',
+            '\':(': '1f613',
+            '\'=(': '1f613',
+            ':-*': '1f618',
+            ':^*': '1f618',
+            '>:P': '1f61c',
+            'X-P': '1f61c',
+            '>:[': '1f61e',
+            ':-(': '1f61e',
+            ':-[': '1f61e',
+            '>:(': '1f620',
+            ':\'(': '1f622',
+            ';-(': '1f622',
+            '>.<': '1f623',
+            '#-)': '1f635',
+            '%-)': '1f635',
+            'X-)': '1f635',
+            '\\0/': '1f646',
+            '\\O/': '1f646',
+            '0:3': '1f607',
+            '0:)': '1f607',
+            'O:)': '1f607',
+            'O=)': '1f607',
+            'O:3': '1f607',
+            'B-)': '1f60e',
+            '8-)': '1f60e',
+            'B-D': '1f60e',
+            '8-D': '1f60e',
+            '-_-': '1f611',
+            '>:\\': '1f615',
+            '>:/': '1f615',
+            ':-/': '1f615',
+            ':-.': '1f615',
+            ':-P': '1f61b',
+            ':Þ': '1f61b',
+            ':-b': '1f61b',
+            ':-O': '1f62e',
+            'O_O': '1f62e',
+            '>:O': '1f62e',
+            ':-X': '1f636',
+            ':-#': '1f636',
+            ':-)': '1f642',
+            '(y)': '1f44d',
+            ':D': '1f603',
+            '=D': '1f603',
+            ';)': '1f609',
+            '*)': '1f609',
+            ';]': '1f609',
+            ';D': '1f609',
+            ':*': '1f618',
+            '=*': '1f618',
+            ':(': '1f61e',
+            ':[': '1f61e',
+            '=(': '1f61e',
+            ':@': '1f620',
+            ';(': '1f622',
+            'D:': '1f628',
+            ':$': '1f633',
+            '=$': '1f633',
+            '#)': '1f635',
+            '%)': '1f635',
+            'X)': '1f635',
+            'B)': '1f60e',
+            '8)': '1f60e',
+            ':/': '1f615',
+            ':\\': '1f615',
+            '=/': '1f615',
+            '=\\': '1f615',
+            ':L': '1f615',
+            '=L': '1f615',
+            ':P': '1f61b',
+            ':p': '1f61b',
+            '=P': '1f61b',
+            ':b': '1f61b',
+            ':O': '1f62e',
+            ':X': '1f636',
+            ':#': '1f636',
+            '=X': '1f636',
+            '=#': '1f636',
+            ':)': '1f642',
+            '=]': '1f642',
+            '=)': '1f642',
+            ':]': '1f642',
+        },
+        emojiLocation: 'https://kiwiirc.com/shared/emoji/',
     },
     user_settings: {
     },
@@ -226,43 +351,46 @@ const state = new Vue({
     data: stateObj,
     methods: {
         // Export enough state so that it can be imported in future to resume
-        exportState: function exportState() {
+        exportState: function exportState(includeBuffers) {
             let toExport = {};
 
-            toExport.networks = state.networks.map(network => {
-                let networkObj = {
-                    id: network.id,
-                    name: network.name,
-                    connection: {
-                        server: network.connection.server,
-                        port: network.connection.port,
-                        tls: network.connection.tls,
-                        path: network.connection.path,
-                        password: network.connection.password,
-                        direct: network.connection.direct,
-                        encoding: network.connection.encoding,
-                    },
-                    auto_commands: network.auto_commands,
-                    settings: _.cloneDeep(network.settings),
-                    nick: network.nick,
-                    username: network.username,
-                    password: network.password,
-                    buffers: [],
-                };
-
-                networkObj.buffers = network.buffers.map(buffer => {
-                    let bufferObj = {
-                        name: buffer.name,
-                        key: buffer.key,
-                        enabled: !!buffer.enabled,
-                        settings: _.cloneDeep(buffer.settings),
+            if (includeBuffers) {
+                toExport.networks = state.networks.map(network => {
+                    let networkObj = {
+                        id: network.id,
+                        name: network.name,
+                        connection: {
+                            server: network.connection.server,
+                            port: network.connection.port,
+                            tls: network.connection.tls,
+                            path: network.connection.path,
+                            password: network.connection.password,
+                            direct: network.connection.direct,
+                            encoding: network.connection.encoding,
+                        },
+                        auto_commands: network.auto_commands,
+                        settings: _.cloneDeep(network.settings),
+                        nick: network.nick,
+                        username: network.username,
+                        gecos: network.gecos,
+                        password: network.password,
+                        buffers: [],
                     };
 
-                    return bufferObj;
-                });
+                    networkObj.buffers = network.buffers.map(buffer => {
+                        let bufferObj = {
+                            name: buffer.name,
+                            key: buffer.key,
+                            enabled: !!buffer.enabled,
+                            settings: _.cloneDeep(buffer.settings),
+                        };
 
-                return networkObj;
-            });
+                        return bufferObj;
+                    });
+
+                    return networkObj;
+                });
+            }
 
             toExport.user_settings = state.user_settings;
 
@@ -283,6 +411,7 @@ const state = new Vue({
                     network.settings = importNetwork.settings;
                     network.nick = importNetwork.nick;
                     network.username = importNetwork.username;
+                    network.gecos = importNetwork.gecos;
                     network.password = importNetwork.password;
 
                     this.networks.push(network);
@@ -309,7 +438,7 @@ const state = new Vue({
 
         resetState: function resetState() {
             this.$set(this.$data, 'networks', []);
-            this.$set(this.$data, 'messages', []);
+            messages.splice(0);
         },
 
         setting: function setting(name, val) {
@@ -391,6 +520,7 @@ const state = new Vue({
             network.name = name;
             network.nick = nick;
             network.username = serverInfo.username;
+            network.gecos = serverInfo.gecos;
             network.password = serverInfo.password;
             network.connection.server = serverInfo.server || '';
             network.connection.port = serverInfo.port || 6667;
@@ -398,6 +528,7 @@ const state = new Vue({
             network.connection.path = serverInfo.path || '';
             network.connection.password = serverInfo.password || '';
             network.connection.direct = !!serverInfo.direct;
+            network.connection.path = serverInfo.path || '';
             network.connection.encoding = serverInfo.encoding || 'utf8';
             network.connection.bncname = serverInfo.bncname || '';
 
@@ -588,15 +719,55 @@ const state = new Vue({
                 buffer.name === this.ui.active_buffer
             );
 
-            if (isActiveBuffer && state.ui.app_has_focus) {
+            let network = buffer.getNetwork();
+            let isNewMessage = message.time >= buffer.last_read;
+            let isHighlight = Misc.mentionsNick(bufferMessage.message, network.ircClient.user.nick);
+
+            if (isNewMessage && isActiveBuffer && state.ui.app_has_focus) {
                 buffer.last_read = message.time;
             }
 
-            if (includeAsActivity && !isActiveBuffer) {
+            // Handle buffer flags
+            if (isNewMessage && includeAsActivity && !isActiveBuffer) {
                 buffer.incrementFlag('unread');
-                let network = buffer.getNetwork();
-                if (Misc.mentionsNick(bufferMessage.message, network.ircClient.user.nick)) {
+                if (isHighlight) {
                     buffer.flag('highlight', true);
+                }
+            }
+
+            // Handle any notifications
+            let settingAlertOn = buffer.setting('alert_on');
+            let isOurJoin = message.type === 'traffic' && message.nick === network.nick;
+            if (isNewMessage && settingAlertOn !== 'never' && !isOurJoin) {
+                let notifyTitle = '';
+                let notifyMessage = message.nick ?
+                    message.nick + ': ' :
+                    '';
+                notifyMessage += message.message;
+
+                if (isHighlight) {
+                    notifyTitle = 'You were mentioned in ' + buffer.name;
+                } else if (settingAlertOn === 'message' && !isHighlight) {
+                    notifyTitle = buffer.name;
+                }
+
+                if (notifyTitle) {
+                    this.$emit('notification.show', notifyMessage, {
+                        title: notifyTitle,
+                        onclick: () => {
+                            state.setActiveBuffer(buffer.networkid, buffer.name);
+
+                            // Newer webkit browser use parent.focus() while older webkit uses
+                            // window.focus()
+                            /* eslint-disable no-restricted-globals */
+                            if (parent && parent.focus) {
+                                parent.focus();
+                            }
+                            if (window.focus) {
+                                window.focus();
+                            }
+                        },
+                    });
                 }
             }
 
@@ -614,12 +785,19 @@ const state = new Vue({
                 [];
         },
 
-        getUser: function getUser(networkid, nick) {
+        getUser: function getUser(networkid, nick, usersArr_) {
             let user = null;
-            let network = this.getNetwork(networkid);
+            let users = usersArr_;
 
-            if (network) {
-                user = network.users[nick.toLowerCase()];
+            if (!users) {
+                let network = this.getNetwork(networkid);
+                if (network) {
+                    users = network.users;
+                }
+            }
+
+            if (users) {
+                user = users[nick.toLowerCase()];
             }
 
             return user;
@@ -680,7 +858,7 @@ const state = new Vue({
                 };
             } else {
                 // Update the existing user object with any new info we have
-                userObj = state.getUser(network.id, user.nick);
+                userObj = state.getUser(network.id, user.nick, usersArr);
                 _.each(user, (val, prop) => {
                     if (typeof val !== 'undefined') {
                         userObj[prop] = val;
@@ -713,7 +891,7 @@ const state = new Vue({
                 newUsers.forEach(newUser => {
                     let user = newUser.user;
                     let modes = newUser.modes;
-                    let userObj = state.getUser(network.id, user.nick);
+                    let userObj = state.getUser(network.id, user.nick, users);
 
                     if (!userObj) {
                         userObj = this.addUser(network, user, users);
@@ -834,6 +1012,7 @@ function createEmptyNetworkObject() {
         settings: {},
         nick: '',
         username: '',
+        gecos: '',
         password: '',
         buffers: [],
         users: Object.create(null),
@@ -988,24 +1167,50 @@ function initialiseBufferState(buffer) {
         },
     });
     Object.defineProperty(buffer, 'requestScrollback', {
-        value: function requestScrollback() {
+        value: function requestScrollback(_direction) {
+            let direction = _direction || 'backward';
             let time = '';
-            let lastMessage = this.getMessages().reduce((earliest, current) => {
-                if (earliest.time && earliest.time < current.time) {
-                    return earliest;
-                }
-                return current;
-            }, this.getMessages()[0]);
+            // Negative number gets messages before the timestamps, positive gets messages after
+            let numMessages = -50;
 
-            if (lastMessage) {
-                time = strftime('%FT%T.%L%:z', new Date(lastMessage.time));
+            // Going backwards takes the earliest message we already have and requests messages
+            // before it. Going forward takes the last emssage we have and requests messages after
+            // it.
+
+            if (direction === 'backward') {
+                let lastMessage = this.getMessages().reduce((earliest, current) => {
+                    let validType = earliest.type !== 'traffic';
+                    if (validType && earliest.time && earliest.time < current.time) {
+                        return earliest;
+                    }
+                    return current;
+                }, this.getMessages()[0]);
+
+                numMessages = -50;
+                time = lastMessage ?
+                    new Date(lastMessage.time) :
+                    new Date();
+            } else if (direction === 'forward') {
+                let firstMessage = this.getMessages().reduce((latest, current) => {
+                    let validType = latest.type !== 'traffic';
+                    if (validType && latest.time && latest.time > current.time) {
+                        return latest;
+                    }
+                    return current;
+                }, this.getMessages()[0]);
+
+                numMessages = 50;
+                time = firstMessage ?
+                    new Date(firstMessage.time) :
+                    new Date();
             } else {
-                time = strftime('%FT%T.%L%:z', new Date());
+                throw new Error('Invalid direction for requestScrollback(): ' + _direction);
             }
 
-            let ircClient = this.getNetwork().ircClient;
-            ircClient.raw(`CHATHISTORY ${this.name} timestamp=${time} message_count=50`);
-            ircClient.once('batch end chathistory', (event) => {
+            let irc = this.getNetwork().ircClient;
+            let timeStr = strftime('%FT%T.%L%:z', time);
+            irc.raw(`CHATHISTORY ${this.name} timestamp=${timeStr} message_count=${numMessages}`);
+            irc.once('batch end chathistory', (event) => {
                 if (event.commands.length === 0) {
                     this.flags.chathistory_available = false;
                 } else {
@@ -1029,6 +1234,28 @@ function initialiseBufferState(buffer) {
             } else {
                 buffer.last_read = Date.now();
                 buffer.flag('highlight', false);
+
+                // If running under a bouncer, set it on the server-side too
+                let network = buffer.getNetwork();
+                let allowedUpdate = buffer.isChannel() || buffer.isQuery();
+                if (allowedUpdate && network.connection.bncname) {
+                    let lastMessage = buffer.getMessages().reduce((latest, current) => {
+                        if (latest.time && latest.time > current.time) {
+                            return latest;
+                        }
+                        return current;
+                    }, buffer.getMessages()[0]);
+
+                    if (!lastMessage) {
+                        return;
+                    }
+
+                    network.ircClient.bnc.bufferSeen(
+                        network.connection.bncname,
+                        buffer.name,
+                        new Date(lastMessage.time),
+                    );
+                }
             }
         },
     });
@@ -1085,21 +1312,45 @@ function initialiseBufferState(buffer) {
             }
         },
     });
+    Object.defineProperty(buffer, 'clearUsers', {
+        value: function clearUsers() {
+            // Users could be queued to be added, so make sure to clear them as they
+            // would just be added again. Eg. user joins/parts during a flood
+            buffer.addUser.queue().splice(0);
+
+            _.each(buffer.users, (userObj, nick) => {
+                delete userObj.buffers[buffer.id];
+            });
+
+            state.$set(buffer, 'users', {});
+        },
+    });
 
     /**
      * batch up floods of new messages for a huge performance gain
      */
     function addSingleMessage(newMessage) {
         messageObj.messages.push(newMessage);
-        buffer.message_count = messageObj.messages.length;
+        trimMessages();
+        buffer.message_count++;
     }
     function addMultipleMessages(newMessages) {
         messageObj.messages = messageObj.messages.concat(newMessages);
-        buffer.message_count = messageObj.messages.length;
+        trimMessages();
+        buffer.message_count++;
     }
     Object.defineProperty(buffer, 'addMessage', {
         value: batchedAdd(addSingleMessage, addMultipleMessages),
     });
+
+    function trimMessages() {
+        let scrollbackSize = buffer.setting('scrollback_size');
+        let length = messageObj.messages.length;
+
+        if (messageObj.messages.length > scrollbackSize) {
+            messageObj.messages.splice(0, length - scrollbackSize);
+        }
+    }
 
     let messageObj = {
         networkid: buffer.networkid,

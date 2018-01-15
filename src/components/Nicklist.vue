@@ -1,6 +1,6 @@
 <template>
     <div class="kiwi-nicklist">
-        <div class="kiwi-nicklist-info">{{$t('person', {count: bufferUsers.length})}}</div>
+        <div class="kiwi-nicklist-info">{{$t('person', {count: sortedUsers.length})}}</div>
         <ul class="kiwi-nicklist-users">
             <li
                 v-for="user in sortedUsers"
@@ -24,11 +24,24 @@
 
 <script>
 
-import _ from 'lodash';
-import state from 'src/libs/state';
-import Logger from 'src/libs/Logger';
-import * as TextFormatting from 'src/helpers/TextFormatting';
-import * as Agl from 'src/libs/Agl';
+import state from '@/libs/state';
+import Logger from '@/libs/Logger';
+import * as TextFormatting from '@/helpers/TextFormatting';
+import * as Misc from '@/helpers/Misc';
+import * as Agl from '@/libs/Agl';
+
+let log = Logger.namespace('Nicklist');
+
+// Hot function, so it's here for easier caching
+function strCompare(a, b) {
+    if (a === b) {
+        return 0;
+    }
+    return a > b ?
+        1 :
+        -1;
+}
+>>>>>>> master
 
 export default {
     data: function data() {
@@ -38,9 +51,6 @@ export default {
     },
     props: ['network', 'buffer', 'users'],
     computed: {
-        bufferUsers: function bufferUsers() {
-            return _.values(this.buffer.users);
-        },
         sortedUsers: function sortedUsers() {
             // Get a list of network prefixes and give them a rank number
             let netPrefixes = this.network.ircClient.network.options.PREFIX;
@@ -49,49 +59,66 @@ export default {
                 prefixOrders[prefix.mode] = idx;
             });
 
-            // Since vuejs will sort in-place and update views when .sort is called
-            // on an array, clone it first so that we have a plain array to sort
-            let users = _.clone(this.bufferUsers);
+            // A few things here:
+            // * Since vuejs will sort in-place and update views when .sort is called
+            //   on an array, clone it first so that we have a plain array to sort
+            // * Keep a map of lowercased nicks to we don't need to call .toLowerCase()
+            //   on each one all the time. This is a hot function!
+            let nickMap = Object.create(null);
+            let users = [];
+            let bufferUsers = this.buffer.users;
+            /* eslint-disable guard-for-in */
+            for (let lowercaseNick in bufferUsers) {
+                let user = bufferUsers[lowercaseNick];
+                nickMap[user.nick] = lowercaseNick;
+                users.push(user);
+            }
 
             let bufferId = this.buffer.id;
             return users.sort((a, b) => {
-                if (!a.buffers[bufferId]) {
+                let bufferA = a.buffers[bufferId];
+                let bufferB = b.buffers[bufferId];
+
+                if (!bufferA) {
                     let msg = 'Nicklist.sortedUsers() User A does not have the buffer in its list!';
-                    Logger.error(msg, a.nick, a.buffers);
+                    log.error(msg, a.nick, a.buffers);
                     return -1;
                 }
-                if (!b.buffers[bufferId]) {
+                if (!bufferB) {
                     let msg = 'Nicklist.sortedUsers() User B does not have the buffer in its list!';
-                    Logger.error(msg, b.nick, b.buffers);
+                    log.error(msg, b.nick, b.buffers);
                     return 1;
                 }
 
+                let modesA = bufferA.modes;
+                let modesB = bufferB.modes;
+
                 // Neither user has a prefix, compare text
                 if (
-                    a.buffers[bufferId].modes.length === 0 &&
-                    b.buffers[bufferId].modes.length === 0
+                    modesA.length === 0 &&
+                    modesB.length === 0
                 ) {
-                    return a.nick.localeCompare(b.nick);
+                    return strCompare(nickMap[a.nick], nickMap[b.nick]);
                 }
 
                 // Compare via prefixes..
                 if (
-                    a.buffers[bufferId].modes.length > 0 &&
-                    b.buffers[bufferId].modes.length === 0
+                    modesA.length > 0 &&
+                    modesB.length === 0
                 ) {
                     return -1;
                 }
 
                 if (
-                    a.buffers[bufferId].modes.length === 0 &&
-                    b.buffers[bufferId].modes.length > 0
+                    modesA.length === 0 &&
+                    modesB.length > 0
                 ) {
                     return 1;
                 }
 
                 // Both users have a prefix so find the highest ranking one
-                let aP = prefixOrders[a.buffers[bufferId].modes];
-                let bP = prefixOrders[b.buffers[bufferId].modes];
+                let aP = prefixOrders[modesA[0]];
+                let bP = prefixOrders[modesB[0]];
                 if (aP > bP) {
                     return 1;
                 } else if (aP < bP) {
@@ -99,7 +126,7 @@ export default {
                 }
 
                 // Prefixes are the same, resort to comparing text
-                return a.nick.localeCompare(b.nick);
+                return strCompare(nickMap[a.nick], nickMap[b.nick]);
             });
         },
         useColouredNicks: function useColouredNicks() {
@@ -119,22 +146,10 @@ export default {
             return styles;
         },
         userModePrefix: function userModePrefix(user) {
-            let modes = user.buffers[this.buffer.id].modes;
-            if (modes.length === 0) {
-                return '';
-            }
-
-            let netPrefixes = this.network.ircClient.network.options.PREFIX;
-            let prefix = _.find(netPrefixes, { mode: modes[0] });
-            return prefix ?
-                prefix.symbol :
-                '';
+            return Misc.userModePrefix(user, this.buffer);
         },
         userMode: function userMode(user) {
-            let modes = user.buffers[this.buffer.id].modes;
-            return modes.length === 0 ?
-                '' :
-                modes[0];
+            return Misc.userMode(user, this.buffer);
         },
         openQuery: function openQuery(user) {
             let buffer = state.addBuffer(this.buffer.networkid, user.nick);
@@ -158,8 +173,25 @@ export default {
     box-sizing: border-box;
     overflow-y: auto;
 }
+.kiwi-nicklist-info {
+    font-size: 0.9em;
+    padding-bottom: 1em;
+    text-align: center;
+    border-width: 0 0 1px 0;
+    border-style: solid;
+}
 
 .kiwi-nicklist-users {
     list-style: none;
+    padding: 0 20px;
+    line-height: 1.2em;
 }
+.kiwi-nicklist-user {
+    padding: 3px 0;
+}
+.kiwi-nicklist-user-nick {
+    font-weight: bold;
+    cursor: pointer;
+}
+
 </style>

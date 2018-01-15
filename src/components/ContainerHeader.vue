@@ -8,10 +8,16 @@
     >
 
         <template v-if="isChannel()">
+            <div class="kiwi-header-options">
+                <a class="u-button u-button-secondary" @click="closeCurrentBuffer">{{$t('close')}}</a>
+            </div>
             <div class="kiwi-header-name">{{buffer.name}}</div>
             <div v-if="isJoined" class="kiwi-header-topic"></div>
             <div v-if="!isJoined && isConnected" class="kiwi-header-notjoined">
                 <a @click="joinCurrentBuffer" class="u-link">{{$t('container_join')}}</a>
+            </div>
+            <div class="kiwi-header-tools">
+                <div v-for="el in pluginUiChannelElements" v-rawElement="el" class="kiwi-header-tool"></div>
             </div>
         </template>
         <template v-else-if="isServer()">
@@ -27,7 +33,10 @@
             <div class="kiwi-header-options">
                 <a class="u-button u-button-secondary" @click="closeCurrentBuffer">{{$t('close')}}</a>
             </div>
-            <div class="kiwi-header-name">{{$t('container_privmsg', {user: buffer.name})}}</div>
+            <div class="kiwi-header-name">{{buffer.name}}</div>
+            <div class="kiwi-header-tools">
+                <div v-for="el in pluginUiQueryElements" v-rawElement="el" class="kiwi-header-tool"></div>
+            </div>
         </template>
         <template v-else-if="isSpecial()">
             <div class="kiwi-header-options">
@@ -63,17 +72,18 @@
 
 <script>
 
-import _ from 'lodash';
-import state from 'src/libs/state';
+import state from '@/libs/state';
+import GlobalApi from '@/libs/GlobalApi';
 import BufferSettings from './BufferSettings';
 import ChannelInfo from './ChannelInfo';
 import ChannelBanlist from './ChannelBanlist';
-import * as TextFormatting from 'src/helpers/TextFormatting';
 
 export default {
     data: function data() {
         return {
             buffer_settings_open: false,
+            pluginUiChannelElements: GlobalApi.singleton().channelHeaderPlugins,
+            pluginUiQueryElements: GlobalApi.singleton().queryHeaderPlugins,
         };
     },
     props: ['buffer'],
@@ -92,28 +102,6 @@ export default {
         ChannelBanlist,
     },
     methods: {
-        formatMessage: function formatMessage(messageBody) {
-            let words = messageBody.split(' ');
-            words = words.map(word => {
-                let parsed;
-
-                parsed = TextFormatting.linkifyUrls(word, {
-                    addHandle: true,
-                    handleClass: 'fa fa-chevron-right kiwi-messagelist-message-linkhandle',
-                });
-                if (parsed !== word) return parsed;
-
-                parsed = TextFormatting.linkifyChannels(word);
-                if (parsed !== word) return parsed;
-
-                return _.escape(word);
-            });
-
-            let parsed = words.join(' ');
-            parsed = TextFormatting.ircCodesToHtml(parsed);
-
-            return parsed;
-        },
         isChannel: function isChannel() {
             return this.buffer.isChannel();
         },
@@ -161,6 +149,10 @@ export default {
     box-sizing: border-box;
     z-index: 2;
     overflow: hidden;
+    padding: 0 20px;
+}
+.kiwi-header:hover {
+    max-height: none;
 }
 .kiwi-header--showall {
     height: auto;
@@ -169,7 +161,15 @@ export default {
 }
 .kiwi-header-name {
     display: inline-block;
+    font-weight: bold;
+    line-height: 49px;
+    margin-left: 1em;
 }
+.kiwi-header-topic {
+    font-size: 0.9em;
+    text-overflow: ellipsis;
+}
+
 .kiwi-header-notjoined {
     display: inline-block;
     margin-left: 1em;
@@ -189,4 +189,9 @@ export default {
 .kiwi-header-close-buffersettings {
     float: right;
 }
+.kiwi-header-buffersettings {
+    padding: 5px;
+    margin-top: 1em;
+}
+
 </style>

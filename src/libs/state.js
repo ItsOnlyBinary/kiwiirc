@@ -6,6 +6,7 @@ import Message from './Message';
 import batchedAdd from './batchedAdd';
 import * as Misc from '@/helpers/Misc';
 import * as Agl from './Agl';
+// import Logger from './Logger';
 
 const stateObj = {
     // May be set by a StatePersistence instance
@@ -834,7 +835,7 @@ const state = new Vue({
             let userObj = null;
             let agl = {
                 age: '',
-                gender: '',
+                gender: 'U',
                 location: '',
             };
 

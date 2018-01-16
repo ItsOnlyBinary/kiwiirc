@@ -3,8 +3,8 @@
  *   @param      {String}    realname
  *   @returns    {Object}    agl
  */
-/* import Logger from '@/libs/Logger';
-import state from '@/libs/state'; */
+// import Logger from '@/libs/Logger';
+// import state from '@/libs/state';
 export function addAglToUser(realname) {
     let age = '';
     let gender = 'U';
@@ -48,12 +48,10 @@ export function createNickColour(user) {
     let nickColour = '#000000';
     let nickLower = user.nick.toLowerCase();
 
-    if (nickColourCache[nickLower]) {
-        return nickColourCache[nickLower];
-    }
-
-    if (user.gender === undefined) {
+    if (user.gender === undefined || user.gender === 'U') {
         return nickColour;
+    } else if (nickColourCache[nickLower]) {
+        return nickColourCache[nickLower];
     }
 
     if (user.gender === 'M') {

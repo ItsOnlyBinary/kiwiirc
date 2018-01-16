@@ -174,7 +174,7 @@ export function linkifyUsers(word, userlist) {
  * Convert a nickname string to a colour code
  */
 let nickColourCache = Object.create(null);
-export function createNickColour(nick, networkid = 1) {
+export function createNickColour(nick) {
     let nickLower = nick.toLowerCase();
 
     if (nickColourCache[nickLower]) {

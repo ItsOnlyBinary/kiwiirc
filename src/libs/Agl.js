@@ -46,9 +46,9 @@ export function addAglToUser(realname) {
  */
 // let originalCreateNickColour = TextFormatting.createNickColour;
 let nickColourCache = Object.create(null);
-TextFormatting.createNickColour = function (nick, networkid = 1) {
+TextFormatting.createNickColour = function (nick) {
     let nickColour = '#000000';
-    let user = state.getUser(networkid, nick);
+    let user = state.getUser(state.getActiveNetwork().id, nick);
 
     TextFormatting.nickLower = nick.toLowerCase();
 

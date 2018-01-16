@@ -135,11 +135,7 @@ export default {
         nickStyle: function nickStyle(user) {
             let styles = {};
             if (this.useColouredNicks) {
-                if (user.gender !== undefined) {
-                    styles.color = TextFormatting.createNickColour(user);
-                } else {
-                    styles.color = TextFormatting.createNickColour(user.nick);
-                }
+                styles.color = TextFormatting.createNickColour(user.nick);
             }
             return styles;
         },

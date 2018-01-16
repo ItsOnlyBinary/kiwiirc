@@ -4,6 +4,7 @@
  *   @returns    {Object}    agl
  */
 import * as TextFormatting from '@/helpers/TextFormatting';
+import state from '@/libs/state';
 
 export function addAglToUser(realname) {
     let age = '';
@@ -45,14 +46,13 @@ export function addAglToUser(realname) {
  */
 // let originalCreateNickColour = TextFormatting.createNickColour;
 let nickColourCache = Object.create(null);
-TextFormatting.createNickColour = function (user) {
+TextFormatting.createNickColour = function (nick, networkid = 1) {
     let nickColour = '#000000';
+    let user = state.getUser(networkid, nick);
 
-    if (user.nick !== undefined) {
-        TextFormatting.nickLower = user.nick.toLowerCase();
-    }
+    TextFormatting.nickLower = nick.toLowerCase();
 
-    if (user.gender === undefined || user.gender === 'U') {
+    if (user === undefined || user.gender === undefined || user.gender === 'U') {
         return nickColour;
     } else if (nickColourCache[TextFormatting.nickLower]) {
         return nickColourCache[TextFormatting.nickLower];

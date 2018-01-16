@@ -253,7 +253,7 @@ export default {
         },
         nickStyle: function nickColour(nick) {
             if (this.bufferSetting('colour_nicknames_in_messages')) {
-                return 'color:' + TextFormatting.createNickColour(nick) + ';';
+                return 'color:' + TextFormatting.createNickColour(nick, this.buffer.networkid) + ';';
             }
             return '';
         },

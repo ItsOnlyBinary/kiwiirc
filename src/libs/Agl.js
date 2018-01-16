@@ -3,8 +3,8 @@
  *   @param      {String}    realname
  *   @returns    {Object}    agl
  */
-// import Logger from '@/libs/Logger';
-// import state from '@/libs/state';
+import * as TextFormatting from '@/helpers/TextFormatting';
+
 export function addAglToUser(realname) {
     let age = '';
     let gender = 'U';
@@ -43,15 +43,19 @@ export function addAglToUser(realname) {
 /**
  * Colorize the nickname according to gender
  */
+// let originalCreateNickColour = TextFormatting.createNickColour;
 let nickColourCache = Object.create(null);
-export function createNickColour(user) {
+TextFormatting.createNickColour = function (user) {
     let nickColour = '#000000';
-    let nickLower = user.nick.toLowerCase();
+
+    if (user.nick !== undefined) {
+        TextFormatting.nickLower = user.nick.toLowerCase();
+    }
 
     if (user.gender === undefined || user.gender === 'U') {
         return nickColour;
-    } else if (nickColourCache[nickLower]) {
-        return nickColourCache[nickLower];
+    } else if (nickColourCache[TextFormatting.nickLower]) {
+        return nickColourCache[TextFormatting.nickLower];
     }
 
     if (user.gender === 'M') {
@@ -60,7 +64,7 @@ export function createNickColour(user) {
         nickColour = '#FF00FF';
     }
 
-    nickColourCache[nickLower] = nickColour;
+    nickColourCache[TextFormatting.nickLower] = nickColour;
 
     return nickColour;
-}
+};

@@ -28,7 +28,6 @@ import state from '@/libs/state';
 import Logger from '@/libs/Logger';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import * as Misc from '@/helpers/Misc';
-import * as Agl from '@/libs/Agl';
 
 let log = Logger.namespace('Nicklist');
 
@@ -137,7 +136,7 @@ export default {
             let styles = {};
             if (this.useColouredNicks) {
                 if (user.gender !== undefined) {
-                    styles.color = Agl.createNickColour(user);
+                    styles.color = TextFormatting.createNickColour(user);
                 } else {
                     styles.color = TextFormatting.createNickColour(user.nick);
                 }

@@ -14,7 +14,7 @@
                 <span class="kiwi-nicklist-user-prefix">{{userModePrefix(user)}}</span><span
                     class="kiwi-nicklist-user-nick"
                     @click="openUserbox(user, $event)"
-                    v-bind:style="nickStyle(user)"
+                    v-bind:style="nickStyle(user.nick)"
                 >{{user.nick}}</span>
             </li>
         </ul>
@@ -132,10 +132,10 @@ export default {
         },
     },
     methods: {
-        nickStyle: function nickStyle(user) {
+        nickStyle: function nickStyle(nick) {
             let styles = {};
             if (this.useColouredNicks) {
-                styles.color = TextFormatting.createNickColour(user.nick);
+                styles.color = TextFormatting.createNickColour(nick);
             }
             return styles;
         },

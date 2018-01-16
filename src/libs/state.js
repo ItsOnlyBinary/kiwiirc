@@ -40,6 +40,7 @@ const stateObj = {
         buffers: {
             alert_on: 'highlight',
             timestamp_format: '%H:%M:%S',
+            timestamp_placement: 'right',
             show_timestamps: true,
             scrollback_size: 250,
             show_joinparts: true,

@@ -54,6 +54,7 @@ const stateObj = {
             show_emoticons: true,
             extra_formatting: true,
             mute_sound: false,
+            hide_message_counts: false,
             default_ban_mask: '*!%i@%h',
             default_kick_reason: 'Your behavior is not conducive to the desired environment.',
         },
@@ -215,6 +216,66 @@ const stateObj = {
             ':]': '1f642',
         },
         emojiLocation: 'https://kiwiirc.com/shared/emoji/',
+        textFormats: {
+            channel_join: '→ %nick (%username@%host) %text',
+            channel_part: '← %nick (%username@%host) %text',
+            channel_quit: '← %nick (%username@%host) %text',
+            channel_kicked: '← %text',
+            channel_selfkick: '× %text',
+            channel_badpassword: '× %text',
+            channel_topic: 'ⓘ %text',
+            channel_banned: '× %text',
+            channel_badkey: '⚠ %text',
+            channel_inviteonly: '⚠ %channel %text',
+            channel_alreadyin: '⚠ %nick %text',
+            channel_limitreached: '⚠ %channel %text',
+            channel_invalid_name: '⚠ %channel %text',
+            channel_topic_setby: 'ⓘ %text',
+            channel_has_been_invited: 'ⓘ %nick %text',
+            server_connecting: '%text',
+            server_connecting_error: '%text',
+            mode: 'ⓘ %nick %text',
+            selfmode: 'ⓘ %nick %text',
+            nickname_alreadyinuse: '⚠ %text',
+            network_disconnected: '⚠ %text',
+            network_connected: '⚠ %text',
+            whois_channels: '%text',
+            whois_idle_and_signon: '%text',
+            whois_away: '%text',
+            whois_server: '%text',
+            whois_idle: '%text',
+            whois_notfound: 'ⓘ %text',
+            nick_changed: 'ⓘ %text',
+            applet_notfound: '⚠ %text',
+            encoding_changed: 'ⓘ %text',
+            encoding_invalid: '⚠ %text',
+            settings_saved: 'ⓘ %text',
+            ignore_title: '%text:',
+            ignore_none: '%text',
+            ignore_nick: '%text',
+            ignore_stop_notice: '%text',
+            ignore_stopped: '%text',
+            chanop_privs_needed: '⚠ %text',
+            no_such_nick: 'ⓘ %nick: %text',
+            unknown_command: 'ⓘ %text',
+            motd: '%text',
+            ctcp_response: '[CTCP %nick reply] %message',
+            ctcp_request: '[CTCP %nick] %message',
+            privmsg: '%text',
+            notice: '%text',
+            action: '* %nick %text',
+            whois_ident: '%nick [%nick!%ident@%host] * %text',
+            whois: '%text',
+            who: '%nick [%nick!%ident@%host] * %realname',
+            quit: '%text',
+            rejoin: '%text',
+            set_setting: 'ⓘ %text',
+            list_aliases: 'ⓘ %text',
+            ignored_pattern: 'ⓘ %text',
+            wallops: '[WALLOPS] %text',
+            message_nick: '%prefix%nick',
+            general_error: '%text',
+        },
     },
     user_settings: {
     },
@@ -438,6 +499,7 @@ const state = new Vue({
         },
 
         resetState: function resetState() {
+            this.$set(this.$data, 'user_settings', []);
             this.$set(this.$data, 'networks', []);
             messages.splice(0);
         },
@@ -738,8 +800,8 @@ const state = new Vue({
 
             // Handle any notifications
             let settingAlertOn = buffer.setting('alert_on');
-            let isOurJoin = message.type === 'traffic' && message.nick === network.nick;
-            if (isNewMessage && settingAlertOn !== 'never' && !isOurJoin) {
+            let isSelf = message.nick === network.nick;
+            if (isNewMessage && settingAlertOn !== 'never' && !isSelf) {
                 let notifyTitle = '';
                 let notifyMessage = message.nick ?
                     message.nick + ': ' :
@@ -1074,6 +1136,16 @@ function initialiseNetworkState(network) {
 
             let chanPrefixes = this.ircClient.network.supports('CHANTYPES') || '#&';
             return chanPrefixes.indexOf(input[0]) > -1;
+        },
+    });
+    Object.defineProperty(network, 'showServerBuffer', {
+        value: function showServerBuffer(tabName) {
+            state.setActiveBuffer(network.id, network.serverBuffer().name);
+            // Hacky, but the server buffer component listens for events to switch
+            // between tabs
+            setImmediate(() => {
+                state.$emit('server.tab.show', tabName || 'settings');
+            });
         },
     });
 

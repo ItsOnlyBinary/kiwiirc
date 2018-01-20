@@ -37,6 +37,7 @@ const stateObj = {
             username: '',
             password: '',
         },
+        warnOnExit: true,
         // Default buffer settings
         buffers: {
             alert_on: 'highlight',

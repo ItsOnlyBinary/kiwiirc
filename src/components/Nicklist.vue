@@ -1,6 +1,10 @@
 <template>
     <div class="kiwi-nicklist">
-        <div class="kiwi-nicklist-info">{{$t('person', {count: sortedUsers.length})}}</div>
+
+        <input class="search kiwi-nicklist-info"
+               :placeholder="$t('person', {count: sortedUsers.length})"
+               v-model="search"
+        >
         <ul class="kiwi-nicklist-users">
             <li
                 v-for="user in sortedUsers"
@@ -51,11 +55,12 @@ export default {
     data: function data() {
         return {
             userbox_user: null,
+            search: null,
         };
     },
     props: ['network', 'buffer', 'users'],
     computed: {
-        sortedUsers: function sortedUsers() {
+        sortedUsers: function sortedUsers(search) {
             // Get a list of network prefixes and give them a rank number
             let netPrefixes = this.network.ircClient.network.options.PREFIX;
             let prefixOrders = Object.create(null);
@@ -75,7 +80,9 @@ export default {
             for (let lowercaseNick in bufferUsers) {
                 let user = bufferUsers[lowercaseNick];
                 nickMap[user.nick] = lowercaseNick;
-                users.push(user);
+                if (!this.search || user.nick.indexOf(this.search) !== -1) {
+                    users.push(user);
+                }
             }
 
             let bufferId = this.buffer.id;

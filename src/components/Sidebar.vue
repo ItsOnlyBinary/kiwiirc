@@ -209,29 +209,22 @@ export default {
         right: 0;
     }
 }
-.kiwi-sidebar--wide .kiwi-sidebar-buffersettings {
-    /*
-    animation-duration: 2s;
-    animation-name: settingstransition;
-    */
-}
+
 .kiwi-sidebar--wide .kiwi-nicklist {
     display: none;
 }
 
 .kiwi-sidebar-options {
     display: block;
-    margin: 1em;
     cursor: pointer;
     border-bottom: 1px solid #dddddd;
-    padding: 0 0 1em 0;
+    padding: 0.75em 1em 0.76em 1em;
     text-align: center;
+    transition: all 0.2s;
 }
-.kiwi-sidebar-options i {
-    transition: margin-left 0.1s;
-}
-.kiwi-sidebar-options:hover i {
-    margin-left: 1em;
+
+.kiwi-sidebar-options:hover {
+    color:#42b983;
 }
 
 .kiwi-sidebar--wide .kiwi-sidebar-options {
@@ -243,8 +236,21 @@ export default {
     height: 100%;
 }
 
+.kiwi-sidebar-buffersettings .u-tabbed-content{
+    padding: 1em;
+}
+
 .kiwi-sidebar-settings label {
     display: block;
+}
+
+.kiwi-sidebar .u-tabbed-view-tab{
+    width: 33.3%;
+    box-sizing: border-box;
+    padding: 1em;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    text-align: center;
 }
 
 @keyframes settingstransition {
@@ -254,6 +260,12 @@ export default {
 @keyframes nicklisttransition {
   from { height: 0; }
   to   { height: 100%; }
+}
+
+@media screen and (max-width: 600px){
+    .u-tabbed-view-tabs .u-tabbed-view-tab{
+        width: 100%;
+    }
 }
 
 </style>

@@ -1,25 +1,46 @@
 <template>
-    <div class="kiwi-welcome-simple" :class="[
-        closing ? 'kiwi-welcome-simple--closing' : '',
-        backgroundImage ? '' : 'kiwi-welcome-simple--no-bg',
+    <div class="kiwi-welcome-europnet" :class="[
+        closing ? 'kiwi-welcome-europnet--closing' : '',
+        backgroundImage ? '' : 'kiwi-welcome-europnet--no-bg',
     ]" :style="backgroundStyle">
-        <div class="kiwi-welcome-simple-section kiwi-welcome-simple-section-connection">
+        <div class="kiwi-welcome-europnet-section kiwi-welcome-europnet-section-connection">
             <template v-if="!network || network.state === 'disconnected'">
-                <form @submit.prevent="formSubmit" class="u-form kiwi-welcome-simple-form">
+                <form @submit.prevent="formSubmit" class="u-form kiwi-welcome-europnet-form">
                     <h2 v-html="greetingText"></h2>
-                    <div class="kiwi-welcome-simple-error" v-if="network && (network.last_error || network.state_error)">We couldn't connect to the server :( <span>{{network.last_error || readableStateError(network.state_error)}}</span></div>
-
-                    <input-text v-if="showNick" class="kiwi-welcome-simple-nick" :label="$t('nick')" v-model="nick" />
-                    <label v-if="showPass" class="kiwi-welcome-simple-have-password">
+                    <div class="kiwi-welcome-europnet-error" v-if="network && (network.last_error || network.state_error)">We couldn't connect to the server :( <span>{{network.last_error || readableStateError(network.state_error)}}</span></div>
+                    <div class="kiwi-welcome-europnet-group nick">
+                        <span class="kiwi-welcome-europnet-picto"><i class="fa fa-user"></i></span>
+                        <input type="text" class="kiwi-welcome-europnet-nick" :placeholder="$t('nick')" v-model="nick" />
+                    </div>
+                    <label v-if="showPass" class="kiwi-welcome-europnet-have-password">
                         <input type="checkbox" v-model="show_password_box" /> {{$t('password_have')}}
                     </label>
-                    <input-text v-focus v-if="show_password_box" class="kiwi-welcome-simple-password input-text--reveal-value" :label="$t('password')" v-model="password" type="password" />
-                    <input-text v-if="showChannel" class="kiwi-welcome-simple-channel" :label="$t('channel')" v-model="channel" />
-
-                    <div v-if="recaptchaSiteId" class="g-recaptcha" :data-sitekey="recaptchaSiteId"></div>
-
+                    <input v-if="show_password_box" class="kiwi-welcome-europnet-password input-text--reveal-value" :label="$t('password')" v-model="password" type="password" />
+                    <div class="kiwi-welcome-europnet-group age">
+                        <span class="kiwi-welcome-europnet-picto"><i class="fa fa-info-circle"></i></span>
+                        <input type="number" class="kiwi-welcome-europnet-age" min="13" max="99" :placeholder="$t('agl_age')" v-model="age" /><div class="age-text">&nbsp;&nbsp;{{$t('agl_age_years_old')}}</div>
+                    </div>
+                    <div class="kiwi-welcome-europnet-group gender">
+                        <span class="kiwi-welcome-europnet-picto"><i class="fa fa-female"></i><i class="fa fa-male"></i></span>
+                        <div class="kiwi-welcome-europnet-group-genders">
+                            <input type="radio" id="gender_m" value="M" v-model="gender">
+                            <label class="gender_m" for="gender_m">{{$t('agl_gender_male')}}</label>
+                            <input type="radio" id="gender_f" value="F" v-model="gender">
+                            <label class="gender_f" for="gender_f">{{$t('agl_gender_female')}}</label>
+                            <input type="radio" id="gender_u" value="U" v-model="gender">
+                            <label class="gender_u" for="gender_u">{{$t('agl_gender_other')}}</label>
+                        </div>
+                    </div>
+                    <div class="kiwi-welcome-europnet-group location">
+                        <span class="kiwi-welcome-europnet-picto"><i class="fa fa-map-marker"></i></span>
+                        <input type="text" class="kiwi-welcome-europnet-location" :placeholder="$t('agl_location')" v-model="location" />
+                    </div>
+                    <div class="kiwi-welcome-europnet-group channel">
+                        <span class="kiwi-welcome-europnet-picto"><i class="fa fa-slack"></i></span>
+                        <input type="text" v-if="showChannel" class="kiwi-welcome-europnet-channel" v-model="channel" />
+                    </div>
                     <button
-                        class="u-button u-button-primary u-submit kiwi-welcome-simple-start"
+                        class="u-button u-button-primary u-submit kiwi-welcome-europnet-start"
                         type="submit"
                         v-html="buttonText"
                         :disabled="!readyToStart"
@@ -29,12 +50,11 @@
             <template v-else-if="network.state !== 'connected'">
                 <i class="fa fa-spin fa-spinner" aria-hidden="true"></i>
             </template>
-          </div>
-          <p class='help'></p>
-          <div class="kiwi-welcome-simple-section kiwi-welcome-simple-section-info" :style="backgroundStyle">
-             <div class="kiwi-welcome-simple-section-info-content" v-if="infoContent" v-html="infoContent"></div>
-         </div>
-      </div>
+        </div>
+        <p class='help'></p>
+        <div class="kiwi-welcome-europnet-section kiwi-welcome-europnet-section-info" :style="backgroundStyle">
+            <div class="kiwi-welcome-europnet-section-info-content" v-if="infoContent" v-html="infoContent"></div>
+        </div>
     </div>
 </template>
 
@@ -44,20 +64,21 @@ import _ from 'lodash';
 import * as Misc from '@/helpers/Misc';
 import state from '@/libs/state';
 
-export default {
+const ctor = {
     data: function data() {
         return {
             network: null,
             channel: '',
             nick: '',
             password: '',
+            age: '',
+            gender: 'U',
+            location: '',
             showChannel: true,
             showPass: true,
             showNick: true,
             show_password_box: false,
             closing: false,
-            recaptchaSiteId: '',
-            recaptchaResponseCache: '',
         };
     },
     computed: {
@@ -101,27 +122,6 @@ export default {
         },
     },
     methods: {
-        captchaSuccess() {
-            if (!this.recaptchaSiteId) {
-                return true;
-            }
-
-            return !!this.captchaResponse();
-        },
-        captchaResponse() {
-            // Cache the response code since the recaptcha UI may not be here if we come back to
-            // this screen after an IRC connection fail
-            if (this.recaptchaResponseCache) {
-                return this.recaptchaResponseCache;
-            }
-
-            let gEl = this.$el.querySelector('#g-recaptcha-response');
-            this.recaptchaResponseCache = gEl ?
-                gEl.value :
-                '';
-
-            return this.recaptchaResponseCache;
-        },
         readableStateError(err) {
             return Misc.networkErrorMessage(err);
         },
@@ -139,10 +139,6 @@ export default {
         },
         startUp: function startUp() {
             let options = state.settings.startupOptions;
-
-            if (!this.captchaSuccess()) {
-                return;
-            }
 
             let net;
             if (!this.network) {
@@ -163,7 +159,6 @@ export default {
                     gecos: options.gecos,
                 });
 
-                net.captchaResponse = this.captchaResponse();
                 this.network = net;
             } else {
                 net = this.network;
@@ -224,33 +219,26 @@ export default {
         if (options.autoConnect && this.nick && this.channel) {
             this.startUp();
         }
-
-        this.recaptchaSiteId = options.recaptchaSiteId || '';
-    },
-    mounted() {
-        if (this.recaptchaSiteId) {
-            let scr = document.createElement('script');
-            scr.src = 'https://www.google.com/recaptcha/api.js';
-            this.$el.appendChild(scr);
-        }
     },
 };
+export default ctor;
+state.getStartups().europnetstartup = ctor;
 </script>
 
 <style>
 
-.kiwi-welcome-simple {
+.kiwi-welcome-europnet {
     height: 100%;
     text-align: center;
 }
 
-.kiwi-welcome-simple h2 {
+.kiwi-welcome-europnet h2 {
     font-size: 1.7em;
     text-align: center;
     padding: 0;
     margin: 0.5em 0 1em 0;
 }
-.kiwi-welcome-simple-section {
+.kiwi-welcome-europnet-section {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -261,7 +249,7 @@ export default {
     overflow-y: auto;
 }
 
-.kiwi-welcome-simple-section-connection{
+.kiwi-welcome-europnet-section-connection {
     width: 50%;
     position: relative;
     min-height: 100%;
@@ -270,7 +258,7 @@ export default {
     justify-content: center;
 }
 
-.kiwi-welcome-simple-form {
+.kiwi-welcome-europnet-form {
     width: 300px;
     background-color: #fff;
     border-radius: 0.5em;
@@ -279,7 +267,7 @@ export default {
 }
 
 /** Right side */
-.kiwi-welcome-simple-section-info {
+.kiwi-welcome-europnet-section-info {
     right: 0;
     color: #fff;
     display: flex;
@@ -287,7 +275,7 @@ export default {
     justify-content: center;
     min-height: 100%;
 }
-.kiwi-welcome-simple-section-info-content {
+.kiwi-welcome-europnet-section-info-content {
     background: rgba(255, 255, 255, 0.74);
     margin: 2em;
     color: #1b1b1b;
@@ -296,61 +284,130 @@ export default {
     line-height: 1.6em;
 }
 /** Left side */
-.kiwi-welcome-simple-error {
+.kiwi-welcome-europnet-error {
     text-align: center;
     margin: 1em 0;
     padding: 0.3em;
 }
-.kiwi-welcome-simple-error span {
+.kiwi-welcome-europnet-error span {
     display: block;
     font-style: italic;
 }
 
-.kiwi-welcome-simple-section-connection label {
+.kiwi-welcome-europnet-section-connection label {
     text-align: left;
     display: inline-block;
-    margin-bottom: 0.8em;
-    padding: 0 0.5em;
 }
-.kiwi-welcome-simple-section-connection input[type="text"] {
-    font-size: 1em;
-    margin-top: 5px;
-    padding: 0.3em 1em;
-    width: 100%;
-    box-sizing: border-box;
-}
-.kiwi-welcome-simple .input-text{
-    font-weight: 600;
-    opacity:0.6;
-    font-size: 1.2em;
-    margin-bottom: 0.8em;
-}
-.kiwi-welcome-simple .kiwi-welcome-simple-have-password input,
-.kiwi-welcome-simple-have-password {
+.kiwi-welcome-europnet .kiwi-welcome-europnet-have-password input[type="text"],
+.kiwi-welcome-europnet-have-password {
     font-size: 0.8em;
     margin: 0.8em 0;
 }
-.kiwi-welcome-simple-have-password,
-.kiwi-welcome-simple-password.input-text{
+.kiwi-welcome-europnet-have-password {
     margin-top: 0;
 }
-.kiwi-welcome-simple .g-recaptcha {
-    margin-bottom: 10px;
+.kiwi-welcome-europnet-group {
+    display: flex;
+    width: 100%;
+    height: 2em;
+    line-height: 1;
+    margin: 0 0 8px 0;
 }
-.kiwi-welcome-simple-start {
+.kiwi-welcome-europnet-nick {
+    font-weight: bold;
+}
+.kiwi-welcome-europnet-group-genders {
+    display: inline-block;
+    font-size: 1em;
+}
+span.kiwi-welcome-europnet-picto,
+.kiwi-welcome-europnet-group input[type="text"],
+.kiwi-welcome-europnet-group input[type="number"],
+.kiwi-welcome-europnet-group-genders {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.kiwi-welcome-europnet-group input {
+    -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+
+.kiwi-welcome-europnet-group input:focus {
+    border-color: #66afe9;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+}
+span.kiwi-welcome-europnet-picto {
+    display: inline-block;
+    width: 40px;
+    height: 25px;
+    font-size: 1.2em;
+    padding-top: 5px;
+    color: #555;
+    text-align: center;
+    background-color: #eee;
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.kiwi-welcome-europnet-group input[type="text"],
+.kiwi-welcome-europnet-group input[type="number"],
+.kiwi-welcome-europnet-group-genders {
+    width: 80%;
+    height: 24px;
+    font-size: 1em;
+    padding: 0.21em 1em;
+    padding-left: 0.5em;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    color: #555;
+}
+.kiwi-welcome-europnet-group input[type="number"].kiwi-welcome-europnet-age {
+    width: 3em;
+}
+.kiwi-welcome-europnet-group .age-text {
+    margin: 8px 0;
+}
+.kiwi-welcome-europnet-group-genders {
+    width: 250px;
+    padding: 0;
+    padding-left: 0.5em;
+    padding-top: 6px;
+}
+.kiwi-welcome-europnet-group-genders label {
+    margin: 0;
+}
+.kiwi-welcome-europnet-group-genders .gender_m {
+    color: #208BFC;
+    font-weight: bold;
+}
+.kiwi-welcome-europnet-group-genders .gender_f {
+    color: #ff00ff;
+    font-weight: bold;
+}
+.kiwi-welcome-europnet-group-genders .gender_u {
+    color: #999;
+    font-weight: bold;
+}
+.kiwi-welcome-europnet-group i.fa-slack {
+    -ms-transform: rotate(19deg);
+    -webkit-transform: rotate(19deg);
+    transform: rotate(19deg);
+}
+.kiwi-welcome-europnet-start {
     font-size: 1.1em;
     cursor: pointer;
 }
-.kiwi-welcome-simple-start[disabled] {
+.kiwi-welcome-europnet-start[disabled] {
     cursor: not-allowed;
 }
-.kiwi-welcome-simple-form input{
+.kiwi-welcome-europnet-form input {
     padding: 0.5em;
 }
-.kiwi-welcome-simple-channel{
-    margin-bottom: 0.8em;
-}
-.kiwi-welcome-simple-form .u-submit{
+.kiwi-welcome-europnet-form .u-submit {
     width: 100%;
     line-height: 50px;
     padding: 0;
@@ -364,13 +421,13 @@ export default {
     background-color: #86b32d;
 }
 /** Closing - the wiping away of the screen **/
-.kiwi-welcome-simple--closing .kiwi-welcome-simple-section-connection {
+.kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-connection {
     left: -50%;
 }
-.kiwi-welcome-simple--closing .kiwi-welcome-simple-section-info {
+.kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-info {
     right: -50%;
 }
-.kiwi-welcome-simple .help{
+.kiwi-welcome-europnet .help {
     position: absolute;
     bottom:0.2em;
     font-size: 0.8em;
@@ -378,16 +435,16 @@ export default {
     width: 50%;
     text-align: center;
 }
-.kiwi-welcome-simple .help a{
+.kiwi-welcome-europnet .help a {
     text-decoration: underline;
     color:#666;
 }
-.kiwi-welcome-simple .help a:hover{
+.kiwi-welcome-europnet .help a:hover {
     color:#A9D87A;
 }
 
 /* Styling the preloader */
-.kiwi-welcome-simple .fa-spinner{
+.kiwi-welcome-europnet .fa-spinner {
     font-size: 1.5em;
     position: absolute;
     top: 50%;
@@ -400,19 +457,16 @@ export default {
 
 /** Smaller screen...**/
 @media screen and (max-width: 850px) {
-    .kiwi-welcome-simple {
+    .kiwi-welcome-europnet {
         font-size: 0.9em;
     }
-    .kiwi-startbnc-section-connection {
-        margin-top: 1em;
+    .kiwi-welcome-europnet-section-connection {
+        width: 100%;
     }
-    .kiwi-welcome-simple-section-connection{
-      width: 100%;
-    }
-    .kiwi-welcome-simple-section-info-content {
+    .kiwi-welcome-europnet-section-info-content {
         margin: 1em;
     }
-    .kiwi-welcome-simple-form {
+    .kiwi-welcome-europnet-form {
         position: static;
         left: auto;
         margin: 20px auto 20px auto;
@@ -421,22 +475,22 @@ export default {
         top:auto;
         align-self: flex-start;
     }
-    .kiwi-welcome-simple p.help{
+    .kiwi-welcome-europnet p.help {
         position: absolute;
         bottom:20px;
         width: 100%;
         color:#fff;
         z-index: 100;
     }
-    .kiwi-welcome-simple p.help a{
+    .kiwi-welcome-europnet p.help a {
         color: #fff;
     }
 
-    .kiwi-welcome-simple-section-info{
-      position: static;
-      width: 100%;
-      border: none;
-      min-height: 0px;
+    .kiwi-welcome-europnet-section-info {
+        position: static;
+        width: 100%;
+        border: none;
+        min-height: 0px;
     }
 
     .fa-spinner{
@@ -446,76 +500,75 @@ export default {
         margin-top: -50px;
         color: #fff;
     }
-    .kiwi-welcome-simple-section-connection{
-      min-height: 400px;
+    .kiwi-welcome-europnet-section-connection {
+        min-height: 400px;
     }
 
-    .kiwi-welcome-simple{
-      position: relative;
-      min-height: 100%;
+    .kiwi-welcome-europnet{
+        position: relative;
+        min-height: 100%;
     }
 
-    .kiwi-welcome-simple-section .kiwi-welcome-simple-section-connection{
-      position: static;
+    .kiwi-welcome-europnet-section .kiwi-welcome-europnet-section-connection {
+        position: static;
     }
-
 }
 
 /** Even smaller screen.. probably phones **/
 @media screen and (max-width: 750px) {
-    .kiwi-welcome-simple {
+    .kiwi-welcome-europnet {
         font-size: 0.9em;
         overflow-y: auto;
     }
-    .kiwi-welcome-simple-section-info-content {
+    .kiwi-welcome-europnet-section-info-content {
         margin: 0.5em;
     }
     /** Closing - the wiping away of the screen **/
-    .kiwi-welcome-simple--closing .kiwi-welcome-simple-section-connection {
+    .kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-connection {
         left: -100%;
     }
-    .kiwi-welcome-simple--closing .kiwi-welcome-simple-section-info {
+    .kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-info {
         left: -100%;
     }
 }
 
 @media screen and (max-width: 400px){
-    .kiwi-welcome-simple-form {
+    .kiwi-welcome-europnet-form {
       width: 90%;
     }
 }
 
 
 /** Background /border switching between screen sizes **/
-.kiwi-welcome-simple {
+.kiwi-welcome-europnet {
     background-size: 0;
     background-position: bottom;
 }
-.kiwi-welcome-simple-section-info {
+.kiwi-welcome-europnet-section-info {
     background-size: cover;
     background-position: bottom;
     border-left: 5px solid #86b32d;
 }
-.kiwi-welcome-simple--no-bg .kiwi-welcome-simple-section-info {
+.kiwi-welcome-europnet--no-bg .kiwi-welcome-europnet-section-info {
     background-color: rgb(51, 51, 51);
 }
 @media screen and (max-width: 850px) {
     /* Apply some flex so that the info panel fills the rest of the bottom screen */
-    .kiwi-welcome-simple {
+    .kiwi-welcome-europnet {
         background-size: cover;
         display: flex;
         flex-direction: column;
     }
-    .kiwi-welcome-simple-section {
+    .kiwi-welcome-europnet-section {
         overflow-y: visible;
     }
-    .kiwi-welcome-simple-section-info {
+    .kiwi-welcome-europnet-section-info {
         background-size: 0;
         border-left: none;
         flex: 1 0;
         display: block;
     }
-    .kiwi-welcome-simple--no-bg .kiwi-welcome-simple-section-info {
+    .kiwi-welcome-europnet--no-bg .kiwi-welcome-europnet-section-info {
         border-top: 5px solid #86b32d;
     }
 }

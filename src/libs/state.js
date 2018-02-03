@@ -37,6 +37,7 @@ const stateObj = {
             username: '',
             password: '',
         },
+        warnOnExit: true,
         // Default buffer settings
         buffers: {
             alert_on: 'highlight',
@@ -567,6 +568,13 @@ const state = new Vue({
             return network;
         },
 
+        getNetworkFromAddress(netAddr) {
+            return _.find(this.networks, net => {
+                let isMatch = netAddr.toLowerCase() === net.connection.server.toLowerCase();
+                return isMatch;
+            });
+        },
+
         addNetwork: function addNetwork(name, nick, serverInfo) {
             // Find the current largest ID and increment it by 1
             function networkidReduce(currentMax, network) {
@@ -1056,8 +1064,11 @@ function createEmptyNetworkObject() {
     return {
         id: 0,
         name: '',
+        // State of the transport
         state: 'disconnected',
         state_error: '',
+        // Last error from the IRC server. Resets on reconnect
+        last_error: '',
         auto_commands: '',
         is_znc: false,
         channel_list: [],

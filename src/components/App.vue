@@ -209,7 +209,13 @@ export default {
             this.hasStarted = true;
         },
         warnOnPageClose() {
-            window.onbeforeunload = () => this.$t('window_unload');
+            window.onbeforeunload = () => {
+                if (state.setting('warnOnExit')) {
+                    return this.$t('window_unload');
+                }
+
+                return null;
+            };
         },
         emitDocumentClick: function emitDocumentClick(event) {
             state.$emit('document.clicked', event);
@@ -266,7 +272,7 @@ body {
     z-index: 1;
 }
 /* Small screen will cause the statebrowser to act as a drawer */
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 769px) {
     .kiwi-statebrowser {
         left: -200px;
     }
@@ -311,7 +317,7 @@ body {
     z-index: -1;
 }
 /* Small screen will cause the statebrowser to act as a drawer */
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 769px) {
     .kiwi-workspace {
         left: 0;
         margin-left: 0;

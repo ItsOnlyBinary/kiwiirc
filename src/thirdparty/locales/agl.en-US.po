@@ -1,0 +1,21 @@
+#: Age
+msgid "agl_age"
+msgstr "Age"
+#: Gender
+msgid "agl_gender"
+msgstr "Gender"
+#: Male
+msgid "agl_gender_male"
+msgstr "Male"
+#: Female
+msgid "agl_gender_female"
+msgstr "Female"
+#: Unknown
+msgid "agl_gender_other"
+msgstr "Other"
+#: Unknown
+msgid "agl_location"
+msgstr "Location"
+#: Years old
+msgid "agl_age_years_old"
+msgstr "years old"

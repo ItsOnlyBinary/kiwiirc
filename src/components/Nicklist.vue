@@ -1,10 +1,9 @@
 <template>
     <div class="kiwi-nicklist">
-
-        <input class="search kiwi-nicklist-info"
-               :placeholder="$t('person', {count: sortedUsers.length})"
-               v-model="search"
-        >
+        <div class="search">
+            <input :placeholder="$t('person', {count: sortedUsers.length})" v-model="search">
+            <i class="fa fa-search"></i>
+        </div>
         <ul class="kiwi-nicklist-users">
             <li
                 v-for="user in sortedUsers"
@@ -60,7 +59,7 @@ export default {
     },
     props: ['network', 'buffer', 'users'],
     computed: {
-        sortedUsers: function sortedUsers(search) {
+        sortedUsers: function sortedUsers() {
             // Get a list of network prefixes and give them a rank number
             let netPrefixes = this.network.ircClient.network.options.PREFIX;
             let prefixOrders = Object.create(null);
@@ -80,7 +79,7 @@ export default {
             for (let lowercaseNick in bufferUsers) {
                 let user = bufferUsers[lowercaseNick];
                 nickMap[user.nick] = lowercaseNick;
-                if (!this.search || user.nick.indexOf(this.search) !== -1) {
+                if (!this.search || lowercaseNick.indexOf(this.search.toLowerCase()) !== -1) {
                     users.push(user);
                 }
             }
@@ -175,87 +174,112 @@ export default {
 
 
 <style>
-.kiwi-nicklist {
-    overflow: hidden;
-    box-sizing: border-box;
-    overflow-y: auto;
-}
-.kiwi-nicklist-info {
-    font-size: 0.9em;
-    padding-bottom: 1em;
-    text-align: center;
-    border-width: 0 0 1px 0;
-    border-style: solid;
-}
+    .search input {
+        color: #222;
+        border: 0;
+        background: 0 0;
+        padding-left: 10px;
+    }
 
-.kiwi-nicklist-users {
-    list-style: none;
-    padding: 0 20px;
-    line-height: 1.2em;
-}
-.kiwi-nicklist-user {
-    padding: 3px 0;
-}
-.kiwi-nicklist-user-nick {
-    font-weight: bold;
-    cursor: pointer;
-}
+    .search input {
+        outline: 0;
+    }
 
-.kiwi-nicklist-user{
-    position: relative;
-}
-/* Tooltip text */
-.kiwi-nicklist-user .tooltip {
-    visibility: hidden;
-    width: 200px;
-    max-width: 276px;
-    background-color: #fff;
-    text-align: left;
-    padding: 1px;
-    border-radius: 6px;
+    i.fa-search {
+        position: relative;
+        z-index: 1;
+        left: -25px;
+        top: 1px;
+        color: #cfcfcf;
+        cursor:pointer;
+        width: 0;
+        line-height: 50px;
+    }
 
-    /* Position the tooltip text */
-    position: absolute;
-    bottom: 125%;
-    left: 0;
-    margin-left: -60px;
+    .kiwi-nicklist {
+        overflow: hidden;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+    .kiwi-nicklist-info {
+        font-size: 0.9em;
+        padding-bottom: 1em;
+        text-align: center;
+        border-width: 0 0 1px 0;
+        border-style: solid;
+    }
 
-    /* Fade in tooltip */
-    opacity: 0;
-    transition: opacity 0.3s;
+    .kiwi-nicklist-users {
+        list-style: none;
+        padding: 0 20px;
+        line-height: 1.2em;
+    }
+    .kiwi-nicklist-user {
+        padding: 3px 0;
+    }
+    .kiwi-nicklist-user-nick {
+        font-weight: bold;
+        cursor: pointer;
+    }
 
-    background-clip: padding-box;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    white-space: normal;
-}
+    .kiwi-nicklist-user{
+        position: relative;
+    }
+    /* Tooltip text */
+    .kiwi-nicklist-user .tooltip {
+        visibility: hidden;
+        width: 200px;
+        max-width: 276px;
+        background-color: #fff;
+        text-align: left;
+        padding: 1px;
+        border-radius: 6px;
 
-.kiwi-nicklist-user div.tooltip div.tooltipNick {
-    background-color: #eeeeee;
-    border-bottom: 1px solid #ebebeb;
-    border-radius: 5px 5px 0 0;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 18px;
-    margin: 0;
-    padding: 8px 14px;
-}
+        /* Position the tooltip text */
+        position: absolute;
+        bottom: 125%;
+        left: 0;
+        margin-left: -60px;
 
-.kiwi-nicklist-user div.tooltip div.tooltipInfo {
-    padding: 9px 14px;
-}
+        /* Fade in tooltip */
+        opacity: 0;
+        transition: opacity 0.3s;
 
-/* Tooltip arrow */
-.kiwi-nicklist-user .tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-}
+        background-clip: padding-box;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        white-space: normal;
 
-/* Show the tooltip text when you mouse over the tooltip container */
-.kiwi-nicklist-user:hover .tooltip {
-    visibility: visible;
-    opacity: 1;
-}
+        z-index: 1;
+    }
+
+    .kiwi-nicklist-user div.tooltip div.tooltipNick {
+        background-color: #eeeeee;
+        border-bottom: 1px solid #ebebeb;
+        border-radius: 5px 5px 0 0;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 18px;
+        margin: 0;
+        padding: 8px 14px;
+        z-index: 1;
+    }
+
+    .kiwi-nicklist-user div.tooltip div.tooltipInfo {
+        padding: 9px 14px;
+    }
+
+    /* Tooltip arrow */
+    .kiwi-nicklist-user .tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+    }
+
+    /* Show the tooltip text when you mouse over the tooltip container */
+    .kiwi-nicklist-user:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
 </style>

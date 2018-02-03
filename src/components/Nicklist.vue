@@ -16,6 +16,12 @@
                     @click="openUserbox(user, $event)"
                     v-bind:style="nickStyle(user.nick)"
                 >{{user.nick}}</span>
+
+                <div class="tooltip">
+                    <div class="tooltipNick">{{ user.nick }}</div>
+                    <div class="tooltipInfo">{{ user.age }} {{ (user.gender == 'F') ? 'Femme' : 'Homme' }}<br>{{ user.location }}</div>
+                </div>
+
             </li>
         </ul>
     </div>
@@ -188,4 +194,61 @@ export default {
     cursor: pointer;
 }
 
+.kiwi-nicklist-user{
+    position: relative;
+}
+/* Tooltip text */
+.kiwi-nicklist-user .tooltip {
+    visibility: hidden;
+    width: 200px;
+    max-width: 276px;
+    background-color: #fff;
+    text-align: left;
+    padding: 1px;
+    border-radius: 6px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    bottom: 125%;
+    left: 0;
+    margin-left: -60px;
+
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    white-space: normal;
+}
+
+.kiwi-nicklist-user div.tooltip div.tooltipNick {
+    background-color: #eeeeee;
+    border-bottom: 1px solid #ebebeb;
+    border-radius: 5px 5px 0 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    margin: 0;
+    padding: 8px 14px;
+}
+
+.kiwi-nicklist-user div.tooltip div.tooltipInfo {
+    padding: 9px 14px;
+}
+
+/* Tooltip arrow */
+.kiwi-nicklist-user .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.kiwi-nicklist-user:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
 </style>

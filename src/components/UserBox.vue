@@ -1,13 +1,17 @@
 <template>
     <div class="kiwi-userbox">
         <div class="kiwi-userbox-header">
-            <i class="fa fa-user kiwi-userbox-icon" aria-hidden="true"></i>
-            <h3>{{user.nick}}</h3>
+            <i v-if="user.gender === 'M'" v-bind:style="{ color: createNickColour }" class="fa fa-male kiwi-userbox-icon" aria-hidden="true"></i>
+            <i v-else-if="user.gender === 'F'" v-bind:style="{ color: createNickColour }" class="fa fa-female kiwi-userbox-icon" aria-hidden="true"></i>
+            <i v-else v-bind:style="{ color: createNickColour }" class="fa fa-user kiwi-userbox-icon" aria-hidden="true"></i>
+            <h3 v-bind:style="{ color: createNickColour }">{{user.nick}}</h3>
             <div class="kiwi-userbox-usermask">{{user.username}}@{{user.host}}</div>
         </div>
 
         <p class="kiwi-userbox-basicinfo">
-            <b>{{$t('whois_realname')}}:</b> {{user.realname}} <br />
+            <span v-if="user.age"><b>{{$t('agl_age')}}: </b> {{user.age}} ans<br /></span>
+            <span v-if="user.gender"><b>{{$t('agl_gender')}}: </b> {{ genderName }}<br /></span>
+            <span v-if="user.location"><b>{{$t('agl_location')}}: </b> {{user.location}}<br /></span>
             <b>{{$t('whois_status')}}:</b> {{user.away ? user.away : $t('whois_status_available')}} <br />
         </p>
 
@@ -67,6 +71,8 @@
 <script>
 
 import state from '@/libs/state';
+import * as TextFormatting from '@/helpers/TextFormatting';
+// import Logger from '@/libs/Logger';
 
 export default {
     data: function data() {
@@ -158,6 +164,17 @@ export default {
                 client.raw(params);
             },
         },
+        createNickColour: function createNickColour() {
+            return TextFormatting.createNickColour(this.user.nick);
+        },
+        genderName: function genderName() {
+            if (this.user.gender === 'M') {
+                return 'Homme';
+            } else if (this.user.gender === 'F') {
+                return 'Femme';
+            }
+            return 'Inconnu';
+        },
     },
     methods: {
         userModeOnThisBuffer: function userModeOnBuffer(user) {
@@ -222,6 +239,14 @@ export default {
             if (targetTop + rect.height > window.innerHeight) {
                 this.$el.style.top = (window.innerHeight - rect.height) + 'px';
             }
+        },
+        genderIcon: function genderIcon() {
+            if (this.user.gender === 'M') {
+                return 'fa fa-male kiwi-userbox-icon';
+            } else if (this.user.gender === 'F') {
+                return 'fa fa-female kiwi-userbox-icon';
+            }
+            return 'fa fa-user kiwi-userbox-icon';
         },
     },
     mounted: function mounted() {

@@ -175,38 +175,29 @@ export default {
 
 
 <style>
-.kiwi-nicklist {
-    overflow: hidden;
-    box-sizing: border-box;
-    overflow-y: auto;
-}
-.kiwi-nicklist-info {
-    font-size: 0.9em;
-    padding-bottom: 0;
-    text-align: center;
-    border-width: 0 0 1px 0;
-    border-style: solid;
-    display: flex;
-}
-.kiwi-nicklist-info input {
-    flex: 1;
-    border: 0;
-    background: 0 0;
-    padding: 10px 0 10px 20px;
-    margin: 0;
-    outline: 0;
-    text-align: center;
-}
-.kiwi-nicklist-info  i.fa-search {
-    flex: 1;
-    margin-right: 25px;
-    color: #cfcfcf;
-    cursor: pointer;
-    line-height: 50px;
-}
+    .kiwi-nicklist {
+        overflow: hidden;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
 
-    .search input {
+    .kiwi-nicklist-info {
+        font-size: 0.9em;
+        text-align: center;
+        display: flex;
+        padding-bottom: 1em;
+        border-width: 0 0 1px 0;
+        border-style: solid;
+    }
+
+    .kiwi-nicklist-info input {
+        flex: 1;
+        border: 0;
+        background: 0 0;
+        padding: 10px 0 10px 20px;
+        margin: 0;
         outline: 0;
+        text-align: center;
     }
 
     i.fa-search {
@@ -215,22 +206,18 @@ export default {
         left: -25px;
         top: 1px;
         color: #cfcfcf;
-        cursor:pointer;
+        cursor: pointer;
         width: 0;
         line-height: 50px;
     }
 
-    .kiwi-nicklist {
-        overflow: hidden;
-        box-sizing: border-box;
-        overflow-y: auto;
+    .kiwi-nicklist-info i.fa-search {
+        flex: 1;
+        margin-right: 25px;
     }
-    .kiwi-nicklist-info {
-        font-size: 0.9em;
-        padding-bottom: 1em;
-        text-align: center;
-        border-width: 0 0 1px 0;
-        border-style: solid;
+
+    .search input {
+        outline: 0;
     }
 
     .kiwi-nicklist-users {
@@ -238,17 +225,17 @@ export default {
         padding: 0 20px;
         line-height: 1.2em;
     }
+
     .kiwi-nicklist-user {
         padding: 3px 0;
+        position: relative;
     }
+
     .kiwi-nicklist-user-nick {
         font-weight: bold;
         cursor: pointer;
     }
 
-    .kiwi-nicklist-user{
-        position: relative;
-    }
     /* Tooltip text */
     .kiwi-nicklist-user .tooltip {
         visibility: hidden;
@@ -268,17 +255,15 @@ export default {
         /* Fade in tooltip */
         opacity: 0;
         transition: opacity 0.3s;
-
         background-clip: padding-box;
         border: 1px solid rgba(0, 0, 0, 0.2);
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         white-space: normal;
-
         z-index: 1;
     }
 
     .kiwi-nicklist-user div.tooltip div.tooltipNick {
-        background-color: #eeeeee;
+        background-color: #eee;
         border-bottom: 1px solid #ebebeb;
         border-radius: 5px 5px 0 0;
         font-size: 14px;

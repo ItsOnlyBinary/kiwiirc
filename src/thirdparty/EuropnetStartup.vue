@@ -226,10 +226,11 @@ state.getStartups().europnetstartup = ctor;
 </script>
 
 <style>
-
 .kiwi-welcome-europnet {
     height: 100%;
     text-align: center;
+    background-size: 0;
+    background-position: bottom;
 }
 
 .kiwi-welcome-europnet h2 {
@@ -238,6 +239,7 @@ state.getStartups().europnetstartup = ctor;
     padding: 0;
     margin: 0.5em 0 1em 0;
 }
+
 .kiwi-welcome-europnet-section {
     position: absolute;
     top: 0;
@@ -263,7 +265,7 @@ state.getStartups().europnetstartup = ctor;
     background-color: #fff;
     border-radius: 0.5em;
     padding: 1em;
-    border:1px solid #ececec;
+    border: 1px solid #ececec;
 }
 
 /** Right side */
@@ -274,7 +276,11 @@ state.getStartups().europnetstartup = ctor;
     align-items: center;
     justify-content: center;
     min-height: 100%;
+    background-size: cover;
+    background-position: bottom;
+    border-left: 5px solid #86b32d;
 }
+
 .kiwi-welcome-europnet-section-info-content {
     background: rgba(255, 255, 255, 0.74);
     margin: 2em;
@@ -283,12 +289,14 @@ state.getStartups().europnetstartup = ctor;
     padding: 2em;
     line-height: 1.6em;
 }
+
 /** Left side */
 .kiwi-welcome-europnet-error {
     text-align: center;
     margin: 1em 0;
     padding: 0.3em;
 }
+
 .kiwi-welcome-europnet-error span {
     display: block;
     font-style: italic;
@@ -298,28 +306,20 @@ state.getStartups().europnetstartup = ctor;
     text-align: left;
     display: inline-block;
 }
-.kiwi-welcome-europnet .kiwi-welcome-europnet-have-password input[type="text"],
-.kiwi-welcome-europnet-have-password {
-    font-size: 0.8em;
-    margin: 0.8em 0;
-}
-.kiwi-welcome-europnet-have-password {
-    margin-top: 0;
-}
-.kiwi-welcome-europnet-group {
-    display: flex;
-    width: 100%;
-    height: 2em;
-    line-height: 1;
-    margin: 0 0 8px 0;
-}
-.kiwi-welcome-europnet-nick {
-    font-weight: bold;
-}
+
+.kiwi-welcome-europnet-group input[type="text"],
+.kiwi-welcome-europnet-group input[type="number"],
 .kiwi-welcome-europnet-group-genders {
-    display: inline-block;
+    width: 80%;
+    height: 24px;
     font-size: 1em;
+    padding: 0.21em 1em;
+    padding-left: 0.5em;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    color: #555;
 }
+
 span.kiwi-welcome-europnet-picto,
 .kiwi-welcome-europnet-group input[type="text"],
 .kiwi-welcome-europnet-group input[type="number"],
@@ -327,19 +327,55 @@ span.kiwi-welcome-europnet-picto,
     border: 1px solid #ccc;
     border-radius: 4px;
 }
-.kiwi-welcome-europnet-group input {
-    -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
-    -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
-    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+
+.kiwi-welcome-europnet .kiwi-welcome-europnet-have-password input[type="text"],
+.kiwi-welcome-europnet-have-password {
+    font-size: 0.8em;
+    margin: 0.8em 0;
 }
 
+.kiwi-welcome-europnet-have-password {
+    margin-top: 0;
+}
+
+.kiwi-welcome-europnet-group {
+    display: flex;
+    width: 100%;
+    height: 2em;
+    line-height: 1;
+    margin: 0 0 8px 0;
+}
+
+.kiwi-welcome-europnet-nick {
+    font-weight: bold;
+}
+
+.kiwi-welcome-europnet-group-genders {
+    display: inline-block;
+    font-size: 1em;
+    width: 250px;
+    padding: 0;
+    padding-left: 0.5em;
+    padding-top: 6px;
+}
+
+.kiwi-welcome-europnet-group input {
+    -webkit-transition: border-color ease-in-out 0.15s, -webkit-box-shadow ease-in-out 0.15s;
+    -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+    transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+
+.kiwi-welcome-europnet-form input {
+    padding: 0.5em;
+}
 
 .kiwi-welcome-europnet-group input:focus {
     border-color: #66afe9;
     outline: 0;
-    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
 }
+
 span.kiwi-welcome-europnet-picto {
     display: inline-block;
     width: 40px;
@@ -353,60 +389,49 @@ span.kiwi-welcome-europnet-picto {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }
-.kiwi-welcome-europnet-group input[type="text"],
-.kiwi-welcome-europnet-group input[type="number"],
-.kiwi-welcome-europnet-group-genders {
-    width: 80%;
-    height: 24px;
-    font-size: 1em;
-    padding: 0.21em 1em;
-    padding-left: 0.5em;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    color: #555;
-}
+
 .kiwi-welcome-europnet-group input[type="number"].kiwi-welcome-europnet-age {
     width: 3em;
 }
+
 .kiwi-welcome-europnet-group .age-text {
     margin: 8px 0;
 }
-.kiwi-welcome-europnet-group-genders {
-    width: 250px;
-    padding: 0;
-    padding-left: 0.5em;
-    padding-top: 6px;
-}
+
 .kiwi-welcome-europnet-group-genders label {
     margin: 0;
 }
+
 .kiwi-welcome-europnet-group-genders .gender_m {
-    color: #208BFC;
+    color: #208bfc;
     font-weight: bold;
 }
+
 .kiwi-welcome-europnet-group-genders .gender_f {
-    color: #ff00ff;
+    color: #f0f;
     font-weight: bold;
 }
+
 .kiwi-welcome-europnet-group-genders .gender_u {
     color: #999;
     font-weight: bold;
 }
+
 .kiwi-welcome-europnet-group i.fa-slack {
     -ms-transform: rotate(19deg);
     -webkit-transform: rotate(19deg);
     transform: rotate(19deg);
 }
+
 .kiwi-welcome-europnet-start {
     font-size: 1.1em;
     cursor: pointer;
 }
+
 .kiwi-welcome-europnet-start[disabled] {
     cursor: not-allowed;
 }
-.kiwi-welcome-europnet-form input {
-    padding: 0.5em;
-}
+
 .kiwi-welcome-europnet-form .u-submit {
     width: 100%;
     line-height: 50px;
@@ -417,35 +442,39 @@ span.kiwi-welcome-europnet-picto {
     text-shadow: none;
     margin: 0;
     transition: all 0.2s;
-    border:none;
+    border: none;
     background-color: #86b32d;
 }
+
 /** Closing - the wiping away of the screen **/
 .kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-connection {
     left: -50%;
 }
+
 .kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-info {
     right: -50%;
 }
+
 .kiwi-welcome-europnet .help {
     position: absolute;
-    bottom:0.2em;
+    bottom: 0.2em;
     font-size: 0.8em;
-    color:#666;
+    color: #666;
     width: 50%;
     text-align: center;
 }
+
 .kiwi-welcome-europnet .help a {
     text-decoration: underline;
-    color:#666;
+    color: #666;
 }
+
 .kiwi-welcome-europnet .help a:hover {
-    color:#A9D87A;
+    color: #a9d87a;
 }
 
 /* Styling the preloader */
 .kiwi-welcome-europnet .fa-spinner {
-    font-size: 1.5em;
     position: absolute;
     top: 50%;
     z-index: 999;
@@ -455,33 +484,40 @@ span.kiwi-welcome-europnet-picto {
     margin-left: -40px;
 }
 
-/** Smaller screen...**/
+/** Smaller screen... **/
 @media screen and (max-width: 850px) {
     .kiwi-welcome-europnet {
         font-size: 0.9em;
+        position: relative;
+        min-height: 100%;
     }
+
     .kiwi-welcome-europnet-section-connection {
         width: 100%;
+        min-height: 400px;
     }
+
     .kiwi-welcome-europnet-section-info-content {
         margin: 1em;
     }
+
     .kiwi-welcome-europnet-form {
-        position: static;
         left: auto;
         margin: 20px auto 20px auto;
         z-index: 100;
         position: relative;
-        top:auto;
+        top: auto;
         align-self: flex-start;
     }
+
     .kiwi-welcome-europnet p.help {
         position: absolute;
-        bottom:20px;
+        bottom: 20px;
         width: 100%;
-        color:#fff;
+        color: #fff;
         z-index: 100;
     }
+
     .kiwi-welcome-europnet p.help a {
         color: #fff;
     }
@@ -490,23 +526,15 @@ span.kiwi-welcome-europnet-picto {
         position: static;
         width: 100%;
         border: none;
-        min-height: 0px;
+        min-height: 0;
     }
 
-    .fa-spinner{
+    .fa-spinner {
         position: absolute;
         left: 48%;
         top: 50%;
         margin-top: -50px;
         color: #fff;
-    }
-    .kiwi-welcome-europnet-section-connection {
-        min-height: 400px;
-    }
-
-    .kiwi-welcome-europnet{
-        position: relative;
-        min-height: 100%;
     }
 
     .kiwi-welcome-europnet-section .kiwi-welcome-europnet-section-connection {
@@ -520,38 +548,32 @@ span.kiwi-welcome-europnet-picto {
         font-size: 0.9em;
         overflow-y: auto;
     }
+
     .kiwi-welcome-europnet-section-info-content {
         margin: 0.5em;
     }
+
     /** Closing - the wiping away of the screen **/
     .kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-connection {
         left: -100%;
     }
+
     .kiwi-welcome-europnet--closing .kiwi-welcome-europnet-section-info {
         left: -100%;
     }
 }
 
-@media screen and (max-width: 400px){
+@media screen and (max-width: 400px) {
     .kiwi-welcome-europnet-form {
-      width: 90%;
+        width: 90%;
     }
 }
 
-
 /** Background /border switching between screen sizes **/
-.kiwi-welcome-europnet {
-    background-size: 0;
-    background-position: bottom;
-}
-.kiwi-welcome-europnet-section-info {
-    background-size: cover;
-    background-position: bottom;
-    border-left: 5px solid #86b32d;
-}
 .kiwi-welcome-europnet--no-bg .kiwi-welcome-europnet-section-info {
     background-color: rgb(51, 51, 51);
 }
+
 @media screen and (max-width: 850px) {
     /* Apply some flex so that the info panel fills the rest of the bottom screen */
     .kiwi-welcome-europnet {
@@ -559,15 +581,18 @@ span.kiwi-welcome-europnet-picto {
         display: flex;
         flex-direction: column;
     }
+
     .kiwi-welcome-europnet-section {
         overflow-y: visible;
     }
+
     .kiwi-welcome-europnet-section-info {
         background-size: 0;
         border-left: none;
         flex: 1 0;
         display: block;
     }
+
     .kiwi-welcome-europnet--no-bg .kiwi-welcome-europnet-section-info {
         border-top: 5px solid #86b32d;
     }

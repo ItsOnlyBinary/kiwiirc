@@ -164,7 +164,8 @@ function clientMiddleware(state, networkid) {
 
 
     function rawEventsHandler(command, event, rawLine, client, next) {
-        state.$emit('irc:raw', command, event, network);
+        state.$emit('irc.raw', command, event, network);
+        state.$emit('irc.raw.' + command, command, event, network);
         next();
     }
 
@@ -173,7 +174,7 @@ function clientMiddleware(state, networkid) {
         // Trigger this event through the state object first. If it's been handled
         // somewhere else then we ignore it.
         let ircEventObj = { handled: false };
-        state.$emit('irc:' + command, event, network, ircEventObj);
+        state.$emit('irc.' + command, event, network, ircEventObj);
         if (ircEventObj.handled) {
             next();
             return;
@@ -663,20 +664,12 @@ function clientMiddleware(state, networkid) {
 
         if (command === 'mode') {
             let buffer = network.bufferByName(event.target);
+            let modeStrs = {};
             if (buffer) {
+                // Join all the same mode changes together so they can be shown on one
+                // line such as "prawnsalad sets +b on nick1, nick2"
                 event.modes.forEach(mode => {
-                    let messageBody = TextFormatting.formatText('mode', {
-                        nick: event.nick,
-                        username: event.ident,
-                        host: event.hostname,
-                        text: `set ${mode.mode} ${mode.param || ''}`,
-                    });
-                    state.addMessage(buffer, {
-                        time: event.time || Date.now(),
-                        nick: '',
-                        message: messageBody,
-                        type: 'mode',
-                    });
+                    modeStrs[mode.mode] = modeStrs[mode.mode] || [];
 
                     // If this mode has a user prefix then we need to update the user object
                     let prefix = _.find(network.ircClient.network.options.PREFIX, {
@@ -697,6 +690,8 @@ function clientMiddleware(state, networkid) {
                                 modes.splice(modeIdx, 1);
                             }
                         }
+
+                        modeStrs[mode.mode].push({ target: mode.param });
                     } else {
                         // Not a user prefix, add it as a channel mode
                         // TODO: Why are these not appearing as the 'channel info' command?
@@ -708,7 +703,47 @@ function clientMiddleware(state, networkid) {
                         } else if (!adding) {
                             state.$delete(buffer.modes, modeChar);
                         }
+
+                        modeStrs[mode.mode].push({ target: buffer.name, param: mode.param });
                     }
+                });
+
+                let modeLocaleIds = {
+                    '+o': 'modes_give_ops',
+                    '-o': 'modes_take_ops',
+                    '+h': 'modes_give_halfops',
+                    '-h': 'modes_take_halfops',
+                    '+v': 'modes_give_voice',
+                    '-v': 'modes_take_voice',
+                    '+a': 'modes_give_admin',
+                    '-a': 'modes_take_admin',
+                    '+q': 'modes_give_owner',
+                    '-q': 'modes_take_owner',
+                    '+b': 'modes_gives_ban',
+                    '-b': 'modes_takes_ban',
+                };
+
+                // Show one line per mode, listing each effecting user
+                _.each(modeStrs, (targets, mode) => {
+                    let text = TextFormatting.t(modeLocaleIds[mode] || 'modes_other', {
+                        mode: mode + (targets[0].param ? ' ' + targets[0].param : ''),
+                        target: targets.map(t => t.target).join(', '),
+                        nick: event.nick,
+                    });
+
+                    let messageBody = TextFormatting.formatText('mode', {
+                        nick: event.nick,
+                        username: event.ident,
+                        host: event.hostname,
+                        target: targets.map(t => t.target).join(', '),
+                        text,
+                    });
+                    state.addMessage(buffer, {
+                        time: event.time || Date.now(),
+                        nick: '',
+                        message: messageBody,
+                        type: 'mode',
+                    });
                 });
             }
         }

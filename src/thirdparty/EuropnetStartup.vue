@@ -537,6 +537,10 @@ span.kiwi-welcome-europnet-picto {
         color: #fff;
     }
 
+    .kiwi-welcome-europnet-section-connection {
+        min-height: 400px;
+    }
+
     .kiwi-welcome-europnet-section .kiwi-welcome-europnet-section-connection {
         position: static;
     }

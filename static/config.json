@@ -1,22 +1,21 @@
 {
-    "windowTitle": "Kiwi IRC - The web IRC client",
-    "startupScreen": "europnetstartup",
-    "kiwiServer": "http://localhost/webirc/kiwiirc/",
-    "restricted": true,
-    "theme": "default",
-    "themes": [
-        { "name": "Default", "url": "static/themes/default" }
-    ],
-    "startupOptions" : {
-        "server": "librenet.europnet.org",
-        "port": 6697,
-        "tls": true,
-        "direct": false,
-        "channel": "#accueil,#testoz",
-        "nick": "testouille",
-        "gecos": ""
-    },
-    "embedly": {
-        "key": ""
-    }
+  "windowTitle": "Kiwi IRC - The web IRC client",
+  "startupScreen": "agl",
+  "kiwiServer": "http://chat.discutea.fr:8080/webirc/kiwiirc/",
+  "restricted": true,
+  "theme": "default",
+  "themes": [
+    { "name": "Default", "url": "static/themes/default" }
+  ],
+  "startupOptions" : {
+    "server": "irc.freenode.net",
+    "port": 6667,
+    "tls": false,
+    "direct": false,
+    "channel": "#GreatChat",
+    "nick": "kiwi-n?"
+  },
+  "embedly": {
+    "key": ""
+  }
 }

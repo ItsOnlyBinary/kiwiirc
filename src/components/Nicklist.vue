@@ -19,6 +19,12 @@
                     @click="openUserbox(user, $event)"
                     v-bind:style="nickStyle(user.nick)"
                 >{{user.nick}}</span>
+
+                <div class="tooltip">
+                    <div class="tooltipNick">{{ user.nick }}</div>
+                    <div class="tooltipInfo">{{ user.age }} {{ (user.gender == 'F') ? 'Femme' : 'Homme' }}<br>{{ user.location }}</div>
+                </div>
+
             </li>
         </ul>
     </div>
@@ -217,4 +223,33 @@ export default {
     cursor: pointer;
 }
 
+.kiwi-nicklist-user div.tooltip div.tooltipNick {
+    background-color: #eeeeee;
+    border-bottom: 1px solid #ebebeb;
+    border-radius: 5px 5px 0 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    margin: 0;
+    padding: 8px 14px;
+    z-index: 1;
+}
+
+.kiwi-nicklist-user div.tooltip div.tooltipInfo {
+    padding: 9px 14px;
+}
+
+/* Tooltip arrow */
+.kiwi-nicklist-user .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.kiwi-nicklist-user:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
 </style>

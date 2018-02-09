@@ -159,7 +159,7 @@ export function linkifyUsers(word, userlist) {
     }
 
     let escaped = _.escape(nick);
-    let colour = createNickColour(nick);
+    let colour = exports.createNickColour(nick);
     ret = `<a class="kiwi-nick" data-nick="${escaped}" style="color:${colour}">${escaped}</a>`;
 
     if (prepend) {

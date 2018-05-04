@@ -897,19 +897,18 @@ function clientMiddleware(state, network) {
 
         if (command === 'topicsetby') {
             let buffer = state.getOrAddBufferByName(networkid, event.channel);
-            buffer.topic_by = event.nick;
-            buffer.topic_when = event.when * 1000;
-
-            // add setby to the most recent topic component
-            let messages = buffer.getMessages();
-            for (let i = messages.length - 1; i >= 0; i--) {
-                let message = messages[i];
-                if (message.type === 'topic' && message.template) {
-                    message.template.topic_by = event.nick;
-                    message.template.topic_when = buffer.topic_when;
-                    return;
-                }
-            }
+            let messageBody = TextFormatting.formatText('channel_topic_setby', {
+                nick: event.nick,
+                username: event.ident,
+                host: event.hostname,
+                text: 'Topic set by ' + event.nick + ' (' + (new Date(event.when * 1000)).toDateString() + ')',
+            });
+            state.addMessage(buffer, {
+                time: event.time || Date.now(),
+                nick: '',
+                message: messageBody,
+                type: 'topicsetby',
+            });
         }
 
         if (command === 'ctcp response' || command === 'ctcp request') {

@@ -69,6 +69,10 @@ export default {
             this.giphy_searchString = searchString;
             xhttp.onreadystatechange = function giphyReady() {
                 let i;
+                // sometimes the response is blank or only a partial reply
+                if (!this.responseText || this.responseText.slice(-1) !== '}') {
+                    return;
+                }
                 imageData = this.responseText;
                 imageData = JSON.parse(imageData);
                 imageData = imageData.data;
@@ -86,7 +90,7 @@ export default {
             this.$refs.kiwiGifySearch.value = '';
         },
         onImgClick: function onImgClick(img) {
-            let imgSource = img.srcTarget.src;
+            let imgSource = img.target.src;
             state.$emit('input.raw', imgSource);
             closeGiphy();
         },

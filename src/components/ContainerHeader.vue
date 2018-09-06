@@ -80,6 +80,9 @@
 
             <div v-if="isJoined && buffer.topic.length > 0 && viewTopic" class="kiwi-header-topic">
                 <div v-html="formattedTopic"/>
+                <div v-if="buffer.topic_by" class="kiwi-header-topic-setby">
+                    {{ formattedSetBy }}
+                </div>
             </div>
 
             <transition name="kiwi-header-prompttrans">
@@ -212,6 +215,12 @@ export default {
             let content = TextFormatting.styleBlocksToHtml(blocks, showEmoticons, null);
             return content.html;
         },
+        formattedSetBy() {
+            return TextFormatting.t('topic_setby', {
+                who: this.buffer.topic_by,
+                when: new Date(this.buffer.topic_when).toLocaleString(),
+            });
+        },
     },
     watch: {
         buffer: function watchBuffer() {
@@ -308,7 +317,6 @@ export default {
 }
 
 .kiwi-header-topic {
-    padding: 0;
     line-height: normal;
     max-width: none;
     width: 100%;
@@ -316,13 +324,18 @@ export default {
     box-sizing: border-box;
     height: auto;
     text-align: left;
+    padding: 10px 30px;
 }
 
 .kiwi-header-topic > div {
     height: auto;
     font-size: 0.8;
     cursor: default;
-    padding: 10px 20px;
+}
+
+.kiwi-header-topic-setby {
+    font-size: 80%;
+    float: right;
 }
 
 .kiwi-header-name {

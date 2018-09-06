@@ -80,6 +80,12 @@
 
             <div v-if="isJoined && buffer.topic.length > 0 && viewTopic" class="kiwi-header-topic">
                 <div v-html="formattedTopic"/>
+                <div class="kiwi-header-topicsetby">
+                    {{ $t('topic_setby', {
+                        who: buffer.topic_by,
+                        when: new Date(buffer.topic_when * 1000).toLocaleString(),
+                    }) }}
+                </div>
             </div>
 
             <transition name="kiwi-header-prompttrans">
@@ -323,6 +329,11 @@ export default {
     font-size: 0.8;
     cursor: default;
     padding: 10px 20px;
+}
+
+.kiwi-header-topicsetby {
+    display: inline-block;
+    float: right;
 }
 
 .kiwi-header-name {

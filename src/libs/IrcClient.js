@@ -894,11 +894,17 @@ function clientMiddleware(state, network) {
 
         if (command === 'topicsetby') {
             let buffer = state.getOrAddBufferByName(networkid, event.channel);
+            buffer.topic_by = event.nick;
+            buffer.topic_when = event.when;
+
             let messageBody = TextFormatting.formatText('channel_topic_setby', {
                 nick: event.nick,
                 username: event.ident,
                 host: event.hostname,
-                text: 'Topic set by ' + event.nick + ' (' + (new Date(event.when * 1000)).toDateString() + ')',
+                text: TextFormatting.t('topic_setby', {
+                    who: buffer.topic_by,
+                    when: new Date(buffer.topic_when * 1000).toLocaleString(),
+                }),
             });
             state.addMessage(buffer, {
                 time: event.time || Date.now(),

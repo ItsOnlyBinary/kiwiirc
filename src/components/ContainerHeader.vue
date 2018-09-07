@@ -25,13 +25,11 @@
                     class="kiwi-header-option kiwi-header-option-topic"
                     @click="showTopic"
                 >
-                    <a v-if="viewTopic">
+                    <a>
                         <i class="fa fa-info" aria-hidden="true"/>
-                        <span class="kiwi-containerheader-hidetext">{{ $t('hide_topic') }}</span>
-                    </a>
-                    <a v-if="!viewTopic">
-                        <i class="fa fa-info" aria-hidden="true"/>
-                        <span class="kiwi-containerheader-hidetext">{{ $t('display_topic') }}</span>
+                        <span class="kiwi-containerheader-hidetext">
+                            {{ $t(viewTopic ? 'hide_topic' : 'display_topic') }}
+                        </span>
                     </a>
                 </div>
                 <div

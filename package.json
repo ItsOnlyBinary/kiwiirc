@@ -76,6 +76,7 @@
     "tinycon": "^0.6.8",
     "uppy": "^0.18.0",
     "url-loader": "^0.5.7",
+    "v-tooltip": "^2.0.0-rc.33",
     "vue": "^2.5.13",
     "vue-loader": "^13.7.0",
     "vue-template-compiler": "^2.5.13",

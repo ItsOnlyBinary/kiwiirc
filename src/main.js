@@ -3,6 +3,7 @@ import Vue from 'vue';
 import i18next from 'i18next';
 import i18nextXHR from 'i18next-xhr-backend';
 import VueI18Next from '@panter/vue-i18next';
+import VTooltip from 'v-tooltip';
 
 import AvailableLocales from '@/res/locales/available.json';
 import FallbackLocale from '@/../static/locales/en-us.json';
@@ -31,6 +32,8 @@ if (logLevelMatch && logLevelMatch[1]) {
 }
 
 let log = Logger.namespace('main');
+
+Vue.use(VTooltip);
 
 // Add the global API as soon as possible so that things can start listening to it
 let api = window.kiwi = GlobalApi.singleton();

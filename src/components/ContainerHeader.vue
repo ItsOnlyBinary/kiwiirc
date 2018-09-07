@@ -20,7 +20,7 @@
                     class="kiwi-header-option"
                 />
                 <div
-                    v-if="buffer.topic.length > 0"
+                    v-if="buffer.topic.length > 0 && !forceTopic()"
                     :class="{ 'kiwi-header-option--active': viewTopic == true }"
                     class="kiwi-header-option kiwi-header-option-topic"
                     @click="showTopic"
@@ -78,7 +78,10 @@
                 </a>
             </div>
 
-            <div v-if="isJoined && buffer.topic.length > 0 && viewTopic" class="kiwi-header-topic">
+            <div
+                v-if="isJoined && buffer.topic.length > 0 && (viewTopic || forceTopic())"
+                class="kiwi-header-topic"
+            >
                 <div v-html="formattedTopic"/>
                 <div v-if="buffer.topic_by" class="kiwi-header-topic-setby">
                     {{ formattedSetBy }}
@@ -270,6 +273,9 @@ export default {
         },
         showTopic() {
             this.viewTopic = !this.viewTopic;
+        },
+        forceTopic() {
+            return this.$state.setting('alwaysShowTopic');
         },
         joinCurrentBuffer: function joinCurrentBuffer() {
             let network = this.buffer.getNetwork();

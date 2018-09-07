@@ -37,6 +37,7 @@ const stateObj = {
             password: '',
         },
         warnOnExit: true,
+        alwaysShowTopic: false,
         // Default buffer settings
         buffers: {
             messageLayout: 'compact',

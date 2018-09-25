@@ -29,9 +29,9 @@
                 <span>{{ $t('unread_messages') }}</span>
             </div>
 
-            <component
-                v-if="message.render() && message.template"
-                :is="message.template"
+            <div
+                v-rawElement="message.template.$el"
+                v-if="message.render() && message.template && message.template.$el"
                 :message="message"
                 :buffer="buffer"
             />

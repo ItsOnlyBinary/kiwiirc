@@ -1031,6 +1031,8 @@ const state = new Vue({
                     modes: user.modes || '',
                     away: user.away || '',
                     buffers: Object.create(null),
+                    isIrcOp: null,
+                    pendingPms: [],
                 };
             } else {
                 // Update the existing user object with any new info we have

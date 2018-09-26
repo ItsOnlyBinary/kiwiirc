@@ -1,6 +1,7 @@
 'kiwi public';
 
 import * as TextFormatting from '@/helpers/TextFormatting';
+import * as userTools from '@/libs/userTools';
 import _ from 'lodash';
 import strftime from 'strftime';
 import Irc from 'irc-framework/browser';
@@ -341,8 +342,18 @@ function clientMiddleware(state, network) {
 
             let blockNewPms = state.setting('buffers.block_pms');
             let buffer = state.getBufferByName(networkid, bufferName);
-            if (isPrivateMessage && !buffer && blockNewPms) {
-                return;
+            let withholdMessage = false;
+            if (
+                isPrivateMessage && !buffer && blockNewPms &&
+                !userTools.isUserAdminOfSharedChannel(networkid, event.nick)
+            ) {
+                let user = state.getUser(networkid, event.nick);
+                if (user.isIrcOp === null) {
+                    withholdMessage = true;
+                    network.ircClient.whois(event.nick);
+                } else if (user.isIrcOp === false) {
+                    return;
+                }
             } else if (!buffer) {
                 buffer = state.getOrAddBufferByName(networkid, bufferName);
             }
@@ -361,13 +372,20 @@ function clientMiddleware(state, network) {
                 text: event.message,
             });
 
-            state.addMessage(buffer, {
+            let message = {
                 time: event.time || Date.now(),
                 nick: event.nick,
                 message: messageBody,
                 type: event.type,
                 tags: event.tags || {},
-            });
+            };
+
+            if (withholdMessage) {
+                let user = state.getUser(networkid, event.nick);
+                user.pendingPms.push(message);
+            } else {
+                state.addMessage(buffer, message);
+            }
         }
 
         if (command === 'wallops') {
@@ -580,6 +598,20 @@ function clientMiddleware(state, network) {
             });
 
             state.addUser(networkid, obj);
+            let user = state.getUser(networkid, event.nick);
+
+            user.isIrcOp = user.operator !== undefined;
+            if (user.pendingPms.length > 0) {
+                if (user.isIrcOp) {
+                    while (user.pendingPms.length > 0) {
+                        let message = user.pendingPms.shift();
+                        let buffer = state.getOrAddBufferByName(networkid, user.nick);
+                        state.addMessage(buffer, message);
+                    }
+                } else {
+                    user.pendingPms = [];
+                }
+            }
         }
 
         if (command === 'away') {

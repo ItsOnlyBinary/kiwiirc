@@ -44,7 +44,7 @@
             <div
                 :style="ml.nickStyle(message.nick)"
                 class="kiwi-messagelist-nick"
-                @click="ml.openUserBox(message.nick)"
+                @click="ml.openUserBox(message.nick, true)"
                 @mouseover="ml.hover_nick=message.nick.toLowerCase();"
                 @mouseout="ml.hover_nick='';"
             >{{ message.user ? userModePrefix(message.user) : '' }}{{ message.nick }}</div>

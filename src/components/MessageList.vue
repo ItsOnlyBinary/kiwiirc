@@ -336,7 +336,12 @@ export default {
             }
             return '';
         },
-        openUserBox(nick) {
+        openUserBox(nick, delay) {
+            if (delay) {
+                clearTimeout(this.messageClickTmr);
+                this.messageClickTmr = setTimeout(this.openUserBox, 200, nick, false);
+                return;
+            }
             let user = this.$state.getUser(this.buffer.networkid, nick);
             if (user) {
                 this.$state.$emit('userbox.show', user, {
@@ -353,6 +358,11 @@ export default {
             let userNick = event.target.getAttribute('data-nick');
             if (userNick) {
                 this.$state.$emit('input.insertnick', userNick);
+            }
+
+            let targetClass = event.target.className;
+            if (targetClass === 'kiwi-messagelist-nick') {
+                this.$state.$emit('input.insertnick', event.target.innerHTML);
             }
         },
         onMessageClick(event, message, delay) {

@@ -19,6 +19,7 @@ import * as Misc from '@/helpers/Misc';
 import GlobalApi from '@/libs/GlobalApi';
 import { AudioManager } from '@/libs/AudioManager';
 import { SoundBleep } from '@/libs/SoundBleep';
+import { FontAwesome } from '@/libs/fontAwesome';
 
 // Global utilities
 import '@/components/utils/TabbedView';
@@ -33,6 +34,9 @@ if (logLevelMatch && logLevelMatch[1]) {
 }
 
 let log = Logger.namespace('main');
+
+// Start font awesome
+FontAwesome();
 
 // Add the global API as soon as possible so that things can start listening to it
 let api = window.kiwi = GlobalApi.singleton();

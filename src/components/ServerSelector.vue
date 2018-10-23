@@ -37,10 +37,10 @@
                     class="fa-stack fa-lg kiwi-customserver-tls"
                     @click="toggleTls"
                 >
-                    <i class="fa fa-lock fa-stack-1x kiwi-customserver-tls-lock"/>
+                    <i class="fas fa-lock fa-stack-1x kiwi-customserver-tls-lock"/>
                     <i
                         v-if="!tls"
-                        class="fa fa-unlock fa-stack-1x kiwi-customserver-tls-minus"
+                        class="fas fa-unlock fa-stack-1x kiwi-customserver-tls-minus"
                     />
                 </span>
             </input-text>

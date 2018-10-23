@@ -25,7 +25,7 @@
                     class="kiwi-header-option kiwi-header-option-topic"
                     @click="showTopic"
                 >
-                    <a :title="$t('display_topic')"><i class="fa fa-info" aria-hidden="true"/></a>
+                    <a :title="$t('display_topic')"><i class="fas fa-info" aria-hidden="true"/></a>
                 </div>
                 <div
                     :class="{
@@ -37,7 +37,7 @@
                         :title="$t('person', {count: Object.keys(buffer.users).length})"
                         @click="sidebarState.showNicklist()"
                     >
-                        <i class="fa fa-users" aria-hidden="true"/>
+                        <i class="fas fa-users" aria-hidden="true"/>
                         <span>{{ Object.keys(buffer.users).length }}</span>
                     </a>
                 </div>
@@ -51,7 +51,7 @@
                         :title="$t('channel_settings')"
                         @click="sidebarState.showBufferSettings()"
                     >
-                        <i class="fa fa-cog" aria-hidden="true"/>
+                        <i class="fas fa-cog" aria-hidden="true"/>
                     </a>
                 </div>
                 <div
@@ -59,14 +59,14 @@
                     class="kiwi-header-option kiwi-header-option-unpinsidebar"
                 >
                     <a @click="sidebarState.unpin()">
-                        <i class="fa fa-thumb-tack" aria-hidden="true"/>
+                        <i class="fas fa-thumbtack" aria-hidden="true"/>
                     </a>
                 </div>
                 <div
                     class="kiwi-header-option kiwi-header-option-leave"
                 >
                     <a @click="showPrompt('closeChannel')">
-                        <i class="fa fa-times" aria-hidden="true"/>
+                        <i class="fas fa-times" aria-hidden="true"/>
                     </a>
                 </div>
             </div>
@@ -122,7 +122,7 @@
                 />
                 <div class="kiwi-header-option kiwi-header-option-leave">
                     <a @click="closeCurrentBuffer">
-                        <i class="fa fa-times" aria-hidden="true"/>
+                        <i class="fas fa-times" aria-hidden="true"/>
                     </a>
                 </div>
             </div>
@@ -132,7 +132,7 @@
             <div class="kiwi-header-options">
                 <div class="kiwi-header-option kiwi-header-option-leave">
                     <a @click="closeCurrentBuffer">
-                        <i class="fa fa-times" aria-hidden="true"/>
+                        <i class="fas fa-times" aria-hidden="true"/>
                     </a>
                 </div>
             </div>
@@ -161,7 +161,7 @@
                 class="u-button u-button-secondary kiwi-header-close-buffersettings"
                 @click="buffer_settings_open=false"
             >
-                <i class="fa fa-caret-up" aria-hidden="true"/>
+                <i class="fas fa-caret-up" aria-hidden="true"/>
             </a>
         </div>
     </div>

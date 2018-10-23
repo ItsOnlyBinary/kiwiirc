@@ -1,8 +1,8 @@
 <template>
     <div :class="{ connecting: shouldShowLoading }" class="kiwi-notconnected kiwi-warning-block">
         <div class="kiwi-notconnected-bigicon">
-            <i v-if="!shouldShowLoading" class="fa fa-frown-o" aria-hidden="true"/>
-            <i v-else class="fa fa-refresh fa-spin kiwi-notconnected-bigicon" aria-hidden="true"/>
+            <i v-if="!shouldShowLoading" class="fas fa-frown" aria-hidden="true"/>
+            <i v-else class="fas fa-sync fa-spin kiwi-notconnected-bigicon" aria-hidden="true"/>
         </div>
 
         <template v-if="!shouldShowLoading">
@@ -12,19 +12,19 @@
             <div class="kiwi-notconnected-buttons">
                 <template v-if="isChannel()">
                     <span class="kiwi-notconnected-button" @click="reconnect">
-                        <i class="fa fa-arrow-circle-o-right" aria-hidden="true"/>
+                        <i class="fas arrow-alt-circle-right" aria-hidden="true"/>
                         {{ $t('reconnect_channel', {channel: buffer.name}) }}
                     </span>
                 </template>
                 <template v-else-if="isServer()">
                     <span class="kiwi-notconnected-button" @click="reconnect">
-                        <i class="fa fa-arrow-circle-o-right" aria-hidden="true"/>
+                        <i class="fas arrow-alt-circle-right" aria-hidden="true"/>
                         {{ $t('reconnect_network', {network: buffer.getNetwork().name}) }}
                     </span>
                 </template>
                 <template v-else-if="isQuery()">
                     <span class="kiwi-notconnected-button" @click="reconnect">
-                        <i class="fa fa-arrow-circle-o-right" aria-hidden="true"/>
+                        <i class="fas arrow-alt-circle-right" aria-hidden="true"/>
                         {{ $t('reconnect_query', {user: buffer.name}) }}
                     </span>
                 </template>
@@ -34,7 +34,7 @@
                     class="kiwi-notconnected-button kiwi-notconnected-button-settings"
                     @click="showNetworkSettings"
                 >
-                    <i class="fa fa-cogs" aria-hidden="true"/>{{ $t('reconnect_settings') }}
+                    <i class="fas fa-cogs" aria-hidden="true"/>{{ $t('reconnect_settings') }}
                 </a>
             </div>
         </template>

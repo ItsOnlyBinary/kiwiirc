@@ -7,8 +7,8 @@
                     <input v-model="filterString"
                            :placeholder="$t('settings_advanced_filter')"
                            class="u-input">
-                    <i v-if="!filterString" class="fa fa-search" aria-hidden="true"/>
-                    <i v-else class="fa fa-times" aria-hidden="true" @click="filterString = ''"/>
+                    <i v-if="!filterString" class="fas fa-search" aria-hidden="true"/>
+                    <i v-else class="fas fa-times" aria-hidden="true" @click="filterString = ''"/>
                 </div>
             </div>
             <table class="u-table kiwi-settings-advanced-table" cellspacing="0">
@@ -26,7 +26,7 @@
                     <td v-if="setting.modified">
                         <a class="u-link" @click="resetValue($event, setting.key)">
                             {{ $t('settings_advanced_reset') }}
-                            <i class="fa fa-undo reset-icon" style="margin-left: 10px;"/>
+                            <i class="fas fa-undo reset-icon" style="margin-left: 10px;"/>
                         </a>
                     </td>
                     <td v-else />

@@ -17,7 +17,7 @@
                         {{ (new Date(ban.banned_at * 1000)).toDateString() }}
                     </td>
                     <td class="kiwi-channelbanlist-table-actions">
-                        <i class="fa fa-trash" aria-hidden="true" @click="removeBan(ban.banned)"/>
+                        <i class="fas fa-trash" aria-hidden="true" @click="removeBan(ban.banned)"/>
                     </td>
                 </tr>
             </table>

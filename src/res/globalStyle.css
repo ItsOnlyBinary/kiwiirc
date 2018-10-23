@@ -215,6 +215,15 @@ select {
     display: inline-block;
 }
 
+/* Hide fontawesome pseudo element */
+.kiwi-icon::before {
+    display: none;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
 /* Globally style the close icon */
 .kiwi-close-icon {
     background-color: #fc6262;

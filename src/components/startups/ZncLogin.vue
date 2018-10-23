@@ -43,7 +43,7 @@
                 </form>
             </template>
             <template v-else-if="network.state !== 'connected'">
-                <i class="fa fa-spin fa-spinner" style="font-size:2em; margin-top:1em;"/>
+                <i class="fas fa-spin fa-spinner" style="font-size:2em; margin-top:1em;"/>
             </template>
         </div>
     </startup-layout>

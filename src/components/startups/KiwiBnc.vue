@@ -21,7 +21,7 @@
                     class="u-button u-button-primary u-submit"
                 >
                     <span v-if="!loading" v-html="buttonText"/>
-                    <i v-else class="fa fa-spinner fa-spin" aria-hidden="true"/>
+                    <i v-else class="fas fa-spinner fa-spin" aria-hidden="true"/>
                 </button>
             </form>
         </div>

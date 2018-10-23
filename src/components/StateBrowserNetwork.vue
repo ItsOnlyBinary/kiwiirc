@@ -4,13 +4,13 @@
     ]" class="kiwi-statebrowser-network">
         <div class="kiwi-statebrowser-network-header">
             <a
-                class="kiwi-statebrowser-network-name u-link"
+                class="kiwi-icon kiwi-statebrowser-network-name u-link"
                 @click="setActiveBuffer(network.serverBuffer())"
             >
                 {{ network.name }}
             </a>
             <div class="kiwi-network-name-hover-icon">
-                <i class="fa fa-ellipsis-h" aria-hidden="true"/>
+                <i class="fas fa-ellipsis-h" aria-hidden="true"/>
             </div>
             <div class="kiwi-network-name-options">
                 <div
@@ -25,14 +25,14 @@
                     class="option-button kiwi--channel"
                     @click="toggleAddChannel()"
                 >
-                    <i class="fa fa-plus" aria-hidden="true"/>
+                    <i class="fas fa-plus" aria-hidden="true"/>
                 </div>
                 <div
                     :class="{ active: channel_filter_display == true }"
                     class="option-button kiwi-search-channels"
                     @click="toggleFilterChannel()"
                 >
-                    <i class="fa fa-search" aria-hidden="true"/>
+                    <i class="fas fa-search" aria-hidden="true"/>
                 </div>
             </div>
         </div>
@@ -83,7 +83,7 @@
             <transition name="kiwi-statebrowser-network-status-transition">
                 <div v-if="network.state !== 'connected'" class="kiwi-statebrowser-network-status">
                     <template v-if="network.state_error">
-                        <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"/>
                         <a class="u-link" @click="showNetworkSettings(network)">
                             {{ $t('state_configure') }}
                         </a>
@@ -140,11 +140,11 @@
                         class="kiwi-statebrowser-channel-settings"
                         @click="showBufferSettings(buffer)"
                     >
-                        <i class="fa fa-cog" aria-hidden="true"/>
+                        <i class="fas fa-cog" aria-hidden="true"/>
                     </div>
 
                     <div class="kiwi-statebrowser-channel-leave" @click="closeBuffer(buffer)">
-                        <i class="fa fa-times" aria-hidden="true"/>
+                        <i class="fas fa-times" aria-hidden="true"/>
                     </div>
                 </div>
             </div>

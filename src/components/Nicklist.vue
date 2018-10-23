@@ -15,7 +15,7 @@
                 v-model="user_filter"
                 @blur="onFilterBlur"
             >
-            <i class="fa fa-search" @click="toggleUserFilter"/>
+            <i class="fas fa-search" @click="toggleUserFilter"/>
         </div>
 
         <ul class="kiwi-nicklist-users">

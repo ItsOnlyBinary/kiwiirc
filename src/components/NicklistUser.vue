@@ -14,7 +14,7 @@
         >{{ user.nick }}
         </span>
         <span class="kiwi-nicklist-messageuser" @click.stop="nicklist.openQuery(user)">
-            <i class="fa fa-comment" aria-hidden="true"/>
+            <i class="fas fa-comment" aria-hidden="true"/>
         </span>
     </li>
 </template>

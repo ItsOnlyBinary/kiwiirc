@@ -9,10 +9,10 @@
                 class="kiwi-sidebar-pin"
                 @click="sidebarState.pin()"
             >
-                <i class="fa fa-thumb-tack" aria-hidden="true"/>
+                <i class="fas fa-thumbtack" aria-hidden="true"/>
             </div>
             <div class="kiwi-sidebar-close" @click="sidebarState.close()">
-                {{ $t('close') }}<i class="fa fa-times" aria-hidden="true"/>
+                {{ $t('close') }}<i class="fas fa-times" aria-hidden="true"/>
             </div>
         </span>
 

@@ -54,7 +54,7 @@
                 </form>
             </template>
             <template v-else-if="network.state !== 'connected'">
-                <i class="fa fa-spin fa-spinner" aria-hidden="true"/>
+                <i class="fas fa-spin fa-spinner" aria-hidden="true"/>
             </template>
         </div>
     </startup-layout>

@@ -338,7 +338,7 @@ export function enrichText(text, showEmoticons, emojiList, emojiLocation, userLi
 
         let linkified = this.linkifyUrls(word, {
             addHandle: true,
-            handleClass: 'fa fa-chevron-right kiwi-messagelist-message-linkhandle',
+            handleClass: 'fas fa-chevron-right kiwi-messagelist-message-linkhandle',
         });
         if (linkified.urls.length > 0) {
             urls = urls.concat(linkified.urls);

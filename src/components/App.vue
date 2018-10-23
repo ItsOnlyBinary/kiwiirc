@@ -50,8 +50,10 @@
 <script>
 'kiwi public';
 
-import 'font-awesome-webpack';
 import '@/res/globalStyle.css';
+import '@fortawesome/fontawesome-free/css/fontawesome.css';
+import '@fortawesome/fontawesome-free/css/solid.css';
+import '@fortawesome/fontawesome-free/css/regular.css';
 import Tinycon from 'tinycon';
 
 import startupWelcome from '@/components/startups/Welcome';

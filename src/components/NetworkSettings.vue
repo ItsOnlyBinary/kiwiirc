@@ -118,7 +118,7 @@
             <div class="kiwi-dangerzone">
                 <h3>{{ $t('settings_danger') }}</h3>
                 <a class="u-button u-button-warning" @click="removeNetwork">
-                    <i class="fa fa-times" aria-hidden="true"/> {{ $t('settings_remove') }}
+                    <i class="fas fa-times" aria-hidden="true"/> {{ $t('settings_remove') }}
                 </a>
             </div>
         </form>

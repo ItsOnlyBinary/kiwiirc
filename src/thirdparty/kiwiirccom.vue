@@ -36,7 +36,7 @@
 
             <div class="kiwi-aboutnew-help">
                 <a @click="about_open=!about_open">
-                    <i class="fa fa-question-circle" aria-hidden="true"/>
+                    <i class="fas fa-question-circle" aria-hidden="true"/>
                 </a>
             </div>
         </div>

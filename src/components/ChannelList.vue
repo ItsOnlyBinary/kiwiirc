@@ -11,14 +11,14 @@
                         }"
                         class="u-button kiwi-channellist-refresh"
                         @click="maybeUpdateList">
-                        <i v-if="!isLoading" class="fa fa-refresh" aria-hidden="true"/>
-                        <i v-else class="fa fa-refresh fa-spin" aria-hidden="true"/>
+                        <i v-if="!isLoading" class="fas fa-sync" aria-hidden="true"/>
+                        <i v-else class="fas fa-sync fa-spin" aria-hidden="true"/>
                     </a>
                 </form>
                 <div v-if="list.length" class="kiwi-channellist-pagination">
-                    <a @click="prevPage"><i class="fa fa-step-backward" aria-hidden="true"/></a>
+                    <a @click="prevPage"><i class="fas fa-step-backward" aria-hidden="true"/></a>
                     {{ page + 1 }} / {{ maxPages + 1 }}
-                    <a @click="nextPage"><i class="fa fa-step-forward" aria-hidden="true"/></a>
+                    <a @click="nextPage"><i class="fas fa-step-forward" aria-hidden="true"/></a>
                 </div>
             </div>
             <table v-if="!isLoading && list.length > 0" :key="last_updated" width="100%">
@@ -26,7 +26,7 @@
                     <tr v-for="channel in paginated" :key="channel.channel">
                         <td class="kiwi-channellist-user-center">
                             <span v-if="channel.num_users >= 0" class="kiwi-channellist-users">
-                                <i class="fa fa-user" aria-hidden="true"/> {{ channel.num_users }}
+                                <i class="fas fa-user" aria-hidden="true"/> {{ channel.num_users }}
                             </span>
                         </td>
                         <td>

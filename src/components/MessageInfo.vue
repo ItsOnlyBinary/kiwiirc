@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <i class="fa fa-caret-up kiwi-messageinfo-close" @click="$emit('close')"/>
+        <i class="fas fa-caret-up kiwi-messageinfo-close" @click="$emit('close')"/>
     </div>
 </template>
 

@@ -49,7 +49,7 @@
                 <button
                     v-if="shouldShowSendButton"
                     type="submit"
-                    class="kiwi-controlinput-send fa fa-paper-plane" />
+                    class="kiwi-controlinput-send fas fa-paper-plane" />
             </form>
 
             <div ref="plugins" class="kiwi-controlinput-tools">
@@ -58,15 +58,15 @@
                     class="kiwi-controlinput-tools-container-expand"
                     @click="showPlugins=!showPlugins"
                 >
-                    <i class="fa fa-bars" aria-hidden="true" />
+                    <i class="fas fa-bars" aria-hidden="true" />
                 </div>
                 <transition name="kiwi-plugin-ui-trans">
                     <div v-if="showPlugins" class="kiwi-controlinput-tools-container">
                         <a class="kiwi-controlinput-tool" @click.prevent="onToolClickTextStyle">
-                            <i class="fa fa-adjust" aria-hidden="true"/>
+                            <i class="fas fa-adjust" aria-hidden="true"/>
                         </a>
                         <a class="kiwi-controlinput-tool" @click.prevent="onToolClickEmoji">
-                            <i class="fa fa-smile-o" aria-hidden="true"/>
+                            <i class="far fa-smile" aria-hidden="true"/>
                         </a>
                         <div
                             v-rawElement="{

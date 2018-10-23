@@ -34,7 +34,7 @@
             <div class="kiwi-inputtools-colours-colour irc-bg-colour-light-grey"
                  data-code="15" @click="onColourClick"/>
             <div class="kiwi-inputtools-colours-colour kiwi-inputtools-colours-reset"
-                 @click="onResetClick"><i class="fa fa-ban" aria-hidden="true"/></div>
+                 @click="onResetClick"><i class="fas fa-ban" aria-hidden="true"/></div>
         </div>
     </div>
 </template>

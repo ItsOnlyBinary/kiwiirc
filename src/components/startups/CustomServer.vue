@@ -5,7 +5,7 @@
             <h2 v-else>
                 {{ $t('connecting') }}
                 <a class="u-link" @click="infoClick">
-                    <i class="fa fa-info-circle" aria-hidden="true"/>
+                    <i class="fas fa-info-circle" aria-hidden="true"/>
                 </a>
             </h2>
 
@@ -27,10 +27,10 @@
                                 class="fa-stack fa-lg kiwi-customserver-tls"
                                 @click="tls=!tls"
                             >
-                                <i class="fa fa-lock fa-stack-1x kiwi-customserver-tls-lock"/>
+                                <i class="fas fa-lock fa-stack-1x kiwi-customserver-tls-lock"/>
                                 <i
                                     v-if="!tls"
-                                    class="fa fa-times fa-stack-1x kiwi-customserver-tls-minus"
+                                    class="fas fa-times fa-stack-1x kiwi-customserver-tls-minus"
                                 />
                             </span>
                         </input-text>
@@ -89,10 +89,10 @@
                                 class="fa-stack fa-lg kiwi-customserver-tls"
                                 @click="tls=!tls"
                             >
-                                <i class="fa fa-lock fa-stack-1x kiwi-customserver-tls-lock"/>
+                                <i class="fas fa-lock fa-stack-1x kiwi-customserver-tls-lock"/>
                                 <i
                                     v-if="!tls"
-                                    class="fa fa-times fa-stack-1x kiwi-customserver-tls-minus"
+                                    class="fas fa-times fa-stack-1x kiwi-customserver-tls-minus"
                                 />
                             </span>
                         </input-text>
@@ -122,7 +122,7 @@
                 </form>
 
                 <div v-else class="kiwi-customserver-loader">
-                    <i class="fa fa-spin fa-spinner" aria-hidden="true"/>
+                    <i class="fas fa-spin fa-spinner" aria-hidden="true"/>
                 </div>
             </transition>
         </div>

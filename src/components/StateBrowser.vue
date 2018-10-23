@@ -2,12 +2,12 @@
     <div class="kiwi-statebrowser kiwi-theme-bg">
 
         <div class="kiwi-statebrowser-appsettings" @click="clickAppSettings">
-            <i class="fa fa-cog" aria-hidden="true"/>
+            <i class="fas fa-cog" aria-hidden="true"/>
         </div>
 
         <div class="kiwi-statebrowser-mobile-close" @click="hideStatebrowser">
             <span> Close </span>
-            <i class="fa fa-times" aria-hidden="true"/>
+            <i class="fas fa-times" aria-hidden="true"/>
         </div>
 
         <div
@@ -29,7 +29,7 @@
                 <p> {{ $t('state_remembered') }} </p>
                 <a class="u-link" @click="clickForget">{{ $t('state_forget') }}</a>
                 <div class="kiwi-close-icon" @click="is_usermenu_open=false">
-                    <i class="fa fa-times" aria-hidden="true"/>
+                    <i class="fas fa-times" aria-hidden="true"/>
                 </div>
             </div>
             <div v-else class="kiwi-statebrowser-usermenu-network">
@@ -96,7 +96,7 @@
         <div v-if="!isRestrictedServer" class="kiwi-statebrowser-newnetwork">
             <a class="u-button u-button-primary" @click="clickAddNetwork">
                 Add Network
-                <i class="fa fa-plus" aria-hidden="true"/>
+                <i class="fas fa-plus" aria-hidden="true"/>
             </a>
         </div>
     </div>

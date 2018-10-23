@@ -3,7 +3,7 @@
 
         <div class="kiwi-appsettings-title" @click="closeSettings">
             <span>{{ $t('close') }}</span>
-            <i class="fa fa-times" aria-hidden="true"/>
+            <i class="fas fa-times" aria-hidden="true"/>
         </div>
 
         <form class="u-form">
@@ -20,7 +20,7 @@
                                     class="kiwi-appsettings-theme-reload"
                                     @click="refreshTheme"
                                 >
-                                    <i class="fa fa-refresh" aria-hidden="true"/>
+                                    <i class="fas fa-sync" aria-hidden="true"/>
                                 </a>
                                 <select v-model="theme">
                                     <option

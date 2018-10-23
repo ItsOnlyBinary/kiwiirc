@@ -5,7 +5,7 @@
                 class="u-button u-button-warning kiwi-mediaviewer-controls-close"
                 @click="closeViewer"
             >
-                <i class="fa fa-window-close" aria-hidden="true"/>
+                <i class="fas fa-window-close" aria-hidden="true"/>
             </a>
         </div>
         <div :key="url">

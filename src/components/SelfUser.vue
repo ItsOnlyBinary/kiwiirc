@@ -1,7 +1,7 @@
 <template>
     <div class="kiwi-selfuser kiwi-theme-bg">
         <div class="kiwi-close-icon" @click="$emit('close')">
-            <i class="fa fa-times" aria-hidden="true"/>
+            <i class="fas fa-times" aria-hidden="true"/>
         </div>
         <div class="kiwi-selfuser-mask">
             <span class="kiwi-selfuser-nick">{{ network.nick }}</span>

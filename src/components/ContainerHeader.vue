@@ -59,7 +59,7 @@
                     class="kiwi-header-option kiwi-header-option-unpinsidebar"
                 >
                     <a @click="sidebarState.unpin()">
-                        <i class="fa fa-thumb-tack" aria-hidden="true"/>
+                        <i class="fa fa-thumb-tack fa-rotate-45" aria-hidden="true"/>
                     </a>
                 </div>
                 <div

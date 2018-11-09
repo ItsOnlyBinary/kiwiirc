@@ -1,10 +1,7 @@
 <template>
     <div class="kiwi-settings-aliases">
         <form class="u-form">
-            <a
-                class="u-link kiwi-settings-aliases-showhelp"
-                @click="show_help=!show_help"
-            >
+            <a class="u-link kiwi-settings-aliases-showhelp" @click="show_help = !show_help;">
                 {{ $t('what_are_aliases') }}
             </a>
 
@@ -35,30 +32,29 @@
                 This creates an IRC command /greet that accepts one argument. Typing "/greet
                 username" will execute "/msg username Hello, username!". <br >
                 <b>Example 2:</b> <em>/ban /quote mode $channel +b $1+</em><br >
-                This creates an IRC command /ban that does a few things. Typing "/ban nick1
-                nick2" will execute "/quote mode #activechannel +b nick1 nick2". $channel is
-                replaced with the active channel name, $1+ is replaced with all the typed input
-                from the first word to the end.
+                This creates an IRC command /ban that does a few things. Typing "/ban nick1 nick2"
+                will execute "/quote mode #activechannel +b nick1 nick2". $channel is replaced with
+                the active channel name, $1+ is replaced with all the typed input from the first
+                word to the end.
 
                 <h4>Helper commands</h4>
                 <ul>
                     <li>
-                        <em>/echo</em><br >Sends a message to the active buffer without sending
-                        it to the IRC network. Eg, /echo Something happened
+                        <em>/echo</em><br >Sends a message to the active buffer without sending it
+                        to the IRC network. Eg, /echo Something happened
                     </li>
                     <li>
                         <em>/lines</em><br >
-                        Similar to Mirc script, this lets you execute multiples lines of
-                        commands separated by a pipe, "|".<br >
+                        Similar to Mirc script, this lets you execute multiples lines of commands
+                        separated by a pipe, "|".<br >
                         Example: "/lines /ban nick1 | /echo Banned user" would first execute the
-                        /ban command, and then the /echo command. This comes in handy with
-                        creating short aliases such as the common "/cycle" command that parts
-                        and re-joins the active channel: "/cycle /lines /part $channel | /join
-                        $channel".
+                        /ban command, and then the /echo command. This comes in handy with creating
+                        short aliases such as the common "/cycle" command that parts and re-joins
+                        the active channel: "/cycle /lines /part $channel | /join $channel".
                     </li>
                 </ul>
             </div>
-            <textarea v-model="aliasText" class="kiwi-settings-aliases-input"/>
+            <textarea v-model="aliasText" class="kiwi-settings-aliases-input" />
         </form>
     </div>
 </template>
@@ -88,7 +84,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-settings-aliases-input {
     width: 80%;
     height: 200px;
@@ -110,5 +105,4 @@ export default {
 .kiwi-settings-aliases-help em {
     padding: 1px 2px;
 }
-
 </style>

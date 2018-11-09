@@ -2,11 +2,11 @@
     <div class="kiwi-bufferkey kiwi-warning-block">
         <form @submit.prevent="joinChannel">
             <label>{{ $t('bufferkey_input') }}</label>
-            <input v-focus v-model="buffer.key" type="password">
+            <input v-focus v-model="buffer.key" type="password" >
             <div class="kiwi-bufferkey-buttons">
                 <span class="kiwi-bufferkey-button" @click="joinChannel">
-                    <i class="fa fa-arrow-circle-o-right" aria-hidden="true"/>
-                    {{ $t('bufferkey_rejoin', {channel: buffer.name}) }}
+                    <i class="fa fa-arrow-circle-o-right" aria-hidden="true" />
+                    {{ $t('bufferkey_rejoin', { channel: buffer.name }) }}
                 </span>
             </div>
         </form>
@@ -19,8 +19,7 @@
 export default {
     props: ['buffer', 'network'],
     data: function data() {
-        return {
-        };
+        return {};
     },
     methods: {
         joinChannel() {
@@ -48,7 +47,7 @@ export default {
     text-align: left;
 }
 
-.kiwi-bufferkey input[type="password"] {
+.kiwi-bufferkey input[type='password'] {
     height: 40px;
     padding: 0 10px;
     color: #000;
@@ -115,5 +114,4 @@ export default {
         font-size: 0.7em;
     }
 }
-
 </style>

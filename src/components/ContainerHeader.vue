@@ -6,69 +6,60 @@
         class="kiwi-header kiwi-theme-bg"
         @click="onHeaderClick"
     >
-
         <template v-if="isChannel()">
             <div class="kiwi-header-name">{{ buffer.name }}</div>
-            <div
-                v-if="isJoined && isConnected"
-                :key="buffer.id"
-                class="kiwi-header-options"
-            >
+            <div v-if="isJoined && isConnected" :key="buffer.id" class="kiwi-header-options">
                 <div
-                    v-rawElement="plugin.el" v-for="plugin in pluginUiChannelElements"
+                    v-rawElement="plugin.el"
+                    v-for="plugin in pluginUiChannelElements"
                     :key="plugin.id"
                     class="kiwi-header-option"
                 />
                 <div
                     :class="{
-                        'kiwi-header-option--active': sidebarState.sidebarSection === 'about'
+                        'kiwi-header-option--active': sidebarState.sidebarSection === 'about',
                     }"
                     class="kiwi-header-option kiwi-header-option-about"
                 >
-                    <a @click="sidebarState.showAbout()">
-                        <i class="fa fa-info" aria-hidden="true"/>
+                    <a @click="sidebarState.showAbout();">
+                        <i class="fa fa-info" aria-hidden="true" />
                     </a>
                 </div>
                 <div
                     :class="{
-                        'kiwi-header-option--active': sidebarState.sidebarSection === 'nicklist'
+                        'kiwi-header-option--active': sidebarState.sidebarSection === 'nicklist',
                     }"
                     class="kiwi-header-option kiwi-header-option-nicklist"
                 >
                     <a
-                        :title="$t('person', {count: Object.keys(buffer.users).length})"
-                        @click="sidebarState.showNicklist()"
+                        :title="$t('person', { count: Object.keys(buffer.users).length })"
+                        @click="sidebarState.showNicklist();"
                     >
-                        <i class="fa fa-users" aria-hidden="true"/>
+                        <i class="fa fa-users" aria-hidden="true" />
                         <span>{{ Object.keys(buffer.users).length }}</span>
                     </a>
                 </div>
                 <div
                     :class="{
-                        'kiwi-header-option--active': sidebarState.sidebarSection === 'settings'
+                        'kiwi-header-option--active': sidebarState.sidebarSection === 'settings',
                     }"
                     class="kiwi-header-option kiwi-header-option-settings"
                 >
-                    <a
-                        :title="$t('channel_settings')"
-                        @click="sidebarState.showBufferSettings()"
-                    >
-                        <i class="fa fa-cog" aria-hidden="true"/>
+                    <a :title="$t('channel_settings')" @click="sidebarState.showBufferSettings();">
+                        <i class="fa fa-cog" aria-hidden="true" />
                     </a>
                 </div>
                 <div
                     v-if="sidebarState.isPinned"
                     class="kiwi-header-option kiwi-header-option-unpinsidebar"
                 >
-                    <a @click="sidebarState.unpin()">
-                        <i class="fa fa-thumb-tack" aria-hidden="true"/>
+                    <a @click="sidebarState.unpin();">
+                        <i class="fa fa-thumb-tack" aria-hidden="true" />
                     </a>
                 </div>
-                <div
-                    class="kiwi-header-option kiwi-header-option-leave"
-                >
-                    <a @click="showPrompt('closeChannel')">
-                        <i class="fa fa-times" aria-hidden="true"/>
+                <div class="kiwi-header-option kiwi-header-option-leave">
+                    <a @click="showPrompt('closeChannel');">
+                        <i class="fa fa-times" aria-hidden="true" />
                     </a>
                 </div>
             </div>
@@ -85,10 +76,9 @@
                     :flip_connotation="true"
                     class="kiwi-header-prompt"
                     @ok="closeCurrentBuffer"
-                    @submit="prompts.closeChannel=false"
+                    @submit="prompts.closeChannel = false;"
                 />
             </transition>
-
         </template>
 
         <template v-else-if="isServer()">
@@ -120,7 +110,7 @@
                 />
                 <div class="kiwi-header-option kiwi-header-option-leave">
                     <a @click="closeCurrentBuffer">
-                        <i class="fa fa-times" aria-hidden="true"/>
+                        <i class="fa fa-times" aria-hidden="true" />
                     </a>
                 </div>
             </div>
@@ -130,36 +120,31 @@
             <div class="kiwi-header-options">
                 <div class="kiwi-header-option kiwi-header-option-leave">
                     <a @click="closeCurrentBuffer">
-                        <i class="fa fa-times" aria-hidden="true"/>
+                        <i class="fa fa-times" aria-hidden="true" />
                     </a>
                 </div>
             </div>
             <div class="kiwi-header-name">{{ buffer.name }}</div>
         </template>
 
-        <div
-            v-if="buffer_settings_open"
-            class="kiwi-header-buffersettings"
-            @click.stop=""
-        >
-
+        <div v-if="buffer_settings_open" class="kiwi-header-buffersettings" @click.stop="">
             <tabbed-view>
                 <tabbed-tab :header="$t('settings')" :focus="true">
-                    <channel-info :buffer="buffer"/>
+                    <channel-info :buffer="buffer" />
                 </tabbed-tab>
                 <tabbed-tab :header="$t('banned')">
-                    <channel-banlist :buffer="buffer"/>
+                    <channel-banlist :buffer="buffer" />
                 </tabbed-tab>
                 <tabbed-tab :header="$t('notifications')">
-                    <buffer-settings :buffer="buffer"/>
+                    <buffer-settings :buffer="buffer" />
                 </tabbed-tab>
             </tabbed-view>
 
             <a
                 class="u-button u-button-secondary kiwi-header-close-buffersettings"
-                @click="buffer_settings_open=false"
+                @click="buffer_settings_open = false;"
             >
-                <i class="fa fa-caret-up" aria-hidden="true"/>
+                <i class="fa fa-caret-up" aria-hidden="true" />
             </a>
         </div>
     </div>
@@ -215,10 +200,10 @@ export default {
         },
     },
     created() {
-        this.listen(state, 'document.clicked', (e) => {
+        this.listen(state, 'document.clicked', e => {
             // If clicking anywhere else on the page, close all our prompts
             if (!this.$el.contains(e.target)) {
-                Object.keys(this.prompts).forEach((prompt) => {
+                Object.keys(this.prompts).forEach(prompt => {
                     this.prompts[prompt] = false;
                 });
             }
@@ -501,5 +486,4 @@ export default {
         display: none;
     }
 }
-
 </style>

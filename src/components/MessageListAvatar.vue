@@ -1,7 +1,7 @@
 <template>
     <div
         :style="{
-            'background-color': colour
+            'background-color': colour,
         }"
         :data-nick="message.nick"
         class="kiwi-messagelist-avatar"
@@ -11,24 +11,19 @@
 </template>
 
 <script>
-
 'kiwi public';
 
 export default {
     props: ['message'],
     computed: {
         colour() {
-            return this.message.user ?
-                this.message.user.getColour() :
-                '';
+            return this.message.user ? this.message.user.getColour() : '';
         },
     },
 };
-
 </script>
 
 <style>
-
 .kiwi-messagelist-avatar {
     text-transform: uppercase;
     cursor: pointer;
@@ -41,5 +36,4 @@ export default {
     color: #fff;
     margin-top: 3px;
 }
-
 </style>

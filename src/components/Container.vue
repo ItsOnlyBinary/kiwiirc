@@ -1,32 +1,41 @@
 <template>
-    <div :class="{
-        /* 'kiwi-container-' + bufferType: true, */
-        'kiwi-container--sidebar-open': sidebarState.isOpen && sidebarState.section() !== '',
-        'kiwi-container--sidebar-pinned': sidebarState.isPinned,
-        'kiwi-container--no-sidebar': buffer && !buffer.isChannel,
-    }" class="kiwi-container">
+    <div
+        :class="{
+            /* 'kiwi-container-' + bufferType: true, */
+            'kiwi-container--sidebar-open': sidebarState.isOpen && sidebarState.section() !== '',
+            'kiwi-container--sidebar-pinned': sidebarState.isPinned,
+            'kiwi-container--no-sidebar': buffer && !buffer.isChannel,
+        }"
+        class="kiwi-container"
+    >
         <template v-if="buffer">
             <div class="kiwi-container-toggledraw-statebrowser" @click.stop="toggleStateBrowser">
                 <div
                     :class="[
-                        unreadMessages.highlight ?
-                            'kiwi-container-toggledraw-statebrowser-messagecount--highlight' :
-                            ''
+                        unreadMessages.highlight
+                            ? 'kiwi-container-toggledraw-statebrowser-messagecount--highlight'
+                            : '',
                     ]"
                     class="kiwi-container-toggledraw-statebrowser-messagecount
                            kiwi-container-toggledraw-statebrowser-messagecount--highlight"
-                >{{ unreadMessages.count > 999 ? '999+' : unreadMessages.count }}</div>
+                >
+                    {{ unreadMessages.count > 999 ? '999+' : unreadMessages.count }}
+                </div>
             </div>
-            <container-header :buffer="buffer" :sidebar-state="sidebarState"/>
+            <container-header :buffer="buffer" :sidebar-state="sidebarState" />
 
-            <slot name="before"/>
+            <slot name="before" />
 
             <div class="kiwi-container-content">
                 <template v-if="buffer.isServer()">
-                    <server-view :network="network" :buffer="buffer" :sidebar-state="sidebarState"/>
+                    <server-view
+                        :network="network"
+                        :buffer="buffer"
+                        :sidebar-state="sidebarState"
+                    />
                 </template>
                 <template v-else>
-                    <message-list :buffer="buffer"/>
+                    <message-list :buffer="buffer" />
                     <sidebar
                         v-if="buffer.isChannel() /* There are no sidebars for queries yet */"
                         :network="network"
@@ -35,7 +44,7 @@
                     />
                 </template>
 
-                <slot name="after"/>
+                <slot name="after" />
             </div>
         </template>
         <template v-else>
@@ -67,8 +76,7 @@ export default {
     },
     props: ['network', 'buffer', 'sidebarState'],
     data: function data() {
-        return {
-        };
+        return {};
     },
     computed: {
         bufferType: function bufferType() {
@@ -89,9 +97,9 @@ export default {
         unreadMessages() {
             let count = 0;
             let highlight = false;
-            state.networks.forEach((network) => {
-                network.buffers.forEach((buffer) => {
-                    count += (buffer.flags.unread || 0);
+            state.networks.forEach(network => {
+                network.buffers.forEach(buffer => {
+                    count += buffer.flags.unread || 0;
                     if (buffer.flags.highlight) {
                         highlight = true;
                     }
@@ -116,21 +124,22 @@ export default {
         this.listen(state, 'userbox.hide', () => {
             this.sidebarState.close();
         });
-        this.listen(state, 'document.keydown', (ev) => {
+        this.listen(state, 'document.keydown', ev => {
             // Return if not Page Up or Page Down keys
             if (ev.keyCode !== 33 && ev.keyCode !== 34) {
                 return;
             }
 
             // if no messagelist, select the first tabbed content to allow channel list scrolling
-            let messageList = this.$el.querySelector('.kiwi-messagelist') ||
+            let messageList =
+                this.$el.querySelector('.kiwi-messagelist') ||
                 this.$el.querySelector('.u-tabbed-content');
 
             if (!messageList) {
                 return;
             }
 
-            let scrollDistance = messageList.clientHeight - (0.1 * messageList.clientHeight);
+            let scrollDistance = messageList.clientHeight - 0.1 * messageList.clientHeight;
             let scrollTop = messageList.scrollTop;
             let scrollMax = messageList.scrollHeight;
 
@@ -298,5 +307,4 @@ export default {
         display: block;
     }
 }
-
 </style>

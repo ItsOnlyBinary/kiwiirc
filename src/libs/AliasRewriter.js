@@ -29,7 +29,7 @@ export default class AliasRewriter {
         // Clear out the current aliases before adding new ones in
         this.aliases = {};
 
-        str.split('\n').forEach((line) => {
+        str.split('\n').forEach(line => {
             if (line[0] !== '/') {
                 return;
             }
@@ -75,7 +75,8 @@ export default class AliasRewriter {
             // $var? word makes this command only run if the var exists
             if (
                 !processedConditionals &&
-                currentAliasWord[0] === '$' && currentAliasWord[currentAliasWordLen - 1] === '?'
+                currentAliasWord[0] === '$' &&
+                currentAliasWord[currentAliasWordLen - 1] === '?'
             ) {
                 let checkVar = currentAliasWord.substr(1, currentAliasWordLen - 2);
                 if (!vars[checkVar]) {
@@ -103,10 +104,12 @@ export default class AliasRewriter {
 
                 if (num[2] === '+' && num[3]) {
                     // Add X number of words
-                    compiled = compiled.concat(words.slice(
-                        parseInt(num[1], 10),
-                        parseInt(num[1], 10) + parseInt(num[3], 10)
-                    ));
+                    compiled = compiled.concat(
+                        words.slice(
+                            parseInt(num[1], 10),
+                            parseInt(num[1], 10) + parseInt(num[3], 10),
+                        ),
+                    );
                 } else if (num[2] === '+') {
                     // Add the remaining of the words
                     compiled = compiled.concat(words.slice(parseInt(num[1], 10)));

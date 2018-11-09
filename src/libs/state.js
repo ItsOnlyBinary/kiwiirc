@@ -18,9 +18,7 @@ const stateObj = {
         windowTitle: 'Kiwi IRC - The web IRC client',
         useMonospace: false,
         theme: 'Default',
-        themes: [
-            { name: 'Default', url: 'static/themes/default' },
-        ],
+        themes: [{ name: 'Default', url: 'static/themes/default' }],
         // Restricted to a single IRC server
         restricted: true,
         // The startup screen
@@ -110,13 +108,13 @@ const stateObj = {
         /* eslint-disable quote-props */
         emojis: {
             '-___-': '1f611',
-            ':\'-)': '1f602',
-            '\':-)': '1f605',
-            '\':-D': '1f605',
+            ":'-)": '1f602',
+            "':-)": '1f605',
+            "':-D": '1f605',
             '>:-)': '1f606',
-            '\':-(': '1f613',
+            "':-(": '1f613',
             '>:-(': '1f620',
-            ':\'-(': '1f622',
+            ":'-(": '1f622',
             'O:-)': '1f607',
             '0:-3': '1f607',
             '0:-)': '1f607',
@@ -128,22 +126,22 @@ const stateObj = {
             ':-Þ': '1f61b',
             '<3': '2764',
             '</3': '1f494',
-            ':\')': '1f602',
+            ":')": '1f602',
             ':-D': '1f603',
-            '\':)': '1f605',
-            '\'=)': '1f605',
-            '\':D': '1f605',
-            '\'=D': '1f605',
+            "':)": '1f605',
+            "'=)": '1f605',
+            "':D": '1f605',
+            "'=D": '1f605',
             '>:)': '1f606',
             '>;)': '1f606',
             '>=)': '1f606',
-            'XD': '1f606',
+            XD: '1f606',
             ';-)': '1f609',
             '*-)': '1f609',
             ';-]': '1f609',
             ';^)': '1f609',
-            '\':(': '1f613',
-            '\'=(': '1f613',
+            "':(": '1f613',
+            "'=(": '1f613',
             ':-*': '1f618',
             ':^*': '1f618',
             '>:P': '1f61c',
@@ -152,7 +150,7 @@ const stateObj = {
             ':-(': '1f61e',
             ':-[': '1f61e',
             '>:(': '1f620',
-            ':\'(': '1f622',
+            ":'(": '1f622',
             ';-(': '1f622',
             '>.<': '1f623',
             '#-)': '1f635',
@@ -178,7 +176,7 @@ const stateObj = {
             ':Þ': '1f61b',
             ':-b': '1f61b',
             ':-O': '1f62e',
-            'O_O': '1f62e',
+            O_O: '1f62e',
             '>:O': '1f62e',
             ':-X': '1f636',
             ':-#': '1f636',
@@ -294,8 +292,7 @@ const stateObj = {
         },
         presetNetworks: [],
     },
-    user_settings: {
-    },
+    user_settings: {},
     connection: {
         // disconnected / connecting / connected
         status: 'connected',
@@ -439,7 +436,7 @@ const state = new Vue({
             let toExport = {};
 
             if (includeBuffers) {
-                toExport.networks = state.networks.map((network) => {
+                toExport.networks = state.networks.map(network => {
                     let networkObj = {
                         id: network.id,
                         name: network.name,
@@ -461,7 +458,7 @@ const state = new Vue({
                         buffers: [],
                     };
 
-                    networkObj.buffers = network.buffers.map((buffer) => {
+                    networkObj.buffers = network.buffers.map(buffer => {
                         let bufferObj = {
                             name: buffer.name,
                             key: buffer.key,
@@ -486,7 +483,7 @@ const state = new Vue({
             let importObj = JSON.parse(stateStr);
             if (importObj && importObj.networks) {
                 this.resetState();
-                importObj.networks.forEach((importNetwork) => {
+                importObj.networks.forEach(importNetwork => {
                     let network = new NetworkState(importNetwork.id, state, userDict, bufferDict);
                     network.name = importNetwork.name;
                     network.connection = importNetwork.connection;
@@ -499,7 +496,7 @@ const state = new Vue({
 
                     this.networks.push(network);
 
-                    importNetwork.buffers.forEach((impBuffer) => {
+                    importNetwork.buffers.forEach(impBuffer => {
                         let buffer = new BufferState(impBuffer.name, network.id, state, messages);
                         buffer.key = impBuffer.key;
                         buffer.enabled = !!impBuffer.enabled;
@@ -533,9 +530,10 @@ const state = new Vue({
 
             // Check the user specific settings before reverting to global settings
             let userSetting = this.getSetting('user_settings.' + name);
-            let result = typeof userSetting !== 'undefined' ?
-                userSetting :
-                this.getSetting('settings.' + name);
+            let result =
+                typeof userSetting !== 'undefined'
+                    ? userSetting
+                    : this.getSetting('settings.' + name);
 
             return result;
         },
@@ -593,7 +591,7 @@ const state = new Vue({
         },
 
         getNetworkFromAddress(netAddr) {
-            return _.find(this.networks, (net) => {
+            return _.find(this.networks, net => {
                 let isMatch = netAddr.toLowerCase() === net.connection.server.toLowerCase();
                 return isMatch;
             });
@@ -602,13 +600,11 @@ const state = new Vue({
         addNetwork(name, nick, serverInfo) {
             // Find the current largest ID and increment it by 1
             function networkidReduce(currentMax, network) {
-                return network.id > currentMax ?
-                    network.id :
-                    currentMax;
+                return network.id > currentMax ? network.id : currentMax;
             }
-            let networkid = serverInfo.channelId ?
-                parseInt(serverInfo.channelId, 10) :
-                _.reduce(this.networks, networkidReduce, 0) + 1;
+            let networkid = serverInfo.channelId
+                ? parseInt(serverInfo.channelId, 10)
+                : _.reduce(this.networks, networkidReduce, 0) + 1;
 
             let network = new NetworkState(networkid, state, userDict, bufferDict);
             network.name = name;
@@ -817,7 +813,7 @@ const state = new Vue({
         },
 
         removeBuffer(buffer) {
-            let isActiveBuffer = (this.getActiveBuffer() === buffer);
+            let isActiveBuffer = this.getActiveBuffer() === buffer;
 
             let network = this.getNetwork(buffer.networkid);
             if (!network) {
@@ -860,7 +856,7 @@ const state = new Vue({
 
             // Remove this buffer from any users
             /* eslint-disable guard-for-in */
-            Object.keys(buffer.users).forEach((nick) => {
+            Object.keys(buffer.users).forEach(nick => {
                 let user = buffer.users[nick];
                 delete user.buffers[buffer.id];
             });
@@ -892,21 +888,20 @@ const state = new Vue({
                 includeAsActivity = true;
             }
 
-            let isActiveBuffer = (
+            let isActiveBuffer =
                 buffer.networkid === this.ui.active_network &&
-                buffer.name === this.ui.active_buffer
-            );
+                buffer.name === this.ui.active_buffer;
 
             let network = buffer.getNetwork();
             let isNewMessage = message.time >= buffer.last_read;
-            let isHighlight = !network ?
-                false :
-                Misc.mentionsNick(bufferMessage.message, network.ircClient.user.nick);
+            let isHighlight = !network
+                ? false
+                : Misc.mentionsNick(bufferMessage.message, network.ircClient.user.nick);
 
             // Check for extra custom highlight words
             let extraHighlights = (state.setting('highlights') || '').toLowerCase().split(' ');
             if (!isHighlight && extraHighlights.length > 0) {
-                extraHighlights.forEach((word) => {
+                extraHighlights.forEach(word => {
                     if (!word) {
                         return;
                     }
@@ -943,9 +938,7 @@ const state = new Vue({
                 !isSelf
             ) {
                 let notifyTitle = '';
-                let notifyMessage = message.nick ?
-                    message.nick + ': ' :
-                    '';
+                let notifyMessage = message.nick ? message.nick + ': ' : '';
                 notifyMessage += message.message;
 
                 if (isHighlight) {
@@ -1047,7 +1040,7 @@ const state = new Vue({
             }
 
             let buffers = state.getBuffersWithUser(networkid, user.nick);
-            buffers.forEach((buffer) => {
+            buffers.forEach(buffer => {
                 state.removeUserFromBuffer(buffer, user.nick);
             });
 
@@ -1058,8 +1051,8 @@ const state = new Vue({
             let network = this.getNetwork(buffer.networkid);
             let bufUsers = _.clone(buffer.users);
 
-            state.usersTransaction(network.id, (users) => {
-                newUsers.forEach((newUser) => {
+            state.usersTransaction(network.id, users => {
+                newUsers.forEach(newUser => {
                     let user = newUser.user;
                     let modes = newUser.modes;
                     let userObj = state.getUser(network.id, user.nick, users);
@@ -1124,7 +1117,7 @@ const state = new Vue({
 
             let normalisedNick = nick.toLowerCase();
             let buffers = [];
-            network.buffers.forEach((buffer) => {
+            network.buffers.forEach(buffer => {
                 if (buffer.users[normalisedNick] || normalisedNick === buffer.name.toLowerCase()) {
                     buffers.push(buffer);
                 } else if (nick === network.nick && buffer.isQuery()) {
@@ -1157,7 +1150,7 @@ const state = new Vue({
                 state.$set(network.users, normalisedNew, network.users[normalisedOld]);
                 state.$delete(network.users, normalisedOld);
 
-                Object.keys(user.buffers).forEach((bufferId) => {
+                Object.keys(user.buffers).forEach(bufferId => {
                     let buffer = user.buffers[bufferId].buffer;
                     state.$set(buffer.users, normalisedNew, buffer.users[normalisedOld]);
                     state.$delete(buffer.users, normalisedOld);

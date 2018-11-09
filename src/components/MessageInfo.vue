@@ -7,7 +7,8 @@
         <div v-if="areWeAnOp()" class="kiwi-messageinfo-opactions">
             <input-prompt label="Kick reason:" @submit="onKick">
                 <a class="u-link">Kick {{ message.nick }}</a>
-            </input-prompt> <br >
+            </input-prompt>
+            <br >
             <input-prompt label="Ban reason:" @submit="onBan">
                 <a class="u-link">Ban {{ message.nick }}</a>
             </input-prompt>
@@ -15,18 +16,12 @@
 
         <div v-if="message.mentioned_urls.length > 0" class="kiwi-messageinfo-urls">
             <div v-for="url in message.mentioned_urls" :key="url" class="kiwi-messageinfo-url">
-                <a class="u-button u-button-secondary" @click="urlPreview(url)">Preview</a>
-                <a
-                    :href="url"
-                    target="_blank"
-                    class="u-link"
-                >
-                    {{ url }}
-                </a>
+                <a class="u-button u-button-secondary" @click="urlPreview(url);">Preview</a>
+                <a :href="url" target="_blank" class="u-link"> {{ url }} </a>
             </div>
         </div>
 
-        <i class="fa fa-caret-up kiwi-messageinfo-close" @click="$emit('close')"/>
+        <i class="fa fa-caret-up kiwi-messageinfo-close" @click="$emit('close');" />
     </div>
 </template>
 
@@ -36,15 +31,12 @@
 import state from '@/libs/state';
 
 export default {
-    components: {
-    },
+    components: {},
     props: ['buffer', 'message'],
     data: function data() {
-        return {
-        };
+        return {};
     },
-    computed: {
-    },
+    computed: {},
     methods: {
         urlPreview: function urlPreview(url) {
             state.$emit('mediaviewer.show', url);

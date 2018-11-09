@@ -3,7 +3,7 @@
         <div slot="connection">
             <template v-if="!network || network.state === 'disconnected'">
                 <form class="u-form kiwi-welcome-znc-form" @submit.prevent="formSubmit">
-                    <h2 v-html="greetingText"/>
+                    <h2 v-html="greetingText" />
 
                     <div
                         v-if="network && (network.last_error || network.state_error)"
@@ -43,7 +43,7 @@
                 </form>
             </template>
             <template v-else-if="network.state !== 'connected'">
-                <i class="fa fa-spin fa-spinner" style="font-size:2em; margin-top:1em;"/>
+                <i class="fa fa-spin fa-spinner" style="font-size:2em; margin-top:1em;" />
             </template>
         </div>
     </startup-layout>
@@ -77,15 +77,11 @@ export default {
     computed: {
         greetingText: function greetingText() {
             let greeting = state.settings.startupOptions.greetingText;
-            return typeof greeting === 'string' ?
-                greeting :
-                this.$t('start_greeting');
+            return typeof greeting === 'string' ? greeting : this.$t('start_greeting');
         },
         buttonText: function buttonText() {
             let greeting = state.settings.startupOptions.buttonText;
-            return typeof greeting === 'string' ?
-                greeting :
-                this.$t('start_button');
+            return typeof greeting === 'string' ? greeting : this.$t('start_button');
         },
         readyToStart: function readyToStart() {
             return this.username && (this.password || this.showPass === false);
@@ -100,15 +96,9 @@ export default {
         this.username = options.username || '';
         this.password = options.password || '';
         this.znc_network = window.location.hash.substr(1) || options.network || '';
-        this.showNetwork = typeof options.showNetwork === 'boolean' ?
-            options.showNetwork :
-            true;
-        this.showUser = typeof options.showUser === 'boolean' ?
-            options.showUser :
-            true;
-        this.showPass = typeof options.showPass === 'boolean' ?
-            options.showPass :
-            true;
+        this.showNetwork = typeof options.showNetwork === 'boolean' ? options.showNetwork : true;
+        this.showUser = typeof options.showUser === 'boolean' ? options.showUser : true;
+        this.showPass = typeof options.showPass === 'boolean' ? options.showPass : true;
 
         if (options.autoConnect && this.username && this.password) {
             this.startUp();
@@ -151,7 +141,7 @@ export default {
 
             // add our first network and make sure we can connect
             // before trying to add other networks.
-            let net = this.network = this.addNetwork(netList.shift());
+            let net = (this.network = this.addNetwork(netList.shift()));
             this.network_extras = netList;
 
             let onRegistered = () => {
@@ -177,7 +167,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-welcome-znc h2 {
     font-size: 1.7em;
     text-align: center;
@@ -210,7 +199,7 @@ export default {
     margin-bottom: 1.5em;
 }
 
-.kiwi-welcome-znc-form input[type="text"] {
+.kiwi-welcome-znc-form input[type='text'] {
     font-size: 1em;
     margin-top: 5px;
     padding: 0.3em 1em;
@@ -223,7 +212,7 @@ export default {
     margin-bottom: 1.5em;
 }
 
-.kiwi-welcome-znc input[type="password"] {
+.kiwi-welcome-znc input[type='password'] {
     height: 20px;
 }
 
@@ -240,5 +229,4 @@ export default {
 .kiwi-welcome-znc-start[disabled] {
     cursor: not-allowed;
 }
-
 </style>

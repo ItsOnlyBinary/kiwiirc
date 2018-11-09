@@ -5,13 +5,8 @@
         @scroll.self="onThreadScroll"
         @click.self="onListClick"
     >
-        <div
-            v-if="shouldShowChathistoryTools"
-            class="kiwi-messagelist-scrollback"
-        >
-            <a class="u-link" @click="buffer.requestScrollback()">
-                {{ $t('messages_load') }}
-            </a>
+        <div v-if="shouldShowChathistoryTools" class="kiwi-messagelist-scrollback">
+            <a class="u-link" @click="buffer.requestScrollback();"> {{ $t('messages_load') }} </a>
         </div>
 
         <div
@@ -19,11 +14,8 @@
             :key="message.id"
             class="kiwi-messagelist-item"
         >
-            <div
-                v-if="shouldShowDateChangeMarker(idx)"
-                class="kiwi-messagelist-seperator"
-            >
-                <span>{{ (new Date(message.time)).toDateString() }}</span>
+            <div v-if="shouldShowDateChangeMarker(idx)" class="kiwi-messagelist-seperator">
+                <span>{{ new Date(message.time).toDateString() }}</span>
             </div>
             <div v-if="shouldShowUnreadMarker(idx)" class="kiwi-messagelist-seperator">
                 <span>{{ $t('unread_messages') }}</span>
@@ -119,7 +111,9 @@ export default {
         },
         listType() {
             if (this.$state.setting('messageLayout')) {
-                log.info('Deprecation Warning: The config option \'messageLayout\' has been moved to buffers.messageLayout');
+                log.info(
+                    "Deprecation Warning: The config option 'messageLayout' has been moved to buffers.messageLayout",
+                );
             }
             return this.buffer.setting('messageLayout') || this.$state.setting('messageLayout');
         },
@@ -133,19 +127,19 @@ export default {
                 return false;
             }
 
-            let isCorrectBufferType = (this.buffer.isChannel() || this.buffer.isQuery());
+            let isCorrectBufferType = this.buffer.isChannel() || this.buffer.isQuery();
             let isSupported = !!this.buffer.getNetwork().ircClient.network.supports('chathistory');
             return isCorrectBufferType && isSupported && this.buffer.flags.chathistory_available;
         },
         shouldRequestChannelKey() {
-            return this.buffer.getNetwork().state === 'connected' &&
+            return (
+                this.buffer.getNetwork().state === 'connected' &&
                 this.buffer.isChannel() &&
-                this.buffer.flags.channel_badkey;
+                this.buffer.flags.channel_badkey
+            );
         },
         ourNick() {
-            return this.buffer ?
-                this.buffer.getNetwork().nick :
-                '';
+            return this.buffer ? this.buffer.getNetwork().nick : '';
         },
         filteredMessages() {
             let network = this.buffer.getNetwork();
@@ -221,10 +215,12 @@ export default {
             return list.reverse();
         },
         shouldShowJoiningLoader() {
-            return this.buffer.isChannel() &&
+            return (
+                this.buffer.isChannel() &&
                 this.buffer.enabled &&
                 !this.buffer.joined &&
-                this.buffer.getNetwork().state === 'connected';
+                this.buffer.getNetwork().state === 'connected'
+            );
         },
     },
     watch: {
@@ -304,7 +300,7 @@ export default {
             }
 
             // If the last message has been read, and this message not read
-            if ((new Date(previous.time)).getDay() !== (new Date(current.time)).getDay()) {
+            if (new Date(previous.time).getDay() !== new Date(current.time).getDay()) {
                 return true;
             }
 
@@ -322,9 +318,7 @@ export default {
         },
         formatTimeFull(time) {
             let format = this.buffer.setting('timestamp_full_format');
-            return format ?
-                strftime(format, new Date(time)) :
-                (new Date(time)).toLocaleString();
+            return format ? strftime(format, new Date(time)) : new Date(time).toLocaleString();
         },
         formatMessage(message) {
             return message.toHtml(this);
@@ -511,7 +505,7 @@ export default {
 .kiwi-messagelist-message-mode,
 .kiwi-messagelist-message-traffic,
 .kiwi-messagelist-message-nick {
-    padding: 5px  0 5px 0;
+    padding: 5px 0 5px 0;
     margin: 10px 0;
     opacity: 0.85;
     text-align: center;
@@ -604,7 +598,7 @@ export default {
 }
 
 .kiwi-messagelist-seperator::after {
-    content: "";
+    content: '';
     display: block;
     position: relative;
     top: -0.8em;

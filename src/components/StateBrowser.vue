@@ -1,40 +1,37 @@
 <template>
     <div class="kiwi-statebrowser kiwi-theme-bg">
-
         <div class="kiwi-statebrowser-appsettings" @click="clickAppSettings">
-            <i class="fa fa-cog" aria-hidden="true"/>
+            <i class="fa fa-cog" aria-hidden="true" />
         </div>
 
         <div class="kiwi-statebrowser-mobile-close" @click="hideStatebrowser">
-            <span> Close </span>
-            <i class="fa fa-times" aria-hidden="true"/>
+            <span> Close </span> <i class="fa fa-times" aria-hidden="true" />
         </div>
 
         <div
             v-if="isPersistingState"
-            :class="[is_usermenu_open?'kiwi-statebrowser-usermenu--open':'']"
+            :class="[is_usermenu_open ? 'kiwi-statebrowser-usermenu--open' : '']"
             class="kiwi-statebrowser-usermenu"
         >
             <div
-                :class="[isConnected ?
-                    'kiwi-statebrowser-usermenu-avatar--connected' :
-                    'kiwi-statebrowser-usermenu-avatar--disconnected'
+                :class="[
+                    isConnected
+                        ? 'kiwi-statebrowser-usermenu-avatar--connected'
+                        : 'kiwi-statebrowser-usermenu-avatar--disconnected',
                 ]"
                 class="kiwi-statebrowser-usermenu-avatar"
-                @click="is_usermenu_open=!is_usermenu_open"
+                @click="is_usermenu_open = !is_usermenu_open;"
             >
                 {{ userInitial }}
             </div>
             <div v-if="is_usermenu_open" class="kiwi-statebrowser-usermenu-body">
-                <p> {{ $t('state_remembered') }} </p>
+                <p>{{ $t('state_remembered') }}</p>
                 <a class="u-link" @click="clickForget">{{ $t('state_forget') }}</a>
-                <div class="kiwi-close-icon" @click="is_usermenu_open=false">
-                    <i class="fa fa-times" aria-hidden="true"/>
+                <div class="kiwi-close-icon" @click="is_usermenu_open = false;">
+                    <i class="fa fa-times" aria-hidden="true" />
                 </div>
             </div>
-            <div v-else class="kiwi-statebrowser-usermenu-network">
-                {{ networkName }}
-            </div>
+            <div v-else class="kiwi-statebrowser-usermenu-network">{{ networkName }}</div>
         </div>
 
         <div class="kiwi-statebrowser-tools">
@@ -52,13 +49,13 @@
         >
             <div
                 class="kiwi-statebrowser-availablenetworks-toggle"
-                @click="show_provided_networks=!show_provided_networks"
+                @click="show_provided_networks = !show_provided_networks;"
             >
                 &#8618; {{ $t('state_available') }}
             </div>
             <div
                 :class="{
-                    'kiwi-statebrowser-availablenetworks-networks--open': show_provided_networks
+                    'kiwi-statebrowser-availablenetworks-networks--open': show_provided_networks,
                 }"
                 class="kiwi-statebrowser-availablenetworks-networks"
             >
@@ -72,11 +69,14 @@
                         v-for="pNet in pNets"
                         :key="pNet.name"
                         :class="[
-                            pNet.connected?'kiwi-statebrowser-availablenetworks-link--connected':''
+                            pNet.connected
+                                ? 'kiwi-statebrowser-availablenetworks-link--connected'
+                                : '',
                         ]"
                         class="kiwi-statebrowser-availablenetworks-link"
                     >
-                        <a @click="connectProvidedNetwork(pNet)">{{ pNet.name }}</a><br>
+                        <a @click="connectProvidedNetwork(pNet);">{{ pNet.name }}</a
+                        ><br >
                     </div>
                 </div>
             </div>
@@ -95,8 +95,7 @@
 
         <div v-if="!isRestrictedServer" class="kiwi-statebrowser-newnetwork">
             <a class="u-button u-button-primary" @click="clickAddNetwork">
-                Add Network
-                <i class="fa fa-plus" aria-hidden="true"/>
+                Add Network <i class="fa fa-plus" aria-hidden="true" />
             </a>
         </div>
     </div>
@@ -161,7 +160,7 @@ export default {
         },
     },
     created: function created() {
-        netProv.on('networks', (networks) => {
+        netProv.on('networks', networks => {
             this.provided_networks = networks;
         });
     },
@@ -206,7 +205,6 @@ export default {
 </script>
 
 <style lang="less">
-
 .kiwi-statebrowser {
     box-sizing: border-box;
     z-index: 11; /* Must be at least 1 higher than the workspace :after z-index; */
@@ -594,5 +592,4 @@ export default {
         position: relative;
     }
 }
-
 </style>

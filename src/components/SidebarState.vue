@@ -32,7 +32,7 @@ export default Vue.extend({
         },
     },
     created() {
-        this.listen(this.$state, 'sidebar.component', (component) => {
+        this.listen(this.$state, 'sidebar.component', component => {
             this.activeComponent = component;
         });
     },
@@ -95,5 +95,4 @@ export default Vue.extend({
         },
     },
 });
-
 </script>

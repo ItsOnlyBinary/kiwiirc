@@ -35,7 +35,7 @@ if (logLevelMatch && logLevelMatch[1]) {
 let log = Logger.namespace('main');
 
 // Add the global API as soon as possible so that things can start listening to it
-let api = window.kiwi = GlobalApi.singleton();
+let api = (window.kiwi = GlobalApi.singleton());
 
 // Third party imports now have access to the state and api
 /* eslint-disable import/first */
@@ -100,14 +100,14 @@ Vue.directive('rawElement', {
 
             // Add any data attributes to the raw element
             if (binding.value.data) {
-                Object.keys(binding.value.data).forEach((key) => {
+                Object.keys(binding.value.data).forEach(key => {
                     rawEl.dataset[key] = binding.value.data[key];
                 });
             }
 
             // Add any properties to the raw element
             if (binding.value.props) {
-                Object.keys(binding.value.props).forEach((key) => {
+                Object.keys(binding.value.props).forEach(key => {
                     rawEl[key] = binding.value.props[key];
                 });
             }
@@ -200,7 +200,7 @@ function applyConfig(config) {
     if (state.settings.windowTitle) {
         window.document.title = state.settings.windowTitle;
     }
-    state.$watch('settings.windowTitle', (newVal) => {
+    state.$watch('settings.windowTitle', newVal => {
         window.document.title = newVal;
     });
 }
@@ -211,9 +211,7 @@ function applyConfigObj(obj, target) {
         if (typeof val === 'object') {
             if (typeof target[key] !== 'object') {
                 // Create the correct type of object
-                let newVal = _.isArray(val) ?
-                    [] :
-                    {};
+                let newVal = _.isArray(val) ? [] : {};
 
                 Vue.set(target, key, newVal);
             }
@@ -254,27 +252,30 @@ function loadPlugins() {
                 scr.src = plugin.url;
             } else {
                 // Treat the plugin as a HTML document and just inject it into the document
-                fetch(plugin.url).then(response => response.text()).then((pluginRaw) => {
-                    let el = document.createElement('div');
-                    el.id = 'kiwi_plugin_' + plugin.name.replace(/[ "']/g, '');
-                    el.style.display = 'none';
-                    el.innerHTML = pluginRaw;
+                fetch(plugin.url)
+                    .then(response => response.text())
+                    .then(pluginRaw => {
+                        let el = document.createElement('div');
+                        el.id = 'kiwi_plugin_' + plugin.name.replace(/[ "']/g, '');
+                        el.style.display = 'none';
+                        el.innerHTML = pluginRaw;
 
-                    // The browser won't execute any script elements so we need to extract them and
-                    // place them into the DOM using our own script elements
-                    el.querySelectorAll('script').forEach((limitedScr) => {
-                        limitedScr.parentElement.removeChild(limitedScr);
-                        let scr = document.createElement('script');
-                        scr.text = limitedScr.text;
-                        el.appendChild(scr);
+                        // The browser won't execute any script elements so we need to extract them and
+                        // place them into the DOM using our own script elements
+                        el.querySelectorAll('script').forEach(limitedScr => {
+                            limitedScr.parentElement.removeChild(limitedScr);
+                            let scr = document.createElement('script');
+                            scr.text = limitedScr.text;
+                            el.appendChild(scr);
+                        });
+
+                        document.body.appendChild(el);
+                        loadNextScript();
+                    })
+                    .catch(() => {
+                        log.error(`Error loading plugin '${plugin.name}' from '${plugin.url}'`);
+                        loadNextScript();
                     });
-
-                    document.body.appendChild(el);
-                    loadNextScript();
-                }).catch(() => {
-                    log.error(`Error loading plugin '${plugin.name}' from '${plugin.url}'`);
-                    loadNextScript();
-                });
             }
         }
     });

@@ -6,21 +6,17 @@
             user.ignore ? 'kiwi-nicklist-user--ignore' : '',
         ]"
         class="kiwi-nicklist-user"
-        @click="nicklist.openUserbox(user)"
+        @click="nicklist.openUserbox(user);"
     >
         <span class="kiwi-nicklist-user-prefix">{{ nicklist.userModePrefix(user) }}</span>
-        <span :style="{ 'color': userColour }"
-              class="kiwi-nicklist-user-nick"
-        >{{ user.nick }}
-        </span>
-        <span class="kiwi-nicklist-messageuser" @click.stop="nicklist.openQuery(user)">
-            <i class="fa fa-comment" aria-hidden="true"/>
+        <span :style="{ color: userColour }" class="kiwi-nicklist-user-nick">{{ user.nick }} </span>
+        <span class="kiwi-nicklist-messageuser" @click.stop="nicklist.openQuery(user);">
+            <i class="fa fa-comment" aria-hidden="true" />
         </span>
     </li>
 </template>
 
 <script>
-
 'kiwi public';
 
 export default {
@@ -32,13 +28,11 @@ export default {
             }
             return '';
         },
-
     },
 };
 </script>
 
 <style>
-
 .kiwi-nicklist-user {
     line-height: 40px;
     padding: 0 1em;
@@ -69,5 +63,4 @@ export default {
 .kiwi-nicklist-user:hover .kiwi-nicklist-messageuser {
     opacity: 1;
 }
-
 </style>

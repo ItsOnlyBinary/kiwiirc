@@ -8,8 +8,7 @@
 <script>
 'kiwi public';
 
-export default {
-};
+export default {};
 </script>
 
 <style>
@@ -33,5 +32,4 @@ body {
 .kiwi-wrap-error {
     text-align: center;
 }
-
 </style>

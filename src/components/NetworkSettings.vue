@@ -11,10 +11,11 @@
                 <server-selector
                     :network="network"
                     :network-list="network_list"
-                    @input="onServerInput" />
+                    @input="onServerInput"
+                />
 
                 <div class="kiwi-networksettings-connection-password">
-                    <template v-if="server_type==='network'">
+                    <template v-if="server_type === 'network'">
                         <input-text
                             :label="$t('password')"
                             v-model="network.connection.password"
@@ -34,27 +35,26 @@
 
                 <div class="kiwi-networksettings-server-types">
                     <div
-                        v-if="server_type==='znc'"
+                        v-if="server_type === 'znc'"
                         class="kiwi-networksettings-server-types-info"
                     >
                         {{ $t('settings_znc_other') }}
                     </div>
                     <a
                         :class="{
-                            'kiwi-networksettings-server-type-active':
-                                server_type==='network'
+                            'kiwi-networksettings-server-type-active': server_type === 'network',
                         }"
                         class="u-link kiwi-network-type-button"
-                        @click="server_type='network'"
+                        @click="server_type = 'network';"
                     >
                         {{ $t('network') }}
                     </a>
                     <a
                         :class="{
-                            'kiwi-networksettings-server-type-active': server_type==='znc'
+                            'kiwi-networksettings-server-type-active': server_type === 'znc',
                         }"
                         class="u-link kiwi-network-type-button"
-                        @click="server_type='znc'"
+                        @click="server_type = 'znc';"
                     >
                         {{ $t('znc') }}
                     </a>
@@ -64,13 +64,10 @@
                     <input-text v-model="network.nick" :label="$t('settings_nickname')" />
                 </div>
 
-                <h4
-                    class="kiwi-show-advanced-title"
-                    @click="show_advanced=!show_advanced"
-                >
+                <h4 class="kiwi-show-advanced-title" @click="show_advanced = !show_advanced;">
                     {{ $t('settings_advanced') }}
                     <i
-                        :class="['fa-caret-'+(show_advanced?'up':'down')]"
+                        :class="['fa-caret-' + (show_advanced ? 'up' : 'down')]"
                         class="fa"
                         aria-hidden="true"
                     />
@@ -91,11 +88,7 @@
 
                         <label class="u-form-block">
                             <span>{{ $t('settings_autorun') }}</span>
-                            <textarea
-                                v-model="network.auto_commands"
-                                cols="40"
-                                rows="5"
-                            />
+                            <textarea v-model="network.auto_commands" cols="40" rows="5" />
                         </label>
                     </template>
                 </div>
@@ -103,7 +96,7 @@
                 <div
                     v-if="network.state === 'disconnected'"
                     class="u-button kiwi-connect-to-newnetwork"
-                    @click="connect()"
+                    @click="connect();"
                 >
                     {{ $t('network_connect') }}
                 </div>
@@ -118,7 +111,7 @@
             <div class="kiwi-dangerzone">
                 <h3>{{ $t('settings_danger') }}</h3>
                 <a class="u-button u-button-warning" @click="removeNetwork">
-                    <i class="fa fa-times" aria-hidden="true"/> {{ $t('settings_remove') }}
+                    <i class="fa fa-times" aria-hidden="true" /> {{ $t('settings_remove') }}
                 </a>
             </div>
         </form>
@@ -182,9 +175,7 @@ export default {
     },
     created() {
         let isZnc = !!(this.network.connection.password || '').match(/^(.*)\/(.*):(.*)$/);
-        this.server_type = isZnc ?
-            'znc' :
-            'network';
+        this.server_type = isZnc ? 'znc' : 'network';
         if (isZnc) {
             let match = (this.network.connection.password || '').match(/^(.*)\/(.*):(.*)$/);
             this.znc_username = match[1] || '';
@@ -240,7 +231,6 @@ export default {
 </script>
 
 <style lang="less">
-
 .kiwi-networksettings {
     box-sizing: border-box;
     height: 100%;
@@ -288,10 +278,10 @@ export default {
 }
 
 .kiwi-networksettings input[type='text'],
-    .kiwi-networksettings input[type='password'],
-    .kiwi-networksettings input[type='email'],
-    .kiwi-networksettings textarea,
-    .kiwi-networksettings .input-text input {
+.kiwi-networksettings input[type='password'],
+.kiwi-networksettings input[type='email'],
+.kiwi-networksettings textarea,
+.kiwi-networksettings .input-text input {
     clear: both;
     width: 100%;
     height: 40px;

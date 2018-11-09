@@ -6,12 +6,13 @@
                 :key="c.name || c.header"
                 :class="{
                     'u-tabbed-view-tab': true,
-                    'u-tabbed-view-tab--active': c.active
+                    'u-tabbed-view-tab--active': c.active,
                 }"
-                @click="setActive(c)"
-            >{{ c.header }}</a>
+                @click="setActive(c);"
+            >{{ c.header }}</a
+            >
         </div>
-        <slot/>
+        <slot />
     </div>
 </template>
 
@@ -53,7 +54,7 @@ export default Vue.component('tabbed-view', {
     methods: {
         getActive: function getActive() {
             let foundChild = null;
-            this.$children.forEach((child) => {
+            this.$children.forEach(child => {
                 if (child.active) {
                     foundChild = child;
                 }
@@ -62,7 +63,7 @@ export default Vue.component('tabbed-view', {
             return foundChild;
         },
         setActive: function setActive(c) {
-            this.$children.forEach((child) => {
+            this.$children.forEach(child => {
                 if (child !== c) {
                     child.active = false;
                 }
@@ -73,14 +74,14 @@ export default Vue.component('tabbed-view', {
             this.a++;
         },
         setActiveByName: function setActiveByName(name) {
-            this.$children.forEach((child) => {
+            this.$children.forEach(child => {
                 if (child.name === name) {
                     this.setActive(child);
                 }
             });
         },
         setActiveCheck: function setActiveCheck() {
-            this.$children.forEach((t) => {
+            this.$children.forEach(t => {
                 if (t.focus) {
                     this.setActive(t);
                 }

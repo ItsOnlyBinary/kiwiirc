@@ -7,12 +7,25 @@
             contenteditable="true"
             role="textbox"
             spellcheck="true"
-            @keypress="updateValueProps(); $emit('keypress', $event)"
-            @keydown="updateValueProps(); $emit('keydown', $event)"
-            @keyup="updateValueProps(); $emit('keyup', $event)"
-            @textInput="updateValueProps(); onTextInput($event); $emit('textInput', $event)"
+            @keypress="
+                updateValueProps();
+                $emit('keypress', $event);
+            "
+            @keydown="
+                updateValueProps();
+                $emit('keydown', $event);
+            "
+            @keyup="
+                updateValueProps();
+                $emit('keyup', $event);
+            "
+            @textInput="
+                updateValueProps();
+                onTextInput($event);
+                $emit('textInput', $event);
+            "
             @mouseup="updateValueProps();"
-            @click="$emit('click', $event)"
+            @click="$emit('click', $event);"
             @paste="onPaste"
         />
     </div>
@@ -60,12 +73,12 @@ export default Vue.component('irc-input', {
         onPaste(event) {
             event.preventDefault();
 
-            let clpData = (event.clipboardData || window.clipboardData);
+            let clpData = event.clipboardData || window.clipboardData;
             let ignoreThisPaste = false;
 
-            clpData.types.forEach((type) => {
+            clpData.types.forEach(type => {
                 let ignoreTypes = ['Files', 'image'];
-                ignoreTypes.forEach((ig) => {
+                ignoreTypes.forEach(ig => {
                     if (type.indexOf(ig) > -1) {
                         ignoreThisPaste = true;
                     }
@@ -135,47 +148,50 @@ export default Vue.component('irc-input', {
                 return toggles[toggles.length - 1];
             }
 
-            let parser = new htmlparser.Parser({
-                onopentag: (name, attribs) => {
-                    toggles.push('');
-                    let codeLookup = '';
-                    if (attribs.style) {
-                        let match = attribs.style.match(/color: ([^;]+)/);
-                        if (match) {
-                            codeLookup = match[1];
-                            if (this.code_map[codeLookup]) {
-                                textValue += '\x03' + this.code_map[codeLookup];
-                                addToggle('\x03' + this.code_map[codeLookup]);
+            let parser = new htmlparser.Parser(
+                {
+                    onopentag: (name, attribs) => {
+                        toggles.push('');
+                        let codeLookup = '';
+                        if (attribs.style) {
+                            let match = attribs.style.match(/color: ([^;]+)/);
+                            if (match) {
+                                codeLookup = match[1];
+                                if (this.code_map[codeLookup]) {
+                                    textValue += '\x03' + this.code_map[codeLookup];
+                                    addToggle('\x03' + this.code_map[codeLookup]);
+                                }
+                            }
+
+                            if (attribs.style.indexOf('bold') > -1) {
+                                textValue += '\x02';
+                                addToggle('\x02');
+                            }
+                            if (attribs.style.indexOf('italic') > -1) {
+                                textValue += '\x1d';
+                                addToggle('\x1d');
+                            }
+                            if (attribs.style.indexOf('underline') > -1) {
+                                textValue += '\x1f';
+                                addToggle('\x1f');
                             }
                         }
-
-                        if (attribs.style.indexOf('bold') > -1) {
-                            textValue += '\x02';
-                            addToggle('\x02');
+                        if (attribs.src && this.code_map[attribs.src]) {
+                            textValue += this.code_map[attribs.src];
                         }
-                        if (attribs.style.indexOf('italic') > -1) {
-                            textValue += '\x1d';
-                            addToggle('\x1d');
-                        }
-                        if (attribs.style.indexOf('underline') > -1) {
-                            textValue += '\x1f';
-                            addToggle('\x1f');
-                        }
-                    }
-                    if (attribs.src && this.code_map[attribs.src]) {
-                        textValue += this.code_map[attribs.src];
-                    }
+                    },
+                    ontext: text => {
+                        textValue += text;
+                    },
+                    onclosetag: tagName => {
+                        textValue += getToggles();
+                        toggles.pop();
+                    },
                 },
-                ontext: (text) => {
-                    textValue += text;
+                {
+                    decodeEntities: true,
                 },
-                onclosetag: (tagName) => {
-                    textValue += getToggles();
-                    toggles.pop();
-                },
-            }, {
-                decodeEntities: true,
-            });
+            );
 
             /* eslint max-len: off */
             parser.write(source);
@@ -253,7 +269,7 @@ export default Vue.component('irc-input', {
             let images = [..._.values(this.$refs.editor.querySelectorAll('img'))];
 
             // Find image that has just been inserted
-            images.forEach((img) => {
+            images.forEach(img => {
                 if (existingImages.indexOf(img) === -1) {
                     newImg = img;
                 }
@@ -370,7 +386,6 @@ export default Vue.component('irc-input', {
 </script>
 
 <style>
-
 .kiwi-ircinput {
     box-sizing: border-box;
     position: relative;
@@ -392,5 +407,4 @@ export default Vue.component('irc-input', {
 .kiwi-ircinput-editor img {
     height: 1em;
 }
-
 </style>

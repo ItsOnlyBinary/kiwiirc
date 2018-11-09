@@ -1,15 +1,12 @@
 <template>
     <div class="kiwi-appsettings">
-
         <div class="kiwi-appsettings-title" @click="closeSettings">
-            <span>{{ $t('close') }}</span>
-            <i class="fa fa-times" aria-hidden="true"/>
+            <span>{{ $t('close') }}</span> <i class="fa fa-times" aria-hidden="true" />
         </div>
 
         <form class="u-form">
             <tabbed-view :active-tab="activeTab" class="kiwi-appsettings-tab-container">
                 <tabbed-tab :header="$t('settings_general')" :focus="true" name="general">
-
                     <div class="kiwi-appsettings-block">
                         <h3>{{ $t('settings_general') }}</h3>
                         <div class="kiwi-appsettings-section kiwi-appsettings-general">
@@ -20,7 +17,7 @@
                                     class="kiwi-appsettings-theme-reload"
                                     @click="refreshTheme"
                                 >
-                                    <i class="fa fa-refresh" aria-hidden="true"/>
+                                    <i class="fa fa-refresh" aria-hidden="true" />
                                 </a>
                                 <select v-model="theme">
                                     <option
@@ -32,9 +29,9 @@
                                     </option>
                                 </select>
                             </label>
-                            <label v-if="theme==='custom'">
+                            <label v-if="theme === 'custom'">
                                 <span>{{ $t('settings_themeurl') }} </span>
-                                <input v-model="customThemeUrl" class="u-input">
+                                <input v-model="customThemeUrl" class="u-input" >
                             </label>
                             <label class="u-checkbox-wrapper">
                                 <span>{{ $t('settings_show_autocomplete') }} </span>
@@ -122,22 +119,22 @@
                             </label>
                             <label>
                                 <span>{{ $t('settings_default_kick_reason') }}</span>
-                                <input v-model="settingDefaultKickReason" class="u-input">
+                                <input v-model="settingDefaultKickReason" class="u-input" >
                             </label>
                         </div>
                     </div>
-                    <div v-if="!state.setting('hide_advanced') && !settingAdvancedEnable"
-                         class="kiwi-appsettings-block">
+                    <div
+                        v-if="!state.setting('hide_advanced') && !settingAdvancedEnable"
+                        class="kiwi-appsettings-block"
+                    >
                         <h3>{{ $t('settings_advanced_title') }}</h3>
                         <div class="kiwi-appsettings-section kiwi-appsettings-advanced-enable">
                             <div>
-                                <span style="font-weight: 600;">
-                                    {{ $t('warning') }}
-                                </span>
+                                <span style="font-weight: 600;"> {{ $t('warning') }} </span>
                                 {{ $t('settings_advanced_warning') }}
                             </div>
                             <div style="margin-top: 10px; text-align: center;">
-                                <a class="u-button u-button-warning" @click="enableAdvancedTab()">
+                                <a class="u-button u-button-warning" @click="enableAdvancedTab();">
                                     <i>{{ $t('settings_advanced_button') }}</i>
                                 </a>
                             </div>
@@ -149,7 +146,7 @@
                     <div class="kiwi-appsettings-block kiwi-appsettings-block-aliases">
                         <h3>{{ $t('settings_aliases') }}</h3>
                         <div class="kiwi-appsettings-section kiwi-appsettings-aliases">
-                            <settings-aliases/>
+                            <settings-aliases />
                         </div>
                     </div>
                 </tabbed-tab>
@@ -157,10 +154,11 @@
                 <tabbed-tab
                     v-if="settingAdvancedEnable"
                     :header="$t('settings_advanced')"
-                    name="advanced">
+                    name="advanced"
+                >
                     <div class="kiwi-appsettings-block kiwi-appsettings-block-advanced">
                         <div class="kiwi-appsettings-section kiwi-appsettings-advanced">
-                            <settings-advanced/>
+                            <settings-advanced />
                         </div>
                     </div>
                 </tabbed-tab>
@@ -169,8 +167,9 @@
                     v-for="item in pluginUiElements"
                     :key="item.id"
                     :header="item.title"
-                    :name="item.title">
-                    <div :is="item.component" v-bind="item.props"/>
+                    :name="item.title"
+                >
+                    <div :is="item.component" v-bind="item.props" />
                 </tabbed-tab>
             </tabbed-view>
         </form>
@@ -228,9 +227,7 @@ export default {
                 return state.setting('buffers.timestamp_format').substr(0, 2) === '%H';
             },
             set: function set24Timestamps(newVal) {
-                let newFormat = newVal ?
-                    '%H:%M:%S' :
-                    '%l:%M:%S';
+                let newFormat = newVal ? '%H:%M:%S' : '%l:%M:%S';
                 state.setting('buffers.timestamp_format', newFormat);
             },
         },
@@ -295,16 +292,14 @@ export default {
             let updateFn = () => {
                 let theme = themeMgr.currentTheme();
                 this.theme = theme.name;
-                this.customThemeUrl = theme.name === 'custom' ?
-                    theme.url :
-                    '';
+                this.customThemeUrl = theme.name === 'custom' ? theme.url : '';
             };
 
-            let watchTheme = (newVal) => {
+            let watchTheme = newVal => {
                 themeMgr.setTheme(newVal);
             };
 
-            let watchCustomThemeUrl = (newVal) => {
+            let watchCustomThemeUrl = newVal => {
                 if (themeMgr.currentTheme().name === 'custom') {
                     themeMgr.setCustomThemeUrl(newVal);
                 }

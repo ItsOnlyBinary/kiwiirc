@@ -47,10 +47,7 @@ export function createChannelConstructor(_addr, sessionId, _socketChannel) {
         socketChannel = serverConnections[addr].nextChannelId++;
     }
 
-    return createChannelOnConnection(
-        serverConnections[addr],
-        socketChannel
-    );
+    return createChannelOnConnection(serverConnections[addr], socketChannel);
 }
 
 /*
@@ -66,8 +63,7 @@ function createNewConnection(wsAddr, sessionId) {
     connection.nextChannelId = 1;
     connection.connected = false;
 
-    connection.reconnect =
-    connection.connect = function connect() {
+    connection.reconnect = connection.connect = function connect() {
         if (connection.ws) {
             try {
                 connection.ws.close();
@@ -80,9 +76,7 @@ function createNewConnection(wsAddr, sessionId) {
         }
         connection.ws = new SockJS(wsAddr);
         connection.ws.onopen = () => {
-            let connectStr = sessionId ?
-                'CONTROL SESSION ' + sessionId :
-                'CONTROL START';
+            let connectStr = sessionId ? 'CONTROL SESSION ' + sessionId : 'CONTROL START';
             connection.ws.send(`:${controlChannel} ${connectStr}`);
             connection.connected = true;
             connection.emit('open');
@@ -92,7 +86,7 @@ function createNewConnection(wsAddr, sessionId) {
             connection.ws = null;
             connection.emit('close');
         };
-        connection.ws.onmessage = (event) => {
+        connection.ws.onmessage = event => {
             connection.emit('message', event);
 
             // If the message starts with ":channel " then extract that channel and emit
@@ -162,7 +156,7 @@ function createChannelOnConnection(connection, channelId) {
             channel.isOpen = true;
             // channel.emit('open');
             if (sendControlBuffer.length) {
-                sendControlBuffer.forEach((line) => {
+                sendControlBuffer.forEach(line => {
                     channel.sendControl(line);
                 });
                 sendControlBuffer = [];
@@ -180,7 +174,7 @@ function createChannelOnConnection(connection, channelId) {
             channel.isOpen = false;
             channel.emit('close');
         });
-        connection.on('message.' + channelId, (event) => {
+        connection.on('message.' + channelId, event => {
             if (event.data.indexOf('control ') === 0) {
                 // When we get the signal that the connection to the IRC server
                 // has connected, start proxying all data

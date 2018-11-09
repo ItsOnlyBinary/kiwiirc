@@ -29,7 +29,7 @@ export default class BufferState {
             chathistory_available: true,
             requested_modes: false,
         };
-        this.settings = { };
+        this.settings = {};
         this.last_read = 0;
         this.active_timeout = null;
         this.message_count = 0;
@@ -61,9 +61,7 @@ export default class BufferState {
             buffer: this.name,
         });
 
-        return bufMessages ?
-            bufMessages.messages :
-            [];
+        return bufMessages ? bufMessages.messages : [];
     }
 
     isServer() {
@@ -87,9 +85,7 @@ export default class BufferState {
             chanPrefixes = ircNetwork.options.CHANTYPES;
         }
 
-        return chanPrefixes.indexOf(this.name[0]) === -1 &&
-            !this.isSpecial() &&
-            !this.isServer();
+        return chanPrefixes.indexOf(this.name[0]) === -1 && !this.isSpecial() && !this.isServer();
     }
 
     isSpecial() {
@@ -137,9 +133,7 @@ export default class BufferState {
         // Find the first (highest) netPrefix in the users buffer modes
         let prefix = _.find(netPrefixes, p => modes.indexOf(p.mode) > -1);
 
-        return prefix ?
-            prefix.symbol :
-            '';
+        return prefix ? prefix.symbol : '';
     }
 
     /**
@@ -162,9 +156,7 @@ export default class BufferState {
         // Find the first (highest) netPrefix in the users buffer modes
         let prefix = _.find(netPrefixes, p => modes.indexOf(p.mode) > -1);
 
-        return prefix ?
-            prefix.mode :
-            '';
+        return prefix ? prefix.mode : '';
     }
 
     setting(name, val) {
@@ -174,9 +166,10 @@ export default class BufferState {
         }
 
         // Check the buffer specific settings before reverting to global settings
-        let result = typeof this.settings[name] !== 'undefined' ?
-            this.settings[name] :
-            this.state.setting('buffers.' + name);
+        let result =
+            typeof this.settings[name] !== 'undefined'
+                ? this.settings[name]
+                : this.state.setting('buffers.' + name);
 
         return result;
     }
@@ -225,9 +218,7 @@ export default class BufferState {
             }, this.getMessages()[0]);
 
             numMessages = -50;
-            time = lastMessage ?
-                new Date(lastMessage.time) :
-                new Date();
+            time = lastMessage ? new Date(lastMessage.time) : new Date();
         } else if (direction === 'forward') {
             let firstMessage = this.getMessages().reduce((latest, current) => {
                 let validType = latest.type !== 'traffic';
@@ -238,9 +229,7 @@ export default class BufferState {
             }, this.getMessages()[0]);
 
             numMessages = 50;
-            time = firstMessage ?
-                new Date(firstMessage.time) :
-                new Date();
+            time = firstMessage ? new Date(firstMessage.time) : new Date();
         } else {
             throw new Error('Invalid direction for requestScrollback(): ' + _direction);
         }
@@ -248,7 +237,7 @@ export default class BufferState {
         let irc = this.getNetwork().ircClient;
         let timeStr = Misc.dateIso(time);
         irc.raw(`CHATHISTORY ${this.name} timestamp=${timeStr} message_count=${numMessages}`);
-        irc.once('batch end chathistory', (event) => {
+        irc.once('batch end chathistory', event => {
             if (event.commands.length === 0) {
                 this.flags.chathistory_available = false;
             } else {
@@ -263,11 +252,7 @@ export default class BufferState {
             this.active_timeout = null;
         }
         if (delayed) {
-            this.active_timeout = setTimeout(
-                this.markAsRead.bind(this),
-                10000,
-                false
-            );
+            this.active_timeout = setTimeout(this.markAsRead.bind(this), 10000, false);
         } else {
             this.last_read = Date.now();
             this.flag('highlight', false);
@@ -378,12 +363,12 @@ export default class BufferState {
  * Generally happens when reconnecting to a BNC
  */
 function createUserBatch(bufferState) {
-    let addSingleUser = (u) => {
+    let addSingleUser = u => {
         bufferState.state.$set(bufferState.users, u.nick.toLowerCase(), u);
     };
-    let addMultipleUsers = (users) => {
+    let addMultipleUsers = users => {
         let o = _.clone(bufferState.users);
-        users.forEach((u) => {
+        users.forEach(u => {
             o[u.nick.toLowerCase()] = u;
         });
         bufferState.users = o;
@@ -396,12 +381,12 @@ function createUserBatch(bufferState) {
  * batch up floods of new messages for a huge performance gain
  */
 function createMessageBatch(bufferState) {
-    let addSingleMessage = (newMessage) => {
+    let addSingleMessage = newMessage => {
         bufferState.messagesObj.messages.push(newMessage);
         trimMessages();
         bufferState.message_count++;
     };
-    let addMultipleMessages = (newMessages) => {
+    let addMultipleMessages = newMessages => {
         bufferState.messagesObj.messages = bufferState.messagesObj.messages.concat(newMessages);
         trimMessages();
         bufferState.message_count++;

@@ -33,7 +33,7 @@ export function create(state, network) {
         clientOpts.transport = ServerConnection.createChannelConstructor(
             state.settings.kiwiServer,
             (window.location.hash || '').substr(1),
-            networkid
+            networkid,
         );
     }
 
@@ -81,7 +81,7 @@ export function create(state, network) {
         originalIrcClientConnect.apply(ircClient, args);
     };
 
-    ircClient.on('raw', (event) => {
+    ircClient.on('raw', event => {
         if (!network.setting('show_raw') && !state.setting('showRaw')) {
             return;
         }
@@ -117,7 +117,7 @@ function clientMiddleware(state, network) {
             network.state_error = '';
             network.state = 'connected';
 
-            network.buffers.forEach((buffer) => {
+            network.buffers.forEach(buffer => {
                 if (!buffer) {
                     return;
                 }
@@ -136,11 +136,11 @@ function clientMiddleware(state, network) {
             });
         });
 
-        client.on('socket close', (err) => {
+        client.on('socket close', err => {
             network.state = 'disconnected';
             network.state_error = err || '';
 
-            network.buffers.forEach((buffer) => {
+            network.buffers.forEach(buffer => {
                 if (!buffer) {
                     return;
                 }
@@ -218,7 +218,7 @@ function clientMiddleware(state, network) {
             client.raw('WHO ' + event.nick);
 
             if (network.auto_commands) {
-                network.auto_commands.split('\n').forEach((line) => {
+                network.auto_commands.split('\n').forEach(line => {
                     state.$emit('input.raw', line[0] === '/' ? line : `/${line}`);
                 });
             }
@@ -226,7 +226,7 @@ function clientMiddleware(state, network) {
             // Join our channels
             // If under bouncer mode, the bouncer will send the channels were joined to instead.
             if (!network.connection.bncname) {
-                network.buffers.forEach((buffer) => {
+                network.buffers.forEach(buffer => {
                     if (buffer.isChannel() && buffer.enabled) {
                         client.join(buffer.name, buffer.key);
                     }
@@ -250,7 +250,7 @@ function clientMiddleware(state, network) {
             // to get any missed messages
             if (numConnects > 1 && !requestedCh && historySupport) {
                 requestedCh = true;
-                network.buffers.forEach((buffer) => {
+                network.buffers.forEach(buffer => {
                     if (buffer.isChannel() || buffer.isQuery()) {
                         buffer.requestScrollback('forward');
                     }
@@ -262,7 +262,7 @@ function clientMiddleware(state, network) {
             if (numConnects === 1 && !requestedCh && historySupport) {
                 requestedCh = true;
                 let time = Misc.dateIso();
-                network.buffers.forEach((buffer) => {
+                network.buffers.forEach(buffer => {
                     if (buffer.isChannel() || buffer.isQuery()) {
                         let line = `CHATHISTORY ${buffer.name} timestamp=${time} message_count=-50`;
                         network.ircClient.raw(line);
@@ -404,7 +404,7 @@ function clientMiddleware(state, network) {
             // If we have any buffers marked as being redirected to this new channel, update
             // that buffer instead of creating a new one
             if (event.nick === client.user.nick) {
-                network.buffers.forEach((b) => {
+                network.buffers.forEach(b => {
                     if ((b.flags.redirect_to || '').toLowerCase() === event.channel.toLowerCase()) {
                         state.$delete(b.flags, 'redirect_to');
                         b.rename(event.channel);
@@ -430,16 +430,13 @@ function clientMiddleware(state, network) {
                 network.ircClient.who(event.channel);
             }
 
-            let nick = buffer.setting('show_hostnames') ?
-                TextFormatting.formatUserFull(event) :
-                TextFormatting.formatUser(event);
+            let nick = buffer.setting('show_hostnames')
+                ? TextFormatting.formatUserFull(event)
+                : TextFormatting.formatUser(event);
 
-            let messageBody = TextFormatting.formatAndT(
-                'channel_join',
-                null,
-                'has_joined',
-                { nick: nick }
-            );
+            let messageBody = TextFormatting.formatAndT('channel_join', null, 'has_joined', {
+                nick: nick,
+            });
 
             state.addMessage(buffer, {
                 time: Date.now(),
@@ -466,7 +463,7 @@ function clientMiddleware(state, network) {
                     {
                         nick: TextFormatting.formatUser(event),
                         channel: event.channel,
-                    }
+                    },
                 );
             } else {
                 messageBody = TextFormatting.formatAndT(
@@ -477,7 +474,7 @@ function clientMiddleware(state, network) {
                         nick: event.kicked,
                         channel: event.channel,
                         chanop: TextFormatting.formatUser(event.nick),
-                    }
+                    },
                 );
             }
 
@@ -510,9 +507,9 @@ function clientMiddleware(state, network) {
                 });
             }
 
-            let nick = buffer.setting('show_hostnames') ?
-                TextFormatting.formatUserFull(event) :
-                TextFormatting.formatUser(event);
+            let nick = buffer.setting('show_hostnames')
+                ? TextFormatting.formatUserFull(event)
+                : TextFormatting.formatUser(event);
 
             let messageBody = TextFormatting.formatAndT(
                 'channel_part',
@@ -532,7 +529,7 @@ function clientMiddleware(state, network) {
         if (command === 'quit') {
             let buffers = state.getBuffersWithUser(networkid, event.nick);
 
-            buffers.forEach((buffer) => {
+            buffers.forEach(buffer => {
                 if (!buffer) {
                     return;
                 }
@@ -542,15 +539,15 @@ function clientMiddleware(state, network) {
                     buffer.clearUsers();
                 }
 
-                let nick = buffer.setting('show_hostnames') ?
-                    TextFormatting.formatUserFull(event) :
-                    TextFormatting.formatUser(event);
+                let nick = buffer.setting('show_hostnames')
+                    ? TextFormatting.formatUserFull(event)
+                    : TextFormatting.formatUser(event);
 
                 let messageBody = TextFormatting.formatAndT(
                     'channel_quit',
                     { reason: event.message },
                     'has_left',
-                    { nick: nick }
+                    { nick: nick },
                 );
 
                 state.addMessage(buffer, {
@@ -607,7 +604,7 @@ function clientMiddleware(state, network) {
                 'account',
                 'secure',
                 'special',
-            ].forEach((prop) => {
+            ].forEach(prop => {
                 if (typeof event[prop] !== 'undefined') {
                     obj[prop] = event[prop];
                 }
@@ -631,8 +628,8 @@ function clientMiddleware(state, network) {
         }
 
         if (command === 'wholist') {
-            state.usersTransaction(networkid, (users) => {
-                event.users.forEach((user) => {
+            state.usersTransaction(networkid, users => {
+                event.users.forEach(user => {
                     let userObj = {
                         nick: user.nick,
                         host: user.hostname || undefined,
@@ -687,7 +684,7 @@ function clientMiddleware(state, network) {
                 { nick: client.user.nick, newnick: newNick },
             );
 
-            network.buffers.forEach((b) => {
+            network.buffers.forEach(b => {
                 state.addMessage(b, {
                     time: Date.now(),
                     nick: '',
@@ -701,12 +698,13 @@ function clientMiddleware(state, network) {
 
         if (command === 'nick in use' && client.connection.registered) {
             let buffer = state.getActiveBuffer();
-            buffer && state.addMessage(buffer, {
-                time: Date.now(),
-                nick: '',
-                type: 'error',
-                message: `The nickname '${event.nick}' is already in use!`,
-            });
+            buffer &&
+                state.addMessage(buffer, {
+                    time: Date.now(),
+                    nick: '',
+                    type: 'error',
+                    message: `The nickname '${event.nick}' is already in use!`,
+                });
         }
 
         if (command === 'nick') {
@@ -716,15 +714,13 @@ function clientMiddleware(state, network) {
 
             state.changeUserNick(networkid, event.nick, event.new_nick);
 
-            let messageBody = TextFormatting.formatAndT(
-                'nick_changed',
-                null,
-                'now_known_as',
-                { nick: event.nick, newnick: event.new_nick },
-            );
+            let messageBody = TextFormatting.formatAndT('nick_changed', null, 'now_known_as', {
+                nick: event.nick,
+                newnick: event.new_nick,
+            });
 
             let buffers = state.getBuffersWithUser(networkid, event.new_nick);
-            buffers.forEach((buffer) => {
+            buffers.forEach(buffer => {
                 state.addMessage(buffer, {
                     time: event.time || Date.now(),
                     nick: '',
@@ -737,7 +733,7 @@ function clientMiddleware(state, network) {
         if (command === 'userlist') {
             let buffer = state.getOrAddBufferByName(networkid, event.channel);
             let users = [];
-            event.users.forEach((user) => {
+            event.users.forEach(user => {
                 users.push({
                     user: {
                         nick: user.nick,
@@ -759,7 +755,7 @@ function clientMiddleware(state, network) {
             if (event.modes) {
                 let modeStrs = [];
 
-                event.modes.forEach((mode) => {
+                event.modes.forEach(mode => {
                     let adding = mode.mode[0] === '+';
                     let modeChar = mode.mode.substr(1);
 
@@ -787,9 +783,9 @@ function clientMiddleware(state, network) {
 
             if (event.created_at && buffer.flags.requested_modes) {
                 let tFormat = buffer.setting('timestamp_full_format');
-                let timeCreated = tFormat ?
-                    strftime(tFormat, new Date(event.created_at * 1000)) :
-                    (new Date(event.created_at * 1000)).toLocaleString();
+                let timeCreated = tFormat
+                    ? strftime(tFormat, new Date(event.created_at * 1000))
+                    : new Date(event.created_at * 1000).toLocaleString();
 
                 state.addMessage(buffer, {
                     time: event.time || Date.now(),
@@ -805,7 +801,7 @@ function clientMiddleware(state, network) {
             if (buffer) {
                 // Join all the same mode changes together so they can be shown on one
                 // line such as "prawnsalad sets +b on nick1, nick2"
-                event.modes.forEach((mode) => {
+                event.modes.forEach(mode => {
                     modeStrs[mode.mode] = modeStrs[mode.mode] || [];
 
                     // If this mode has a user prefix then we need to update the user object
@@ -916,12 +912,10 @@ function clientMiddleware(state, network) {
             let messageBody = '';
 
             if (event.nick) {
-                messageBody = TextFormatting.formatAndT(
-                    'channel_topic',
-                    null,
-                    'changed_topic_to',
-                    { nick: event.nick, topic: event.topic },
-                );
+                messageBody = TextFormatting.formatAndT('channel_topic', null, 'changed_topic_to', {
+                    nick: event.nick,
+                    topic: event.topic,
+                });
             } else {
                 messageBody = TextFormatting.formatText('channel_topic', event.topic);
             }
@@ -936,9 +930,7 @@ function clientMiddleware(state, network) {
 
         if (command === 'ctcp response' || command === 'ctcp request') {
             let buffer = network.bufferByName(event.target) || network.serverBuffer();
-            let textFormatId = command === 'ctcp response' ?
-                'ctcp_response' :
-                'ctcp_request';
+            let textFormatId = command === 'ctcp response' ? 'ctcp_response' : 'ctcp_request';
             let messageBody = TextFormatting.formatText(textFormatId, {
                 nick: event.nick,
                 message: event.message,

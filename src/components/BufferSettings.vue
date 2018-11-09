@@ -2,32 +2,37 @@
     <div class="kiwi-buffersettings">
         <div class="kiwi-buffersettings-alerts">
             <h3>{{ $t('settings_notify') }}</h3>
-            <hr>
+            <hr >
             <form class="u-form">
                 <label class="u-checkbox-wrapper">
-                    <input v-model="settingAlertOn" type="radio" name="alert_on" value="message">
+                    <input v-model="settingAlertOn" type="radio" name="alert_on" value="message" >
                     <span>{{ $t('settings_notify_all') }}</span>
                 </label>
                 <label class="u-checkbox-wrapper">
-                    <input v-model="settingAlertOn" type="radio" name="alert_on" value="highlight">
+                    <input
+                        v-model="settingAlertOn"
+                        type="radio"
+                        name="alert_on"
+                        value="highlight"
+                    >
                     <span>{{ $t('settings_notify_mentioned') }}</span>
                 </label>
                 <label class="u-checkbox-wrapper">
-                    <input v-model="settingAlertOn" type="radio" name="alert_on" value="never">
+                    <input v-model="settingAlertOn" type="radio" name="alert_on" value="never" >
                     <span>{{ $t('settings_notify_never') }}</span>
                 </label>
             </form>
 
             <h3>{{ $t('settings') }}</h3>
-            <hr>
+            <hr >
             <form class="u-form">
                 <label>
                     <span>{{ $t('settings_notify_mute') }}</span>
-                    <input v-model="settingMuteSound" type="checkbox">
+                    <input v-model="settingMuteSound" type="checkbox" >
                 </label>
                 <label>
                     <span>{{ $t('settings_show_message_counts') }}</span>
-                    <input v-model="settingHideMessageCount" type="checkbox">
+                    <input v-model="settingHideMessageCount" type="checkbox" >
                 </label>
             </form>
         </div>
@@ -38,12 +43,10 @@
 'kiwi public';
 
 export default {
-    components: {
-    },
+    components: {},
     props: ['buffer'],
     data: function data() {
-        return {
-        };
+        return {};
     },
     computed: {
         settingAlertOn: {
@@ -75,7 +78,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-buffersettings {
     box-sizing: border-box;
 }
@@ -83,5 +85,4 @@ export default {
 .kiwi-buffersettings-alerts {
     margin-bottom: 1em;
 }
-
 </style>

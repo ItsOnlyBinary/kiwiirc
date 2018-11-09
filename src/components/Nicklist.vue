@@ -1,11 +1,11 @@
 <template>
-    <div :class="{'kiwi-nicklist--filtering': filter_visible }" class="kiwi-nicklist">
+    <div :class="{ 'kiwi-nicklist--filtering': filter_visible }" class="kiwi-nicklist">
         <div class="kiwi-nicklist-usercount" @click="toggleUserFilter">
             <span>
                 {{
-                    filter_visible ?
-                        sortedUsers.length :
-                        $t('person', {count: sortedUsers.length})
+                    filter_visible
+                        ? sortedUsers.length
+                        : $t('person', { count: sortedUsers.length })
                 }}
             </span>
 
@@ -15,7 +15,7 @@
                 v-model="user_filter"
                 @blur="onFilterBlur"
             >
-            <i class="fa fa-search"/>
+            <i class="fa fa-search" />
         </div>
 
         <ul class="kiwi-nicklist-users">
@@ -30,7 +30,6 @@
 </template>
 
 <script>
-
 'kiwi public';
 
 import Logger from '@/libs/Logger';
@@ -43,9 +42,7 @@ function strCompare(a, b) {
     if (a === b) {
         return 0;
     }
-    return a > b ?
-        1 :
-        -1;
+    return a > b ? 1 : -1;
 }
 
 export default {
@@ -108,25 +105,16 @@ export default {
                 let modesB = bufferB.modes;
 
                 // Neither user has a prefix, compare text
-                if (
-                    modesA.length === 0 &&
-                    modesB.length === 0
-                ) {
+                if (modesA.length === 0 && modesB.length === 0) {
                     return strCompare(nickMap[a.nick], nickMap[b.nick]);
                 }
 
                 // Compare via prefixes..
-                if (
-                    modesA.length > 0 &&
-                    modesB.length === 0
-                ) {
+                if (modesA.length > 0 && modesB.length === 0) {
                     return -1;
                 }
 
-                if (
-                    modesA.length === 0 &&
-                    modesB.length > 0
-                ) {
+                if (modesA.length === 0 && modesB.length > 0) {
                     return 1;
                 }
 
@@ -182,7 +170,6 @@ export default {
 </script>
 
 <style lang="less">
-
 /* Adjust the sidebars width when this nicklist is in view */
 .kiwi-sidebar.kiwi-sidebar-section-nicklist {
     max-width: 250px;
@@ -268,5 +255,4 @@ export default {
         max-width: 380px;
     }
 }
-
 </style>

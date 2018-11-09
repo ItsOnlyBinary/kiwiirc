@@ -17,7 +17,7 @@ export default class InputHandler {
         this.aliasRewriter.importFromString(state.setting('aliases'));
 
         // Only watch the user setting changes in order to reload them
-        state.$watch('user_settings.aliases', (newVal) => {
+        state.$watch('user_settings.aliases', newVal => {
             this.aliasRewriter.importFromString(state.setting('aliases'));
         });
 
@@ -125,7 +125,7 @@ export default class InputHandler {
 inputCommands.lines = function inputCommandLines(event, command, line) {
     event.handled = true;
 
-    line.split('|').forEach((subLine) => {
+    line.split('|').forEach(subLine => {
         this.processLine(subLine.trim());
     });
 };
@@ -207,7 +207,7 @@ inputCommands.join = function inputCommandJoin(event, command, line) {
 
     // Only switch to the first channel we join if multiple are being joined
     let hasSwitchedActiveBuffer = false;
-    bufferObjs.forEach((bufferObj) => {
+    bufferObjs.forEach(bufferObj => {
         // /join 0 parts all channels and is only ever used to troll IRC newbies.
         // Just disable it entirely.
         if (bufferObj.name === '0') {
@@ -215,9 +215,9 @@ inputCommands.join = function inputCommandJoin(event, command, line) {
         }
 
         // Prepend a # channel prefix if not specified already
-        let chanName = network.isChannelName(bufferObj.name) ?
-            bufferObj.name :
-            '#' + bufferObj.name;
+        let chanName = network.isChannelName(bufferObj.name)
+            ? bufferObj.name
+            : '#' + bufferObj.name;
 
         let newBuffer = this.state.addBuffer(network.id, chanName);
 
@@ -257,7 +257,7 @@ inputCommands.part = function inputCommandPart(event, command, line) {
         }
     }
 
-    bufferNames.forEach((bufferName) => {
+    bufferNames.forEach(bufferName => {
         network.ircClient.part(bufferName, message);
     });
 };
@@ -373,7 +373,7 @@ inputCommands.close = function inputCommandClose(event, command, line) {
         bufferNames = [this.state.getActiveBuffer().name];
     }
 
-    bufferNames.forEach((bufferName) => {
+    bufferNames.forEach(bufferName => {
         let buffer = network.bufferByName(bufferName);
         if (!buffer) {
             return;
@@ -463,7 +463,7 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
     let network = this.state.getActiveNetwork();
     let buffer = this.state.getActiveBuffer();
 
-    network.ircClient.whois(parts[0], parts[0], (whoisData) => {
+    network.ircClient.whois(parts[0], parts[0], whoisData => {
         if (whoisData.error) {
             let messageBody = TextFormatting.formatText('whois_error', {
                 nick: whoisData.nick,
@@ -479,7 +479,7 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
         }
 
         let out = [];
-        let display = (message) => {
+        let display = message => {
             if (!message) {
                 return;
             }
@@ -514,24 +514,30 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
         // Display a select few entries first to keep a consistent order, and then
         // show any extra information at the end
         if (whoisData.nick && whoisData.hostname) {
-            display(formats.mask
-                .replace('{{nick}}', whoisData.nick)
-                .replace('{{user}}', whoisData.ident)
-                .replace('{{host}}', whoisData.hostname)
-                .replace('{{real_name}}', whoisData.real_name));
+            display(
+                formats.mask
+                    .replace('{{nick}}', whoisData.nick)
+                    .replace('{{user}}', whoisData.ident)
+                    .replace('{{host}}', whoisData.hostname)
+                    .replace('{{real_name}}', whoisData.real_name),
+            );
         }
         if (whoisData.actual_hostname && whoisData.actual_ip) {
-            display(formats.from
-                .replace('{{actual_hostname}}', whoisData.actual_hostname)
-                .replace('{{actual_ip}}', whoisData.actual_ip));
+            display(
+                formats.from
+                    .replace('{{actual_hostname}}', whoisData.actual_hostname)
+                    .replace('{{actual_ip}}', whoisData.actual_ip),
+            );
         }
         if (whoisData.channels) {
             display(formats.channels.replace('{{channels}}', whoisData.channels));
         }
         if (whoisData.server) {
-            display(formats.server
-                .replace('{{server}}', whoisData.server)
-                .replace('{{server_info}}', whoisData.server_info));
+            display(
+                formats.server
+                    .replace('{{server}}', whoisData.server)
+                    .replace('{{server_info}}', whoisData.server_info),
+            );
         }
         if (whoisData.operator) {
             display(formats.operator.replace('{{operator}}', whoisData.operator));
@@ -543,7 +549,9 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
             display(formats.account.replace('{{account}}', whoisData.account));
         }
         if (whoisData.registered_nick) {
-            display(formats.registered_nick.replace('{{registered_nick}}', whoisData.registered_nick));
+            display(
+                formats.registered_nick.replace('{{registered_nick}}', whoisData.registered_nick),
+            );
         }
         if (whoisData.secure) {
             display(formats.secure);
@@ -572,7 +580,7 @@ inputCommands.whois = function inputCommandWhois(event, command, line) {
             }
         });
 
-        out.forEach((l) => {
+        out.forEach(l => {
             this.state.addMessage(buffer, {
                 nick: parts[0],
                 message: l,
@@ -589,7 +597,7 @@ inputCommands.whowas = function inputCommandWhowas(event, command, line) {
     let network = this.state.getActiveNetwork();
     let buffer = this.state.getActiveBuffer();
 
-    network.ircClient.whowas(parts[0], parts[0], (whowasData) => {
+    network.ircClient.whowas(parts[0], parts[0], whowasData => {
         if (whowasData.error) {
             let messageBody = TextFormatting.formatText('whowas_error', {
                 nick: whowasData.nick,
@@ -604,7 +612,7 @@ inputCommands.whowas = function inputCommandWhowas(event, command, line) {
             return;
         }
 
-        ['whowas_ident', 'whowas_server'].forEach((prop) => {
+        ['whowas_ident', 'whowas_server'].forEach(prop => {
             let messageBody = TextFormatting.formatText(prop, {
                 nick: whowasData.nick,
                 ident: whowasData.ident,
@@ -631,9 +639,7 @@ inputCommands.mode = function inputCommandMode(event, command, line) {
 
     let network = this.state.getActiveNetwork();
     let buffer = this.state.getActiveBuffer();
-    let target = buffer.isChannel() ?
-        buffer.name :
-        network.nick;
+    let target = buffer.isChannel() ? buffer.name : network.nick;
 
     let parts = _.compact(line.split(' '));
 
@@ -719,15 +725,15 @@ inputCommands.set = function inputCommandEcho(event, command, line) {
         setting = line.substr(0, spacePos);
         let value = line.substr(spacePos + 1).trim();
         switch (value.toLowerCase().trim()) {
-        case 'true':
-        case 'on':
-            value = true;
-            break;
-        case 'false':
-        case 'off':
-            value = false;
-            break;
-        default:
+            case 'true':
+            case 'on':
+                value = true;
+                break;
+            case 'false':
+            case 'off':
+                value = false;
+                break;
+            default:
         }
 
         // Unquote any quoted values

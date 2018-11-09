@@ -13,28 +13,32 @@ import { md5 } from './Md5';
 const urlRegex = new RegExp(
     // Detect either a protocol or 'www.' to start a URL
     /(([A-Za-z][A-Za-z0-9-]*:\/\/)|(www\.))/.source +
-    '(' +
+        '(' +
         // Hostname and tld
-        /([\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF.-]+\.[a-zA-Z]{2,63})/.source + '|' +
+        /([\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF.-]+\.[a-zA-Z]{2,63})/.source +
+        '|' +
         // IPv4 address
-        ipRegex.v4().source + '|' +
+        ipRegex.v4().source +
+        '|' +
         // IPv6 address
-        '(\\[?' + ipRegex.v6().source + '\\]?)' +
-    ')' +
-    // Optional port..
-    /(:[0-9]+)?/.source +
-    // Optional path..
-    /(\/[\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF!:.?$'()[\]*,;~+=&%@!\-/]*)?/.source +
-    // Optional fragment
-    /(#.*)?/.source,
-    'i'
+        '(\\[?' +
+        ipRegex.v6().source +
+        '\\]?)' +
+        ')' +
+        // Optional port..
+        /(:[0-9]+)?/.source +
+        // Optional path..
+        /(\/[\w\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF!:.?$'()[\]*,;~+=&%@!\-/]*)?/.source +
+        // Optional fragment
+        /(#.*)?/.source,
+    'i',
 );
 
 export function linkifyUrls(input, _opts) {
     let opts = _opts || {};
     let foundUrls = [];
     let urls = Object.create(null);
-    let result = input.replace(urlRegex, (_url) => {
+    let result = input.replace(urlRegex, _url => {
         let url = _url;
         let nice = '';
         let suffix = '';
@@ -76,7 +80,7 @@ export function linkifyUrls(input, _opts) {
 
         // Pretty hacky, but replace all URLs with random keys that won't get caught up in the HTML
         // escaping. Once escaped, replace the random keys back with the URL links.
-        let urlId = '---url' + (Math.random() * 1e+17) + '---';
+        let urlId = '---url' + Math.random() * 1e17 + '---';
         urls[urlId] = out;
         out = urlId;
 
@@ -86,7 +90,7 @@ export function linkifyUrls(input, _opts) {
 
     // Replace the random URL keys back with their URL links
     result = _.escape(result);
-    Object.keys(urls).forEach((urlId) => {
+    Object.keys(urls).forEach(urlId => {
         result = result.replace(urlId, urls[urlId]);
     });
 
@@ -199,12 +203,12 @@ export function createNickColour(nick) {
     let hueOffset = mapRange(hexVal(hash, 14, 3), 0, 4095, 0, 359);
     let satOffset = hexVal(hash, 17);
     let baseColour = Colours.rgb2hsl(Colours.hex2rgb(startingColour));
-    baseColour.h = (((baseColour.h * 360 - hueOffset) + 360) % 360) / 360;
+    baseColour.h = ((baseColour.h * 360 - hueOffset + 360) % 360) / 360;
 
     if (satOffset % 2 === 0) {
-        baseColour.s = Math.min(1, ((baseColour.s * 100) + satOffset) / 100);
+        baseColour.s = Math.min(1, (baseColour.s * 100 + satOffset) / 100);
     } else {
-        baseColour.s = Math.max(0, ((baseColour.s * 100) - satOffset) / 100);
+        baseColour.s = Math.max(0, (baseColour.s * 100 - satOffset) / 100);
     }
 
     let themeMngr = ThemeManager.instance();
@@ -238,7 +242,7 @@ export function mapRange(value, vMin, vMax, dMin, dMax) {
     let vRange = vMax - vMin;
     let dRange = dMax - dMin;
 
-    return (vValue - vMin) * dRange / vRange + dMin;
+    return ((vValue - vMin) * dRange) / vRange + dMin;
 }
 
 /**
@@ -316,7 +320,7 @@ export function formatText(formatId, formatParams) {
     }
 
     // Do the magic. Use the %shorthand syntax to produce output.
-    let result = format.replace(/%([A-Z]{2,})/ig, (match, key) => {
+    let result = format.replace(/%([A-Z]{2,})/gi, (match, key) => {
         let ret = '';
         if (typeof params[key] !== 'undefined') {
             ret = params[key];
@@ -352,11 +356,7 @@ export function enrichText(text, showEmoticons, emojiList, emojiLocation, userLi
         }
 
         if (showEmoticons) {
-            parsed = this.addEmojis(
-                { word, words, wordIdx },
-                emojiList,
-                emojiLocation
-            );
+            parsed = this.addEmojis({ word, words, wordIdx }, emojiList, emojiLocation);
             if (parsed !== word) return parsed;
         }
 
@@ -376,7 +376,7 @@ export function styleBlocksToHtml(blocks, showEmoticons, userList) {
         let style = '';
         let classes = '';
 
-        Object.keys(bl.styles).forEach((s) => {
+        Object.keys(bl.styles).forEach(s => {
             if (s === 'underline') {
                 style += 'text-decoration:underline;';
             } else if (s === 'bold') {
@@ -399,7 +399,7 @@ export function styleBlocksToHtml(blocks, showEmoticons, userList) {
             showEmoticons,
             emojiList,
             emojiLocation,
-            userList
+            userList,
         );
         urls = urls.concat(content.urls);
 
@@ -434,7 +434,7 @@ export function formatDuration(timeSeconds) {
     seconds -= minutes * 60;
 
     const tmp = [];
-    (weeks) && tmp.push(t('week', { count: weeks }));
+    weeks && tmp.push(t('week', { count: weeks }));
     (weeks || days) && tmp.push(t('day', { count: days }));
     (days || hours) && tmp.push(t('hour', { count: hours }));
     (days || hours || minutes) && tmp.push(t('minute', { count: minutes }));

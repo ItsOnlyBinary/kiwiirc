@@ -7,9 +7,10 @@
 
         <button class="u-button u-button-primary" @click="addNetwork">
             {{ $t('personal_add') }}
-        </button> <br >
+        </button>
+        <br >
         <a
-            v-if="networks.length>0"
+            v-if="networks.length > 0"
             class="u-link kiwi-personal-existing-networks"
             @click.stop="toggleStateBrowser"
         >
@@ -27,8 +28,7 @@ let firstRun = true;
 
 export default {
     data: function data() {
-        return {
-        };
+        return {};
     },
     computed: {
         networks() {
@@ -74,7 +74,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-personal {
     box-sizing: border-box;
     height: 100%;
@@ -113,5 +112,4 @@ export default {
         display: inherit;
     }
 }
-
 </style>

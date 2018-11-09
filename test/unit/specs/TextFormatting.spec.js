@@ -5,17 +5,41 @@ import * as TextFormatting from '@/helpers/TextFormatting';
 describe('TextFormatting.js', function() {
     it('should return valid channel links', function() {
         let tests = [
-            ['#channel', '<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>'],
-            ['#channel;', '<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>;'],
-            ['#chan;nel', '<a class="u-link kiwi-channel" data-channel-name="#chan;nel">#chan;nel</a>'],
-            ['#channel.', '<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>.'],
-            ['#chan;el;', '<a class="u-link kiwi-channel" data-channel-name="#chan;el">#chan;el</a>;'],
-            ['#chan[n]el,', '<a class="u-link kiwi-channel" data-channel-name="#chan[n]el">#chan[n]el</a>,'],
-            ['@#channel:', '@<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>:'],
-            ['@&channel,', '@<a class="u-link kiwi-channel" data-channel-name="&amp;channel">&amp;channel</a>,'],
+            [
+                '#channel',
+                '<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>',
+            ],
+            [
+                '#channel;',
+                '<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>;',
+            ],
+            [
+                '#chan;nel',
+                '<a class="u-link kiwi-channel" data-channel-name="#chan;nel">#chan;nel</a>',
+            ],
+            [
+                '#channel.',
+                '<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>.',
+            ],
+            [
+                '#chan;el;',
+                '<a class="u-link kiwi-channel" data-channel-name="#chan;el">#chan;el</a>;',
+            ],
+            [
+                '#chan[n]el,',
+                '<a class="u-link kiwi-channel" data-channel-name="#chan[n]el">#chan[n]el</a>,',
+            ],
+            [
+                '@#channel:',
+                '@<a class="u-link kiwi-channel" data-channel-name="#channel">#channel</a>:',
+            ],
+            [
+                '@&channel,',
+                '@<a class="u-link kiwi-channel" data-channel-name="&amp;channel">&amp;channel</a>,',
+            ],
         ];
 
-        tests.forEach((c) => {
+        tests.forEach(c => {
             let formatted = TextFormatting.linkifyChannels(c[0]);
             expect(formatted).to.equal(c[1]);
         });
@@ -38,7 +62,7 @@ describe('TextFormatting.js', function() {
             ['ldap://[2001:db8::7]/c=GB?objectClass?one'],
         ];
 
-        tests.forEach((c) => {
+        tests.forEach(c => {
             let linkified = TextFormatting.linkifyUrls(c[0]);
             let compare = c.length === 2 ? c[1] : c[0];
             expect(linkified.urls[0]).to.equal(compare);
@@ -48,7 +72,7 @@ describe('TextFormatting.js', function() {
     it('should reject invalid urls', function() {
         let tests = ['test', 'example.com', 'test:8080', '127.0.0.1/test.html'];
 
-        tests.forEach((c) => {
+        tests.forEach(c => {
             let linkified = TextFormatting.linkifyUrls(c);
             expect(linkified.urls.length).to.equal(0);
         });
@@ -75,7 +99,7 @@ describe('TextFormatting.js', function() {
         // mock ThemeManager
         sinon.stub(ThemeManager, 'instance').returns({ themeVar: () => 40 });
 
-        tests.forEach((c) => {
+        tests.forEach(c => {
             let linkified = TextFormatting.linkifyUsers(c[0], users);
 
             let user = c.length >= 2 ? users[c[1].toLowerCase()] : users[c[0].toLowerCase()];
@@ -83,8 +107,8 @@ describe('TextFormatting.js', function() {
             let prefix = c[2] || '';
             let suffix = c[3] || '';
 
-            let regexString = '^' + _.escape(prefix) +
-                '<a class="kiwi-nick" data-nick="' + escaped + '"';
+            let regexString =
+                '^' + _.escape(prefix) + '<a class="kiwi-nick" data-nick="' + escaped + '"';
             if (user.colour) {
                 regexString += ' style="color:#[0-9A-Fa-f]{3,6}"';
             }
@@ -102,7 +126,7 @@ describe('TextFormatting.js', function() {
         };
         let tests = ['notauser', 'ttestnick', 'testnick11', 'ttestnick11'];
 
-        tests.forEach((c) => {
+        tests.forEach(c => {
             let linkified = TextFormatting.linkifyUsers(c, users);
             expect(linkified).to.equal(c);
         });

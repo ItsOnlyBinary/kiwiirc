@@ -2,7 +2,7 @@
     <startup-layout ref="layout" class="kiwi-startbnc">
         <div slot="connection">
             <form class="kiwi-startbnc-form" @submit.prevent="startUp">
-                <h2 v-html="greetingText"/>
+                <h2 v-html="greetingText" />
 
                 <div class="kiwi-startbnc-status">{{ statusMessage }}</div>
 
@@ -20,8 +20,8 @@
                     type="submit"
                     class="u-button u-button-primary u-submit"
                 >
-                    <span v-if="!loading" v-html="buttonText"/>
-                    <i v-else class="fa fa-spinner fa-spin" aria-hidden="true"/>
+                    <span v-if="!loading" v-html="buttonText" />
+                    <i v-else class="fa fa-spinner fa-spin" aria-hidden="true" />
                 </button>
             </form>
         </div>
@@ -53,9 +53,7 @@ export default {
     computed: {
         greetingText: function greetingText() {
             let greeting = state.settings.startupOptions.greetingText;
-            return typeof greeting === 'string' ?
-                greeting :
-                this.$t('start_greeting');
+            return typeof greeting === 'string' ? greeting : this.$t('start_greeting');
         },
         buttonText: function buttonText() {
             if (this.loading) {
@@ -63,9 +61,7 @@ export default {
             }
 
             let greeting = state.settings.startupOptions.buttonText;
-            return typeof greeting === 'string' ?
-                greeting :
-                this.$t('start_button');
+            return typeof greeting === 'string' ? greeting : this.$t('start_button');
         },
     },
     methods: {
@@ -81,7 +77,7 @@ export default {
                 bncnet.ircClient.off('close', onClose);
             };
 
-            let onRegistered = async() => {
+            let onRegistered = async () => {
                 cleanUpEvents();
 
                 let bncNetworks = await bncnet.ircClient.bnc.getNetworks();
@@ -104,13 +100,13 @@ export default {
                 this.$refs.layout.close();
             };
 
-            let onError = (event) => {
+            let onError = event => {
                 cleanUpEvents();
                 this.statusMessage = this.$t('invalid_login');
                 this.loading = false;
             };
 
-            let onClose = (event) => {
+            let onClose = event => {
                 cleanUpEvents();
                 this.statusMessage = this.$t('invalid_login');
                 this.loading = false;
@@ -173,13 +169,13 @@ export default {
                 username: network.user,
             });
 
-            network.buffers.forEach((buffer) => {
+            network.buffers.forEach(buffer => {
                 let newBuffer = state.addBuffer(net.id, buffer.name);
                 if (buffer.joined) {
                     newBuffer.enabled = true;
                 }
                 if (buffer.seen) {
-                    newBuffer.last_read = (new Date(buffer.seen)).getTime();
+                    newBuffer.last_read = new Date(buffer.seen).getTime();
                 }
             });
         },
@@ -187,7 +183,7 @@ export default {
         monitorNetworkChanges: function monitorNetworkChanges(bncNet, bncNetworks) {
             let existingNets = Object.create(null);
             function rememberNetworks() {
-                state.networks.forEach((network) => {
+                state.networks.forEach(network => {
                     if (!network.connection.bncname) {
                         return;
                     }
@@ -206,8 +202,8 @@ export default {
 
             rememberNetworks();
 
-            let saveState = (newVal) => {
-                state.networks.forEach((network) => {
+            let saveState = newVal => {
+                state.networks.forEach(network => {
                     // Only deal with BNC networks
                     if (network.name === 'bnccontrol') {
                         return;
@@ -263,7 +259,7 @@ export default {
 
             // Just before we connect to a network, make sure the BNC is sabed and connected to
             // it or at least trying to connect.
-            state.$on('network.connecting', (event) => {
+            state.$on('network.connecting', event => {
                 saveState();
 
                 let netName = event.network.connection.bncname;
@@ -275,7 +271,7 @@ export default {
 
             // Very hacky until we have network name renaming on the bnc. When a new network
             // is added, change the name to the next available network name.
-            state.$on('network.new', (event) => {
+            state.$on('network.new', event => {
                 let currentNum = 1;
                 let existingNet = true;
                 while (existingNet) {
@@ -288,11 +284,11 @@ export default {
                 }
             });
 
-            state.$on('network.removed', (event) => {
+            state.$on('network.removed', event => {
                 bncNet.ircClient.bnc.removeNetwork(event.network.connection.bncname);
             });
 
-            state.$on('buffer.close', (event) => {
+            state.$on('buffer.close', event => {
                 let buffer = event.buffer;
                 let network = event.buffer.getNetwork();
                 let bncName = network.connection.bncname;
@@ -307,7 +303,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-startbnc-form label {
     text-align: left;
     display: block;
@@ -346,5 +341,4 @@ export default {
     padding: 1em;
     border: 1px solid #ececec;
 }
-
 </style>

@@ -51,9 +51,8 @@ describe('batchedAdd.vue', function() {
     });
 
     it('should process 3 items in a batch', function(done) {
-        let singleItem = () => {
-        };
-        let batchItems = (items) => {
+        let singleItem = () => {};
+        let batchItems = items => {
             if (items.length !== 3) {
                 done(new Error('Expected 3 items in a batch'));
             } else {
@@ -79,7 +78,7 @@ describe('batchedAdd.vue', function() {
             }
             singleCount++;
         };
-        let batchItems = (items) => {
+        let batchItems = items => {
             if (batchCount > 0) {
                 done(new Error('Processing a batch more than once'));
             }
@@ -109,7 +108,7 @@ describe('batchedAdd.vue', function() {
                 done();
             }
         };
-        let batchItems = (items) => {
+        let batchItems = items => {
             done(new Error('Items should not be batched'));
         };
 

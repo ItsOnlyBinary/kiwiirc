@@ -3,7 +3,7 @@
         <div slot="connection">
             <template v-if="!network || network.state === 'disconnected'">
                 <form class="u-form kiwi-welcome-simple-form" @submit.prevent="formSubmit">
-                    <h2 v-html="greetingText"/>
+                    <h2 v-html="greetingText" />
                     <div
                         v-if="network && (network.last_error || network.state_error)"
                         class="kiwi-welcome-simple-error"
@@ -54,7 +54,7 @@
                 </form>
             </template>
             <template v-else-if="network.state !== 'connected'">
-                <i class="fa fa-spin fa-spinner" aria-hidden="true"/>
+                <i class="fa fa-spin fa-spinner" aria-hidden="true" />
             </template>
         </div>
     </startup-layout>
@@ -90,15 +90,11 @@ export default {
     computed: {
         greetingText: function greetingText() {
             let greeting = state.settings.startupOptions.greetingText;
-            return typeof greeting === 'string' ?
-                greeting :
-                this.$t('start_greeting');
+            return typeof greeting === 'string' ? greeting : this.$t('start_greeting');
         },
         buttonText: function buttonText() {
             let greeting = state.settings.startupOptions.buttonText;
-            return typeof greeting === 'string' ?
-                greeting :
-                this.$t('start_button');
+            return typeof greeting === 'string' ? greeting : this.$t('start_button');
         },
         readyToStart: function readyToStart() {
             let ready = !!this.nick;
@@ -123,15 +119,9 @@ export default {
         this.nick = this.processNickRandomNumber(Misc.queryStringVal('nick') || options.nick || '');
         this.password = options.password || '';
         this.channel = decodeURI(window.location.hash) || options.channel || '';
-        this.showChannel = typeof options.showChannel === 'boolean' ?
-            options.showChannel :
-            true;
-        this.showNick = typeof options.showNick === 'boolean' ?
-            options.showNick :
-            true;
-        this.showPass = typeof options.showPassword === 'boolean' ?
-            options.showPassword :
-            true;
+        this.showChannel = typeof options.showChannel === 'boolean' ? options.showChannel : true;
+        this.showNick = typeof options.showNick === 'boolean' ? options.showNick : true;
+        this.showPass = typeof options.showPassword === 'boolean' ? options.showPassword : true;
 
         if (options.autoConnect && this.nick && this.channel) {
             this.startUp();
@@ -164,9 +154,7 @@ export default {
             }
 
             let gEl = this.$el.querySelector('#g-recaptcha-response');
-            this.recaptchaResponseCache = gEl ?
-                gEl.value :
-                '';
+            this.recaptchaResponseCache = gEl ? gEl.value : '';
 
             return this.recaptchaResponseCache;
         },
@@ -198,16 +186,18 @@ export default {
             }
 
             // If the network doesn't already exist, add a new one
-            net = net || state.addNetwork('Network', this.nick, {
-                server: netAddress,
-                port: options.port,
-                tls: options.tls,
-                password: this.password,
-                encoding: _.trim(options.encoding),
-                direct: !!options.direct,
-                path: options.direct_path || '',
-                gecos: options.gecos,
-            });
+            net =
+                net ||
+                state.addNetwork('Network', this.nick, {
+                    server: netAddress,
+                    port: options.port,
+                    tls: options.tls,
+                    password: this.password,
+                    encoding: _.trim(options.encoding),
+                    direct: !!options.direct,
+                    path: options.direct_path || '',
+                    gecos: options.gecos,
+                });
 
             if (!this.network && options.recaptchaSiteId) {
                 net.captchaResponse = this.captchaResponse();
@@ -217,7 +207,7 @@ export default {
             // Only switch to the first channel we join if multiple are being joined
             let hasSwitchedActiveBuffer = false;
             let bufferObjs = Misc.extractBuffers(this.channel);
-            bufferObjs.forEach((bufferObj) => {
+            bufferObjs.forEach(bufferObj => {
                 let newBuffer = state.addBuffer(net.id, bufferObj.name);
                 newBuffer.enabled = true;
 
@@ -256,7 +246,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-welcome-simple h2 {
     font-size: 1.7em;
     text-align: center;
@@ -288,7 +277,7 @@ export default {
     padding: 0 0.5em;
 }
 
-.kiwi-welcome-simple-section-connection .input-text input[type="text"] {
+.kiwi-welcome-simple-section-connection .input-text input[type='text'] {
     margin-top: 5px;
     padding: 0.3em 1em;
     width: 100%;
@@ -409,5 +398,4 @@ export default {
         width: 90%;
     }
 }
-
 </style>

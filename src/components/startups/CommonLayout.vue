@@ -1,10 +1,14 @@
 <template>
-    <div :class="[
-        closing ? 'kiwi-startup-common--closing' : '',
-        backgroundImage ? '' : 'kiwi-startup-common--no-bg',
-    ]" :style="backgroundStyle" class="kiwi-startup-common">
+    <div
+        :class="[
+            closing ? 'kiwi-startup-common--closing' : '',
+            backgroundImage ? '' : 'kiwi-startup-common--no-bg',
+        ]"
+        :style="backgroundStyle"
+        class="kiwi-startup-common"
+    >
         <div class="kiwi-startup-common-section kiwi-startup-common-section-connection">
-            <slot name="connection"/>
+            <slot name="connection" />
         </div>
         <div
             :style="backgroundStyle"
@@ -50,7 +54,7 @@ export default {
     methods: {
         close() {
             this.closing = true;
-            let startApp = (event) => {
+            let startApp = event => {
                 this.$el.removeEventListener('transitionend', startApp);
                 state.persistence.watchStateForChanges();
                 // Hacky to be using $parent but this component should only be used in a sepcific
@@ -65,7 +69,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-startup-common {
     height: 100%;
     text-align: center;
@@ -220,5 +223,4 @@ export default {
         border-top: 5px solid #42b992;
     }
 }
-
 </style>

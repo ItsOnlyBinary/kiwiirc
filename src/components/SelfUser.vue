@@ -1,7 +1,7 @@
 <template>
     <div class="kiwi-selfuser kiwi-theme-bg">
-        <div class="kiwi-close-icon" @click="$emit('close')">
-            <i class="fa fa-times" aria-hidden="true"/>
+        <div class="kiwi-close-icon" @click="$emit('close');">
+            <i class="fa fa-times" aria-hidden="true" />
         </div>
         <div class="kiwi-selfuser-mask">
             <span class="kiwi-selfuser-nick">{{ network.nick }}</span>
@@ -10,7 +10,7 @@
         <div class="kiwi-selfuser-modes">{{ modeString }}</div>
         <div class="kiwi-selfuser-actions">
             <div v-if="error_message">{{ error_message }}</div>
-            <input-prompt :label="$t('change_nick')+':'" @submit="changeNick">
+            <input-prompt :label="$t('change_nick') + ':'" @submit="changeNick">
                 <a class="u-link">{{ $t('change_nick') }}</a>
             </input-prompt>
         </div>
@@ -18,7 +18,6 @@
 </template>
 
 <script>
-
 'kiwi public';
 
 export default {
@@ -31,7 +30,7 @@ export default {
     computed: {
         modeString() {
             let str = '';
-            this.network.ircClient.user.modes.forEach((mode) => {
+            this.network.ircClient.user.modes.forEach(mode => {
                 str += mode;
             });
 
@@ -47,7 +46,7 @@ export default {
         },
     },
     created() {
-        this.listen(this.network.ircClient, 'nick in use', (event) => {
+        this.listen(this.network.ircClient, 'nick in use', event => {
             this.error_message = `The nickname '${event.nick}' is already in use!`;
         });
     },

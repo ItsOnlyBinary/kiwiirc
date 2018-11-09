@@ -4,11 +4,13 @@
         <form class="u-form">
             <div class="kiwi-settings-advanced-filter-container">
                 <div class="kiwi-settings-advanced-filter-container">
-                    <input v-model="filterString"
-                           :placeholder="$t('settings_advanced_filter')"
-                           class="u-input">
-                    <i v-if="!filterString" class="fa fa-search" aria-hidden="true"/>
-                    <i v-else class="fa fa-times" aria-hidden="true" @click="filterString = ''"/>
+                    <input
+                        v-model="filterString"
+                        :placeholder="$t('settings_advanced_filter')"
+                        class="u-input"
+                    >
+                    <i v-if="!filterString" class="fa fa-search" aria-hidden="true" />
+                    <i v-else class="fa fa-times" aria-hidden="true" @click="filterString = '';" />
                 </div>
             </div>
             <table class="u-table kiwi-settings-advanced-table" cellspacing="0">
@@ -17,39 +19,51 @@
                         {{ filterString }} - {{ $t('not_found') }}
                     </td>
                 </tr>
-                <tr v-for="setting in filteredSettings" v-else
+                <tr
+                    v-for="setting in filteredSettings"
+                    v-else
                     :key="setting.key"
-                    :class="{'kiwi-advanced-setting': !setting.modified,
-                             'kiwi-advanced-setting--modified': setting.modified,
-                }">
-                    <td><label :for="'setting-' + setting.key">{{ setting.key }}</label></td>
+                    :class="{
+                        'kiwi-advanced-setting': !setting.modified,
+                        'kiwi-advanced-setting--modified': setting.modified,
+                    }"
+                >
+                    <td>
+                        <label :for="'setting-' + setting.key">{{ setting.key }}</label>
+                    </td>
                     <td v-if="setting.modified">
-                        <a class="u-link" @click="resetValue($event, setting.key)">
+                        <a class="u-link" @click="resetValue($event, setting.key);">
                             {{ $t('settings_advanced_reset') }}
-                            <i class="fa fa-undo reset-icon" style="margin-left: 10px;"/>
+                            <i class="fa fa-undo reset-icon" style="margin-left: 10px;" />
                         </a>
                     </td>
                     <td v-else />
                     <td>
-                        <input v-if="setting.type === 'boolean'"
-                               :checked="setting.val"
-                               :id="'setting-' + setting.key"
-                               type="checkbox"
-                               @change="updateSetting($event, setting.key)">
-                        <input v-else-if="setting.type === 'number'"
-                               :value="setting.val"
-                               :id="'setting-' + setting.key"
-                               class="u-input"
-                               type="number"
-                               @keydown.13="$event.target.blur()"
-                               @change="updateSetting($event, setting.key)"
-                               @blur="updateSetting($event, setting.key)">
-                        <input v-else
-                               :value="setting.val"
-                               :id="'setting-' + setting.key"
-                               class="u-input"
-                               @keydown.13="$event.target.blur()"
-                               @blur="updateSetting($event, setting.key)">
+                        <input
+                            v-if="setting.type === 'boolean'"
+                            :checked="setting.val"
+                            :id="'setting-' + setting.key"
+                            type="checkbox"
+                            @change="updateSetting($event, setting.key);"
+                        >
+                        <input
+                            v-else-if="setting.type === 'number'"
+                            :value="setting.val"
+                            :id="'setting-' + setting.key"
+                            class="u-input"
+                            type="number"
+                            @keydown.13="$event.target.blur();"
+                            @change="updateSetting($event, setting.key);"
+                            @blur="updateSetting($event, setting.key);"
+                        >
+                        <input
+                            v-else
+                            :value="setting.val"
+                            :id="'setting-' + setting.key"
+                            class="u-input"
+                            @keydown.13="$event.target.blur();"
+                            @blur="updateSetting($event, setting.key);"
+                        >
                     </td>
                 </tr>
             </table>
@@ -67,8 +81,19 @@ export default {
     data: function data() {
         return {
             filterString: '',
-            ignoreKeys: ['emojis', 'themes', 'bnc', 'aliases', 'restricted', 'kiwiServer',
-                'hide_advanced', 'windowTitle', 'startupOptions', 'plugins', 'presetNetworks'],
+            ignoreKeys: [
+                'emojis',
+                'themes',
+                'bnc',
+                'aliases',
+                'restricted',
+                'kiwiServer',
+                'hide_advanced',
+                'windowTitle',
+                'startupOptions',
+                'plugins',
+                'presetNetworks',
+            ],
         };
     },
     computed: {
@@ -76,7 +101,7 @@ export default {
             let settings = this.settings;
             let filter = this.filterString.toLowerCase();
             let out = [];
-            Object.keys(settings).forEach((key) => {
+            Object.keys(settings).forEach(key => {
                 let value = settings[key];
                 if (value.key.toLowerCase().indexOf(filter) !== -1) {
                     out.push(value);
@@ -90,10 +115,11 @@ export default {
             this.buildTree(out, base, state.getSetting('settings'), false);
             this.buildTree(out, base, state.getSetting('user_settings'), true);
 
-            return _.orderBy(Object.keys(out).map(key => out[key]), [
-                o => o.key.split('.').length - 1,
-                'key',
-            ], ['asc']);
+            return _.orderBy(
+                Object.keys(out).map(key => out[key]),
+                [o => o.key.split('.').length - 1, 'key'],
+                ['asc'],
+            );
         },
     },
     methods: {
@@ -108,15 +134,15 @@ export default {
             let target = event.target;
             let val = target.type === 'checkbox' ? target.checked : target.value;
             switch (target.type) {
-            case 'checkbox':
-                val = target.checked;
-                break;
-            case 'number':
-                val = parseInt(target.value, 10);
-                break;
-            default:
-                val = target.value;
-                break;
+                case 'checkbox':
+                    val = target.checked;
+                    break;
+                case 'number':
+                    val = parseInt(target.value, 10);
+                    break;
+                default:
+                    val = target.value;
+                    break;
             }
             if (state.setting(settingKey) === val) {
                 return;
@@ -125,12 +151,14 @@ export default {
             state.setting(settingKey, val);
         },
         buildTree(data, base, object, modified) {
-            Object.keys(object).forEach((key) => {
+            Object.keys(object).forEach(key => {
                 let value = object[key];
                 let ourBase = base.concat([key]);
                 if (['string', 'boolean', 'number'].indexOf(typeof value) !== -1) {
-                    if (this.ignoreKeys.indexOf(key) !== -1 ||
-                     (ourBase[0] && this.ignoreKeys.indexOf(ourBase[0])) !== -1) {
+                    if (
+                        this.ignoreKeys.indexOf(key) !== -1 ||
+                        (ourBase[0] && this.ignoreKeys.indexOf(ourBase[0])) !== -1
+                    ) {
                         return;
                     }
 
@@ -152,7 +180,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-settings-advanced {
     width: 100%;
 }
@@ -244,5 +271,4 @@ export default {
         overflow-x: scroll;
     }
 }
-
 </style>

@@ -5,16 +5,12 @@
                 class="u-button u-button-warning kiwi-mediaviewer-controls-close"
                 @click="closeViewer"
             >
-                <i class="fa fa-window-close" aria-hidden="true"/>
+                <i class="fa fa-window-close" aria-hidden="true" />
             </a>
         </div>
         <div :key="url">
-            <iframe
-                v-if="isIframe"
-                :src="url"
-                class="kiwi-mediaviewer-iframe"
-            />
-            <component v-else-if="component" :is="component"/>
+            <iframe v-if="isIframe" :src="url" class="kiwi-mediaviewer-iframe" />
+            <component v-else-if="component" :is="component" />
             <a
                 v-else
                 :href="url"
@@ -23,7 +19,8 @@
                 data-card-chrome="0"
                 data-card-controls="0"
                 data-card-recommend="0"
-            >{{ $t('media_loading', {url: url}) }}</a>
+            >{{ $t('media_loading', { url: url }) }}</a
+            >
         </div>
     </div>
 </template>
@@ -38,8 +35,7 @@ let embedlyTagIncluded = false;
 export default {
     props: ['url', 'component', 'isIframe'],
     data: function data() {
-        return {
-        };
+        return {};
     },
     computed: {
         embedlyKey: function embedlyKey() {

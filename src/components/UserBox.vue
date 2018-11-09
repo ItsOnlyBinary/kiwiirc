@@ -1,8 +1,7 @@
 <template>
     <div class="kiwi-userbox">
-
         <div class="kiwi-userbox-header">
-            <i class="fa fa-user kiwi-userbox-icon" aria-hidden="true"/>
+            <i class="fa fa-user kiwi-userbox-icon" aria-hidden="true" />
             <h3>{{ user.nick }}</h3>
             <div class="kiwi-userbox-usermask">{{ user.username }}@{{ user.host }}</div>
         </div>
@@ -18,14 +17,11 @@
 
         <p class="kiwi-userbox-actions">
             <a class="kiwi-userbox-action" @click="openQuery">
-                <i class="fa fa-comment-o" aria-hidden="true"/>
-                {{ $t('send_a_message') }}
+                <i class="fa fa-comment-o" aria-hidden="true" /> {{ $t('send_a_message') }}
             </a>
             <a v-if="!whoisRequested" class="kiwi-userbox-action" @click="updateWhoisData">
-                <i class="fa fa-question-circle" aria-hidden="true"/>
-                {{ $t('more_information') }}
+                <i class="fa fa-question-circle" aria-hidden="true" /> {{ $t('more_information') }}
             </a>
-
         </p>
 
         <form class="u-form kiwi-userbox-ignoreuser">
@@ -37,24 +33,25 @@
 
         <div
             v-if="whoisRequested"
-            :class="[whoisLoading?'kiwi-userbox-whois--loading':'']"
+            :class="[whoisLoading ? 'kiwi-userbox-whois--loading' : '']"
             class="kiwi-userbox-whois"
         >
             <template v-if="whoisLoading">
-                <i class="fa fa-spinner" aria-hidden="true"/>
+                <i class="fa fa-spinner" aria-hidden="true" />
             </template>
             <template v-else>
                 <span class="kiwi-userbox-whois-line">
-                    {{ user.away ?
-                        $t('whois_status') + ': ' + user.away :
-                        $t('whois_status_available')
+                    {{
+                        user.away
+                            ? $t('whois_status') + ': ' + user.away
+                            : $t('whois_status_available')
                     }}
                 </span>
                 <span v-if="user.account" class="kiwi-userbox-whois-line">
-                    {{ $t('user_account', {user: user.account}) }}
+                    {{ $t('user_account', { user: user.account }) }}
                 </span>
                 <span class="kiwi-userbox-whois-line">
-                    {{ $t('user_realname', {realname: user.realname}) }}
+                    {{ $t('user_realname', { realname: user.realname }) }}
                 </span>
                 <span v-if="user.bot" class="kiwi-userbox-whois-line">{{ $t('user_bot') }}</span>
                 <span v-if="user.helpop" class="kiwi-userbox-whois-line">
@@ -64,16 +61,18 @@
                     {{ $t('user_op') }}
                 </span>
                 <span v-if="user.server" class="kiwi-userbox-whois-line">
-                    {{ $t('user_server', {
-                        server: user.server,
-                        info: (user.server_info ? `(${user.server_info})` : '')
-                    }) }}
+                    {{
+                        $t('user_server', {
+                            server: user.server,
+                            info: user.server_info ? `(${user.server_info})` : '',
+                        })
+                    }}
                 </span>
                 <span v-if="user.secure" class="kiwi-userbox-whois-line">
                     {{ $t('user_secure') }}
                 </span>
                 <span v-if="user.channels" class="kiwi-userbox-whois-line">
-                    {{ $t('user_channels', {channels: user.channels}) }}
+                    {{ $t('user_channels', { channels: user.channels }) }}
                 </span>
             </template>
         </div>
@@ -81,7 +80,8 @@
         <div v-if="buffer.isChannel() && areWeAnOp" class="kiwi-userbox-opactions">
             <form class="u-form" @submit.prevent="">
                 <label v-if="isUserOnBuffer">
-                    {{ $t('user_access') }} <select v-model="userMode">
+                    {{ $t('user_access') }}
+                    <select v-model="userMode">
                         <option
                             v-for="mode in availableChannelModes"
                             :key="mode.mode"
@@ -98,8 +98,7 @@
                                kiwi-userbox-opaction-kick kiwi-userbox-opaction"
                         @click="kickUser"
                     >
-                        <i class="fa fa-sign-out" aria-hidden="true"/>
-                        {{ $t('user_kick') }}
+                        <i class="fa fa-sign-out" aria-hidden="true" /> {{ $t('user_kick') }}
                     </button>
                 </label>
                 <label>
@@ -108,8 +107,7 @@
                                kiwi-userbox-opaction-ban kiwi-userbox-opaction"
                         @click="banUser"
                     >
-                        <i class="fa fa-ban" aria-hidden="true"/>
-                        {{ $t('user_ban') }}
+                        <i class="fa fa-ban" aria-hidden="true" /> {{ $t('user_ban') }}
                     </button>
                 </label>
                 <label v-if="isUserOnBuffer">
@@ -118,7 +116,7 @@
                                kiwi-userbox-opaction-kickban kiwi-userbox-opaction"
                         @click="kickbanUser"
                     >
-                        <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                        <i class="fa fa-exclamation-triangle" aria-hidden="true" />
                         {{ $t('user_kickban') }}
                     </button>
                 </label>
@@ -128,7 +126,6 @@
 </template>
 
 <script>
-
 'kiwi public';
 
 import state from '@/libs/state';
@@ -154,7 +151,7 @@ export default {
                 h: 'Half-Operator',
                 v: 'Voice',
             };
-            prefixes.forEach((prefix) => {
+            prefixes.forEach(prefix => {
                 let mode = prefix.mode;
                 if (knownPrefix[mode]) {
                     availableModes.push({
@@ -198,9 +195,7 @@ export default {
                 }
 
                 let modes = userBufferInfo.modes;
-                return modes.length > 0 ?
-                    modes[0] :
-                    '';
+                return modes.length > 0 ? modes[0] : '';
             },
             // Switch the current user mode for the new one
             set: function setUserMode(newVal) {
@@ -239,9 +234,7 @@ export default {
 
             let userBufferInfo = user.buffers[this.buffer.id];
             let modes = userBufferInfo.modes;
-            return modes.length > 0 ?
-                modes[0] :
-                '';
+            return modes.length > 0 ? modes[0] : '';
         },
         openQuery: function openQuery() {
             let buffer = state.addBuffer(this.network.id, this.user.nick);

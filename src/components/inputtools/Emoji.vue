@@ -4,7 +4,7 @@
             <div
                 v-for="(text, eCode) in emojis"
                 :key="eCode"
-                :style="{'background-image':`url(${location}${eCode}.png)`}"
+                :style="{ 'background-image': `url(${location}${eCode}.png)` }"
                 :data-code="text + ' '"
                 class="kiwi-inputtool-emoji-emoji"
                 @click="onImgClick"
@@ -38,7 +38,8 @@ export default {
     },
     methods: {
         onImgClick: function onImgClick(event) {
-            let url = window.getComputedStyle(event.target, null)
+            let url = window
+                .getComputedStyle(event.target, null)
                 .getPropertyValue('background-image');
 
             // TODO: All this text replacing is ugly. Tidy it pls.
@@ -52,7 +53,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-inputtool-emoji-emoji {
     display: block;
     float: left;
@@ -63,5 +63,4 @@ export default {
     margin: 2px;
     background-size: contain;
 }
-
 </style>

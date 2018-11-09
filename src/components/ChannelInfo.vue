@@ -2,25 +2,21 @@
     <div class="kiwi-channelinfo">
         <form class="u-form kiwi-channelinfo-basicmodes" @submit.prevent="">
             <label class="kiwi-channelinfo-topic">
-                <span>{{ $t('channel_topic') }}</span>
-                <textarea v-model.lazy="topic" rows="2"/>
+                <span>{{ $t('channel_topic') }}</span> <textarea v-model.lazy="topic" rows="2" />
             </label>
 
             <label class="u-checkbox-wrapper">
-                <span>{{ $t('channel_moderated') }}</span>
-                <input v-model="modeM" type="checkbox" >
+                <span>{{ $t('channel_moderated') }}</span> <input v-model="modeM" type="checkbox" >
             </label>
             <label class="u-checkbox-wrapper">
-                <span>{{ $t('channel_invite') }}</span>
-                <input v-model="modeI" type="checkbox" >
+                <span>{{ $t('channel_invite') }}</span> <input v-model="modeI" type="checkbox" >
             </label>
             <label class="u-checkbox-wrapper">
                 <span>{{ $t('channel_moderated_topic') }}</span>
                 <input v-model="modeT" type="checkbox" >
             </label>
             <label class="u-checkbox-wrapper">
-                <span>{{ $t('channel_external') }}</span>
-                <input v-model="modeN" type="checkbox" >
+                <span>{{ $t('channel_external') }}</span> <input v-model="modeN" type="checkbox" >
             </label>
             <label>
                 <span>{{ $t('password') }}</span>
@@ -52,9 +48,7 @@ function generateComputedModeWithParam(mode) {
     return {
         get: function computedModeWithParamGet() {
             let val = this.modeVal(mode);
-            return val === false ?
-                '' :
-                val;
+            return val === false ? '' : val;
         },
         set: function computedModeWithParamSet(newVal) {
             if (newVal) {
@@ -69,8 +63,7 @@ function generateComputedModeWithParam(mode) {
 export default {
     props: ['buffer'],
     data: function data() {
-        return {
-        };
+        return {};
     },
     computed: {
         modeM: generateComputedMode('m'),

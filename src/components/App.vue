@@ -10,22 +10,18 @@
         @click="emitDocumentClick"
         @paste.capture="emitBufferPaste"
     >
-        <link :href="themeUrl" rel="stylesheet" type="text/css">
+        <link :href="themeUrl" rel="stylesheet" type="text/css" >
 
         <template v-if="!hasStarted || (!fallbackComponent && networks.length === 0)">
-            <component :is="startupComponent" @start="startUp"/>
+            <component :is="startupComponent" @start="startUp" />
         </template>
         <template v-else>
-            <state-browser :networks="networks" :sidebar-state="sidebarState"/>
-            <div class="kiwi-workspace" @click="stateBrowserDrawOpen = false">
-                <div class="kiwi-workspace-background"/>
+            <state-browser :networks="networks" :sidebar-state="sidebarState" />
+            <div class="kiwi-workspace" @click="stateBrowserDrawOpen = false;">
+                <div class="kiwi-workspace-background" />
 
                 <template v-if="!activeComponent && network">
-                    <container
-                        :network="network"
-                        :buffer="buffer"
-                        :sidebar-state="sidebarState"
-                    >
+                    <container :network="network" :buffer="buffer" :sidebar-state="sidebarState">
                         <media-viewer
                             v-if="mediaviewerOpen"
                             slot="before"
@@ -34,14 +30,14 @@
                             :is-iframe="mediaviewerIframe"
                         />
                     </container>
-                    <control-input :container="networks" :buffer="buffer"/>
+                    <control-input :container="networks" :buffer="buffer" />
                 </template>
                 <component
                     v-else-if="!activeComponent"
                     :is="fallbackComponent"
                     v-bind="fallbackComponentProps"
                 />
-                <component v-else :is="activeComponent" v-bind="activeComponentProps"/>
+                <component v-else :is="activeComponent" v-bind="activeComponentProps" />
             </div>
         </template>
     </div>
@@ -192,7 +188,7 @@ export default {
             });
         },
         initMediaviewer() {
-            this.listen(this.$state, 'mediaviewer.show', (url) => {
+            this.listen(this.$state, 'mediaviewer.show', url => {
                 let opts = {};
 
                 // The passed url may be a string or an options object
@@ -222,7 +218,7 @@ export default {
                 fallback: true,
             });
 
-            this.$state.$watch('ui.favicon_counter', (newVal) => {
+            this.$state.$watch('ui.favicon_counter', newVal => {
                 if (newVal) {
                     Tinycon.setBubble(newVal);
                 } else {
@@ -230,7 +226,7 @@ export default {
                 }
             });
 
-            this.listen(this.$state, 'message.new', (message) => {
+            this.listen(this.$state, 'message.new', message => {
                 if (!message.isHighlight || message.ignore || this.$state.ui.app_has_focus) {
                     return;
                 }

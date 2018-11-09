@@ -1,6 +1,6 @@
 <template>
     <div
-        :class="{'kiwi-serverselector--custom': presetServer === 'custom'}"
+        :class="{ 'kiwi-serverselector--custom': presetServer === 'custom' }"
         class="kiwi-serverselector"
     >
         <div v-if="usePreset && presetNetworks.length > 0" class="kiwi-serverselector-presets">
@@ -9,11 +9,9 @@
                 <select v-model="presetServer">
                     <option value="custom">Custom Server</option>
                     <option disabled>-----------------</option>
-                    <option
-                        v-for="s in presetNetworks"
-                        :key="s.name"
-                        :value="toUri(s)"
-                    >{{ s.name }}</option>
+                    <option v-for="s in presetNetworks" :key="s.name" :value="toUri(s)">{{
+                        s.name
+                    }}</option>
                 </select>
             </label>
         </div>
@@ -33,15 +31,12 @@
                 class="kiwi-networksettings-connection-port"
             >
                 <span
-                    :class="{ 'kiwi-customserver-tls--enabled' : tls }"
+                    :class="{ 'kiwi-customserver-tls--enabled': tls }"
                     class="fa-stack fa-lg kiwi-customserver-tls"
                     @click="toggleTls"
                 >
-                    <i class="fa fa-lock fa-stack-1x kiwi-customserver-tls-lock"/>
-                    <i
-                        v-if="!tls"
-                        class="fa fa-unlock fa-stack-1x kiwi-customserver-tls-minus"
-                    />
+                    <i class="fa fa-lock fa-stack-1x kiwi-customserver-tls-lock" />
+                    <i v-if="!tls" class="fa fa-unlock fa-stack-1x kiwi-customserver-tls-minus" />
                 </span>
             </input-text>
         </template>
@@ -49,7 +44,6 @@
 </template>
 
 <script>
-
 'kiwi public';
 
 import _ from 'lodash';
@@ -101,9 +95,7 @@ export default {
                 }
             },
             get() {
-                return this.showCustom ?
-                    'custom' :
-                    this.toUri(this);
+                return this.showCustom ? 'custom' : this.toUri(this);
             },
         },
     },
@@ -128,10 +120,13 @@ export default {
             this.tls = this.network.connection.tls;
 
             // If the given network is in the preset server list, select it
-            if (_.find(this.presetNetworks, (s) => {
-                let match = s.server === this.server && s.port === this.port && s.tls === this.tls;
-                return match;
-            })) {
+            if (
+                _.find(this.presetNetworks, s => {
+                    let match =
+                        s.server === this.server && s.port === this.port && s.tls === this.tls;
+                    return match;
+                })
+            ) {
                 this.showCustom = false;
             }
         }

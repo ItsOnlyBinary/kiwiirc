@@ -17,7 +17,7 @@ export function requestPermission() {
     }
 
     if (Notification.permission !== 'denied') {
-        Notification.requestPermission((permission) => {
+        Notification.requestPermission(permission => {
             if (permission === 'granted') {
                 isEnabled = true;
             } else {
@@ -52,13 +52,16 @@ export function listenForNewMessages(state) {
             return;
         }
 
-        let opts = Object.assign({
-            title: 'Kiwi IRC',
-            message: message,
-            icon: '',
-            onclick: null,
-            ttl: 10000,
-        }, _opts);
+        let opts = Object.assign(
+            {
+                title: 'Kiwi IRC',
+                message: message,
+                icon: '',
+                onclick: null,
+                ttl: 10000,
+            },
+            _opts,
+        );
 
         if (!opts.message) {
             return;

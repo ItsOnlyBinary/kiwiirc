@@ -40,7 +40,7 @@ export default class NetworkState {
         def(this, 'bufferDict', bufferDict, false);
         def(this, 'frameworkClient', null, true);
 
-        def(this, 'users', Object.create(null), (newVal) => {
+        def(this, 'users', Object.create(null), newVal => {
             appState.$set(userDict.networks, this.id, newVal);
         });
 

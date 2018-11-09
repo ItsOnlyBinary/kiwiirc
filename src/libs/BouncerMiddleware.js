@@ -80,12 +80,12 @@ export default function bouncerMiddleware() {
 }
 
 function addFunctionsToClient(client) {
-    let bnc = client.bnc = {};
+    let bnc = (client.bnc = {});
 
     bnc.getNetworks = function getNetworks() {
         return new Promise((resolve, reject) => {
             client.raw('BOUNCER listnetworks');
-            client.once('bouncer networks', (networks) => {
+            client.once('bouncer networks', networks => {
                 resolve(networks);
             });
         });
@@ -94,7 +94,7 @@ function addFunctionsToClient(client) {
     bnc.getBuffers = function getBuffers(netName) {
         return new Promise((resolve, reject) => {
             client.raw('BOUNCER listbuffers ' + netName);
-            client.once('bouncer buffers ' + netName.toLowerCase(), (buffers) => {
+            client.once('bouncer buffers ' + netName.toLowerCase(), buffers => {
                 resolve(buffers);
             });
         });
@@ -187,8 +187,9 @@ function addFunctionsToClient(client) {
 
 function parseTags(tagString) {
     let tags = Object.create(null);
-    (tagString || '').split(';').forEach((tag) => {
-        let parts = tag.replace('\\s', ' ')
+    (tagString || '').split(';').forEach(tag => {
+        let parts = tag
+            .replace('\\s', ' ')
             .replace('\\:', ';')
             .split('=');
 
@@ -201,10 +202,11 @@ function parseTags(tagString) {
 function createTagString(tags) {
     let tagParts = [];
 
-    Object.keys(tags).forEach((tag) => {
+    Object.keys(tags).forEach(tag => {
         let val = tags[tag];
         if (typeof val !== 'undefined') {
-            val = val.toString()
+            val = val
+                .toString()
                 .replace(' ', '\\s')
                 .replace(';', '\\:');
             tagParts.push(tag + '=' + val);

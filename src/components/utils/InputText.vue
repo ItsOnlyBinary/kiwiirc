@@ -3,42 +3,43 @@
         :class="[
             'input-text',
             hasFocus ? 'input-text--focus' : '',
-            hasFocus || currentValue ? 'input-text--reveal-value' : ''
+            hasFocus || currentValue ? 'input-text--reveal-value' : '',
         ]"
     >
-
         <span class="input-text-label">{{ label }}</span>
 
         <input
-            v-if="type==='password'"
+            v-if="type === 'password'"
             v-model="currentValue"
             type="password"
             autocomplete="off"
             autocorrect="off"
-            autocapitalize="off" spellcheck="false" @focus="hasFocus=true" @blur="hasFocus=false"
+            autocapitalize="off"
+            spellcheck="false"
+            @focus="hasFocus = true;"
+            @blur="hasFocus = false;"
         >
         <input
-            v-else-if="type==='number'"
+            v-else-if="type === 'number'"
             v-model="currentValue"
             type="number"
-            @focus="hasFocus=true"
-            @blur="hasFocus=false"
+            @focus="hasFocus = true;"
+            @blur="hasFocus = false;"
         >
         <input
             v-else
             v-model="currentValue"
             autocomplete="off"
             autocorrect="off"
-            autocapitalize="off" spellcheck="false" @focus="hasFocus=true" @blur="hasFocus=false"
+            autocapitalize="off"
+            spellcheck="false"
+            @focus="hasFocus = true;"
+            @blur="hasFocus = false;"
         >
 
-        <div v-if="$slots.default" class="input-text-c">
-            <slot/>
-        </div>
+        <div v-if="$slots.default" class="input-text-c"><slot /></div>
 
-        <div class="input-text-underline">
-            <div class="input-text-underline-active"/>
-        </div>
+        <div class="input-text-underline"><div class="input-text-underline-active" /></div>
     </div>
 </template>
 
@@ -73,7 +74,6 @@ export default Vue.component('input-text', {
 </script>
 
 <style>
-
 .input-text {
     position: relative;
     padding-top: 1.2em;
@@ -128,5 +128,4 @@ export default Vue.component('input-text', {
 .input-text--focus .input-text-underline-active {
     left: 0;
 }
-
 </style>

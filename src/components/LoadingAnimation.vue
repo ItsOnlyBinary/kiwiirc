@@ -1,12 +1,11 @@
 <template>
     <div>
-        <img src="../res/kiwiLoadingLogo.png" class="kiwi-loading-logo">
+        <img src="../res/kiwiLoadingLogo.png" class="kiwi-loading-logo" >
         <canvas class="kiwi-loading-animation" />
     </div>
 </template>
 
 <script>
-
 'kiwi public';
 
 export default {
@@ -57,7 +56,10 @@ export default {
                         this.Y[i] = i * this.fontSize;
                     }
                 } else {
-                    if (this.text.length - (this.t % 4.5 - 2) / 2.5 * this.text.length * 1.75 < i) {
+                    if (
+                        this.text.length - (((this.t % 4.5) - 2) / 2.5) * this.text.length * 1.75 <
+                        i
+                    ) {
                         this.Y[i] += 10 + this.Y[i] / 20;
                     }
                     if (this.Y[i] > 1080 || this.Y[i] < 0) {

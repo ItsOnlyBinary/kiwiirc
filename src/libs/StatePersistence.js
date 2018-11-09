@@ -56,10 +56,10 @@ export default class StatePersistence {
             // For each buffer in a network, select all the properties we want to watch for
             // changes so that vue can compare it to the previous check. If any of them has changed
             // then the $watch()er will call debouncedSaveState().
-            this.state.networks.forEach((network) => {
+            this.state.networks.forEach(network => {
                 let bufferNames = network.buffers.map(b => b.name).join(',');
 
-                network.buffers.forEach((buffer) => {
+                network.buffers.forEach(buffer => {
                     let unwatch = this.state.$watch(() => {
                         let val = JSON.stringify([
                             bufferNames,

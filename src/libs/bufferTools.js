@@ -47,7 +47,7 @@ function getBufferFromDirection(direction) {
     if (index >= ordered.length || index < 0) {
         network = getNetworkFromDirection(direction);
         ordered = orderBuffers(network.buffers);
-        buffer = (direction === 1) ? ordered[0] : ordered[ordered.length - 1];
+        buffer = direction === 1 ? ordered[0] : ordered[ordered.length - 1];
     } else {
         buffer = ordered[index];
     }

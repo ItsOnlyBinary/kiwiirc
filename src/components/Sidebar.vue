@@ -1,18 +1,11 @@
 <template>
-    <div
-        :class="['kiwi-sidebar-section-' + section]"
-        class="kiwi-sidebar kiwi-theme-bg"
-    >
+    <div :class="['kiwi-sidebar-section-' + section]" class="kiwi-sidebar kiwi-theme-bg">
         <span v-if="sidebarState.isOpen" class="kiwi-sidebar-options">
-            <div
-                v-if="sidebarState.canPin"
-                class="kiwi-sidebar-pin"
-                @click="sidebarState.pin()"
-            >
-                <i class="fa fa-thumb-tack" aria-hidden="true"/>
+            <div v-if="sidebarState.canPin" class="kiwi-sidebar-pin" @click="sidebarState.pin();">
+                <i class="fa fa-thumb-tack" aria-hidden="true" />
             </div>
-            <div class="kiwi-sidebar-close" @click="sidebarState.close()">
-                {{ $t('close') }}<i class="fa fa-times" aria-hidden="true"/>
+            <div class="kiwi-sidebar-close" @click="sidebarState.close();">
+                {{ $t('close') }}<i class="fa fa-times" aria-hidden="true" />
             </div>
         </span>
 
@@ -31,65 +24,60 @@
                     class="kiwi-sidebar-buffersettings"
                     @click.stop=""
                 >
-
                     <tabbed-view>
                         <tabbed-tab :header="$t('settings')" :focus="true">
                             <h3>{{ $t('channel_settings') }}</h3>
-                            <hr>
-                            <channel-info :buffer="buffer"/>
+                            <hr >
+                            <channel-info :buffer="buffer" />
 
                             <div class="kiwi-sidebar-settings">
                                 <h3>{{ $t('side_settings') }}</h3>
-                                <hr>
+                                <hr >
                                 <form class="u-form">
                                     <label class="u-checkbox-wrapper">
                                         <span>{{ $t('side_joins') }}</span>
-                                        <input v-model="settingShowJoinParts" type="checkbox">
+                                        <input v-model="settingShowJoinParts" type="checkbox" >
                                     </label>
                                     <label class="u-checkbox-wrapper">
                                         <span>{{ $t('side_topics') }}</span>
-                                        <input v-model="settingShowTopics" type="checkbox">
+                                        <input v-model="settingShowTopics" type="checkbox" >
                                     </label>
                                     <label class="u-checkbox-wrapper">
                                         <span>{{ $t('side_nick_changes') }}</span>
-                                        <input v-model="settingShowNickChanges" type="checkbox">
+                                        <input v-model="settingShowNickChanges" type="checkbox" >
                                     </label>
                                     <label class="u-checkbox-wrapper">
                                         <span>{{ $t('side_mode_changes') }}</span>
-                                        <input v-model="settingShowModeChanges" type="checkbox">
+                                        <input v-model="settingShowModeChanges" type="checkbox" >
                                     </label>
                                     <label class="u-checkbox-wrapper">
                                         <span>{{ $t('side_formatting') }}</span>
-                                        <input v-model="settingExtraFormatting" type="checkbox">
+                                        <input v-model="settingExtraFormatting" type="checkbox" >
                                     </label>
                                     <label class="u-checkbox-wrapper">
                                         <span>{{ $t('side_colours') }}</span>
-                                        <input v-model="settingColouredNicklist" type="checkbox">
+                                        <input v-model="settingColouredNicklist" type="checkbox" >
                                     </label>
                                 </form>
                             </div>
                         </tabbed-tab>
                         <tabbed-tab :header="$t('banned')">
-                            <channel-banlist :buffer="buffer"/>
+                            <channel-banlist :buffer="buffer" />
                         </tabbed-tab>
                         <tabbed-tab :header="$t('notifications')">
-                            <buffer-settings :buffer="buffer"/>
+                            <buffer-settings :buffer="buffer" />
                         </tabbed-tab>
                         <tabbed-tab
                             v-for="item in pluginUiElements"
                             :key="item.id"
                             :header="item.title"
                         >
-                            <div :is="item.component" v-bind="item.props"/>
+                            <div :is="item.component" v-bind="item.props" />
                         </tabbed-tab>
                     </tabbed-view>
                 </div>
 
-                <div
-                    v-else-if="section === 'user'"
-                    class="kiwi-sidebar-userbox"
-                    @click.stop=""
-                >
+                <div v-else-if="section === 'user'" class="kiwi-sidebar-userbox" @click.stop="">
                     <user-box
                         :user="sidebarState.sidebarUser"
                         :buffer="buffer"
@@ -112,10 +100,11 @@
                 />
             </template>
             <template v-else-if="buffer.isQuery()">
-                <!-- TODO:
-                invite to an open channel<br />
-                ignore this user<br />
-                something else
+                <!--
+                    TODO:
+                    invite to an open channel<br />
+                    ignore this user<br />
+                    something else
                 -->
             </template>
         </template>
@@ -227,7 +216,6 @@ export default {
         },
     },
 };
-
 </script>
 
 <style lang="less">
@@ -310,13 +298,21 @@ export default {
 }
 
 @keyframes settingstransition {
-    from { margin-top: 50px; }
-    to { margin-top: 100px; }
+    from {
+        margin-top: 50px;
+    }
+    to {
+        margin-top: 100px;
+    }
 }
 
 @keyframes nicklisttransition {
-    from { height: 0; }
-    to { height: 100%; }
+    from {
+        height: 0;
+    }
+    to {
+        height: 100%;
+    }
 }
 
 .kiwi-channelbanlist-empty {
@@ -333,7 +329,7 @@ export default {
         margin-bottom: 0;
     }
 
-    .kiwi-sidebar .u-form input[type="checkbox"] {
+    .kiwi-sidebar .u-form input[type='checkbox'] {
         margin-right: 4px;
     }
 
@@ -368,5 +364,4 @@ export default {
         line-height: 47px;
     }
 }
-
 </style>

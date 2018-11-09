@@ -9,9 +9,8 @@ let nextId = 0;
 
 export default class Message {
     constructor(message, user) {
-        this.id = message.tags && message.tags['draft/msgid'] ?
-            message.tags['draft/msgid'] :
-            nextId++;
+        this.id =
+            message.tags && message.tags['draft/msgid'] ? message.tags['draft/msgid'] : nextId++;
         this.time = message.time || Date.now();
         this.nick = message.nick;
         this.message = message.message;
@@ -42,10 +41,11 @@ export default class Message {
             return this.html;
         }
 
-        let showEmoticons = state.setting('buffers.show_emoticons') &&
-            !messageList.buffer.isSpecial();
+        let showEmoticons =
+            state.setting('buffers.show_emoticons') && !messageList.buffer.isSpecial();
         let userList = messageList.buffer.users;
-        let useExtraFormatting = !messageList.buffer.isSpecial() &&
+        let useExtraFormatting =
+            !messageList.buffer.isSpecial() &&
             messageList.useExtraFormatting &&
             this.type === 'privmsg';
 

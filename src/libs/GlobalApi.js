@@ -147,23 +147,23 @@ export default class GlobalApi extends EventEmitter {
         };
 
         switch (type) {
-        case 'input':
-            this.controlInputPlugins.push(plugin);
-            break;
-        case 'browser':
-            this.stateBrowserPlugins.push(plugin);
-            break;
-        case 'header_channel':
-            this.channelHeaderPlugins.push(plugin);
-            break;
-        case 'header_query':
-            this.queryHeaderPlugins.push(plugin);
-            break;
-        case 'about_buffer':
-            this.aboutBufferPlugins.push(plugin);
-            break;
-        default:
-            break;
+            case 'input':
+                this.controlInputPlugins.push(plugin);
+                break;
+            case 'browser':
+                this.stateBrowserPlugins.push(plugin);
+                break;
+            case 'header_channel':
+                this.channelHeaderPlugins.push(plugin);
+                break;
+            case 'header_query':
+                this.queryHeaderPlugins.push(plugin);
+                break;
+            case 'about_buffer':
+                this.aboutBufferPlugins.push(plugin);
+                break;
+            default:
+                break;
         }
     }
 
@@ -186,17 +186,17 @@ export default class GlobalApi extends EventEmitter {
         };
 
         switch (type) {
-        case 'channel':
-            this.sideBarPlugins.push(plugin);
-            break;
-        case 'settings':
-            this.appSettingsPlugins.push(plugin);
-            break;
-        case 'server':
-            this.serverViewPlugins.push(plugin);
-            break;
-        default:
-            break;
+            case 'channel':
+                this.sideBarPlugins.push(plugin);
+                break;
+            case 'settings':
+                this.appSettingsPlugins.push(plugin);
+                break;
+            case 'server':
+                this.serverViewPlugins.push(plugin);
+                break;
+            default:
+                break;
         }
     }
 

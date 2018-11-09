@@ -1,20 +1,22 @@
 <template>
     <div class="kiwi-autocomplete kiwi-theme-bg">
-
         <div
             v-for="item in filteredAndLimitedItems"
-            :key="item.type+item.text"
+            :key="item.type + item.text"
             :class="{
                 'kiwi-autocomplete-item': true,
-                'kiwi-autocomplete-item--selected': item.idx === selected_idx}
+                'kiwi-autocomplete-item--selected': item.idx === selected_idx,
+            }"
+            @click="
+                selected_idx = item.idx;
+                selectCurrentItem();
             "
-            @click="selected_idx = item.idx; selectCurrentItem()"
         >
             <template v-if="item.type === 'user'">
                 <span class="kiwi-autocomplete-item-value">{{ item.text }}</span>
                 <span
                     class="u-link kiwi-autocomplete-item-action"
-                    @click.stop="openQuery(item.text)"
+                    @click.stop="openQuery(item.text);"
                 >
                     {{ $t('send_message') }}
                 </span>
@@ -56,14 +58,15 @@ export default {
         filteredItems: function filteredItems() {
             let filterVal = (this.filter || '').toLowerCase();
 
-            return _(this.items).filter((item) => {
-                let s = false;
-                if (item.text.toLowerCase().indexOf(filterVal) === 0) {
-                    s = true;
-                }
+            return _(this.items)
+                .filter(item => {
+                    let s = false;
+                    if (item.text.toLowerCase().indexOf(filterVal) === 0) {
+                        s = true;
+                    }
 
-                return s;
-            })
+                    return s;
+                })
                 .sort((a, b) => a.text.localeCompare(b.text))
                 .value();
         },
@@ -89,7 +92,7 @@ export default {
                     idxTo += -idxFrom;
                     idxFrom = 0;
                 } else if (idxTo > numItems) {
-                    idxFrom -= (idxTo - numItems);
+                    idxFrom -= idxTo - numItems;
                     idxTo = numItems;
                 }
 
@@ -117,7 +120,7 @@ export default {
                     return;
                 }
 
-                this.$el.scrollTop = el.offsetTop - (el.getBoundingClientRect().height * 2);
+                this.$el.scrollTop = el.offsetTop - el.getBoundingClientRect().height * 2;
             });
 
             this.tempCurrentItem();
@@ -212,7 +215,6 @@ export default {
 </script>
 
 <style>
-
 .kiwi-autocomplete {
     box-sizing: border-box;
     overflow-y: auto;
@@ -236,5 +238,4 @@ export default {
     float: right;
     font-size: 0.9em;
 }
-
 </style>

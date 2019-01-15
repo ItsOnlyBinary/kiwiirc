@@ -2,6 +2,7 @@
 const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const vueLoaderConfig = require('./vue-loader.conf')
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 
@@ -22,11 +23,16 @@ const createLintingRule = () => ({
 
 module.exports = {
   context: path.resolve(__dirname, '../'),
+  mode: 'development',
   entry: {
     app: [
         'core-js/fn/promise', // required by the webpack runtime for async import(). babel polyfills don't help us here. ie11
         './src/main.js'
     ]
+  },
+  performance: {
+    maxEntrypointSize: 1200000,
+    maxAssetSize: 1000000
   },
   output: {
     path: config.build.assetsRoot,
@@ -35,7 +41,9 @@ module.exports = {
       ? config.build.assetsPublicPath
       : config.dev.assetsPublicPath
   },
+
   plugins: [
+    new VueLoaderPlugin(),
     // Stylelint for all imports
     // https://github.com/vieron/stylelint-webpack-plugin
     new StyleLintPlugin({
@@ -62,7 +70,9 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        use: [{loader: 'exports-loader'}, {loader: 'babel-loader'}],
+        use: [{loader: 'exports-loader'}, {loader: 'babel-loader', options: {
+          configFile: resolve('.babelrc')
+        },}],
         include: [
             resolve('src'),
             resolve('test'),
@@ -100,6 +110,14 @@ module.exports = {
         options: {
           attrs: [':data-src']
         }
+      },
+      {
+        test: /\.css$/,
+        use: [ 'vue-style-loader', 'css-loader', 'postcss-loader' ]
+      },
+      {
+        test: /\.less$/,
+        use: [ 'vue-style-loader', 'css-loader', 'less-loader' ]
       },
     ]
   },

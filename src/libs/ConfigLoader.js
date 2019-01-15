@@ -1,4 +1,4 @@
-'kiwi public';
+// 'kiwi public';
 
 import xhr from 'xhr';
 import _ from 'lodash';

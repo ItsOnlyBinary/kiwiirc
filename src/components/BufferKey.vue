@@ -14,7 +14,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 export default {
     props: ['buffer', 'network'],

@@ -1,4 +1,4 @@
-'kiwi public';
+// 'kiwi public';
 
 /**
  * batchedAdd prevents a flood of new inserts into state. After X inserts/sec, batch

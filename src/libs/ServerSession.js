@@ -1,4 +1,4 @@
-'kiwi public';
+// 'kiwi public';
 
 import EventEmitter from 'eventemitter3';
 import state from './state';

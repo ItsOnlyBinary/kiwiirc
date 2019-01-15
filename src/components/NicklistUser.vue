@@ -21,7 +21,7 @@
 
 <script>
 
-'kiwi public';
+// 'kiwi public';
 
 export default {
     props: ['user', 'nicklist'],

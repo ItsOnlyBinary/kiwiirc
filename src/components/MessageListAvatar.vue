@@ -12,7 +12,7 @@
 
 <script>
 
-'kiwi public';
+// 'kiwi public';
 
 export default {
     props: ['message'],

@@ -1,4 +1,4 @@
-'kiwi public';
+// 'kiwi public';
 
 import eventEmitter from 'event-emitter';
 

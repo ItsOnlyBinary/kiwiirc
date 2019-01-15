@@ -29,7 +29,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import state from '@/libs/state';
 

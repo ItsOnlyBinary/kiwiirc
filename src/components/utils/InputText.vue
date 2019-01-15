@@ -43,7 +43,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 let Vue = require('vue');
 

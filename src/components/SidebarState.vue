@@ -1,5 +1,5 @@
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import Vue from 'vue';
 

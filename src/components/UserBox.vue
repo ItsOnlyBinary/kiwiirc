@@ -132,7 +132,7 @@
 
 <script>
 
-'kiwi public';
+// 'kiwi public';
 
 import state from '@/libs/state';
 import * as TextFormatting from '@/helpers/TextFormatting';

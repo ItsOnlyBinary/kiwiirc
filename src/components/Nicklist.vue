@@ -31,7 +31,7 @@
 
 <script>
 
-'kiwi public';
+// 'kiwi public';
 
 import Logger from '@/libs/Logger';
 import NicklistUser from './NicklistUser';

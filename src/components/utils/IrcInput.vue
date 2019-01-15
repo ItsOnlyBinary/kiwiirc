@@ -20,7 +20,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import _ from 'lodash';
 import htmlparser from 'htmlparser2';

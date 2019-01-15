@@ -77,7 +77,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import strftime from 'strftime';
 import Logger from '@/libs/Logger';

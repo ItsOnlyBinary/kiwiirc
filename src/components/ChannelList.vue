@@ -52,7 +52,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import _ from 'lodash';
 import * as TextFormatting from '@/helpers/TextFormatting';

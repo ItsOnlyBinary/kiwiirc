@@ -1,11 +1,10 @@
 {
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
       "useBuiltIns": "usage"
     }],
-    "stage-2"
   ],
-  "plugins": ["transform-runtime"],
+  "plugins": ["@babel/transform-runtime"],
   "comments": false,
   "env": {
     "test": {

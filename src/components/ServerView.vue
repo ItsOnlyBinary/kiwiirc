@@ -29,7 +29,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import GlobalApi from '@/libs/GlobalApi';
 import MessageList from './MessageList';

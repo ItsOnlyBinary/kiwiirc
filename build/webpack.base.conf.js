@@ -2,6 +2,7 @@
 const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const vueLoaderConfig = require('./vue-loader.conf')
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 
@@ -20,6 +21,8 @@ const createLintingRule = () => ({
   }
 })
 
+
+
 module.exports = {
   context: path.resolve(__dirname, '../'),
   entry: {
@@ -36,6 +39,7 @@ module.exports = {
       : config.dev.assetsPublicPath
   },
   plugins: [
+    new VueLoaderPlugin(),
     // Stylelint for all imports
     // https://github.com/vieron/stylelint-webpack-plugin
     new StyleLintPlugin({
@@ -100,6 +104,18 @@ module.exports = {
         options: {
           attrs: [':data-src']
         }
+      },
+      {
+        test: /\.css$/,
+        use: [ 'vue-style-loader', 'css-loader', 'postcss-loader' ]
+      },
+      {
+        test: /\.less$/,
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          'less-loader'
+        ]
       },
     ]
   },

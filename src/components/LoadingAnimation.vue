@@ -7,7 +7,7 @@
 
 <script>
 
-'kiwi public';
+// 'kiwi public';
 
 export default {
     data() {

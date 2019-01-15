@@ -174,7 +174,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import state from '@/libs/state';
 import GlobalApi from '@/libs/GlobalApi';

@@ -50,7 +50,7 @@
 
 <script>
 
-'kiwi public';
+// 'kiwi public';
 
 import _ from 'lodash';
 

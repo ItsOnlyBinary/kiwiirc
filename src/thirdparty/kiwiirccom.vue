@@ -44,7 +44,7 @@
 </template>
 
 <script>
-'kiwi public';
+// 'kiwi public';
 
 import * as TextFormatting from '@/helpers/TextFormatting';
 import state from '@/libs/state';

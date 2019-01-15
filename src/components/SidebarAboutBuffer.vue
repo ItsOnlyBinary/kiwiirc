@@ -58,7 +58,7 @@
 
 <script>
 
-'kiwi public';
+// 'kiwi public';
 
 import GlobalApi from '@/libs/GlobalApi';
 import formatIrcMessage from '@/libs/MessageFormatter';

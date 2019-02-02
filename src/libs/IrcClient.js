@@ -620,7 +620,10 @@ function clientMiddleware(state, network) {
         }
 
         if (command === 'invite') {
-            let buffer = network.serverBuffer();
+            let buffer = state.getActiveBuffer();
+            if (!buffer || buffer.getNetwork().id !== networkid) {
+                buffer = network.serverBuffer();
+            }
             state.addMessage(buffer, {
                 nick: '*',
                 message: TextFormatting.t('invited_you', {

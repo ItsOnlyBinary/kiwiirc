@@ -15,7 +15,7 @@
             <div v-if="error_message" class="kiwi-selfuser-error-message">{{ error_message }}</div>
             <form v-if="selfUserSettingsDisplay === 'Nick'" class="u-form">
                 <label>
-                    <input v-model="setUserAwayToggle" type="checkbox" >
+                    <input v-model="awayStatus" type="checkbox" >
                     <span>Set status as away</span>
                 </label>
                 <hr>
@@ -76,6 +76,14 @@ export default {
         },
         netUser() {
             return this.network.ircClient.user;
+        },
+        awayStatus: {
+            get() {
+                return !!state.getUser(this.network.id, this.network.nick).away;
+            },
+            set(val) {
+                this.network.ircClient.raw('AWAY', val ? 'Currently away' : '');
+            },
         },
     },
     created() {

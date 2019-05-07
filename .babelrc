@@ -5,6 +5,7 @@
       {
         "useBuiltIns": "usage",
         "modules": "commonjs",
+        "corejs": "2",
       }
     ]
   ],

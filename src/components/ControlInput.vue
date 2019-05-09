@@ -77,7 +77,7 @@
                             v-if="shouldShowColorPicker"
                             class="kiwi-controlinput-tool"
                             @click.prevent="onToolClickTextStyle">
-                            <i class="fa fa-adjust" aria-hidden="true"/>
+                            <i class="fa fa-paint-brush" aria-hidden="true"/>
                         </a>
                         <a
                             v-if="shouldShowEmojiPicker"
@@ -765,6 +765,7 @@ export default {
     right: 0;
     width: 100%;
     z-index: 1;
+    text-align: center;
 }
 
 .kiwi-controlinput-selfuser {

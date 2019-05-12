@@ -16,7 +16,7 @@
             <span class="kiwi-userbox-basicinfo-data" v-html="formattedRealname" />
         </div>
 
-        <p class="kiwi-userbox-actions">
+        <div class="kiwi-userbox-actions">
             <a v-if="!isSelf" class="kiwi-userbox-action" @click="openQuery">
                 <i class="fa fa-comment-o" aria-hidden="true" />
                 {{ $t('send_a_message') }}
@@ -25,7 +25,16 @@
                 <i class="fa fa-question-circle" aria-hidden="true" />
                 {{ $t('more_information') }}
             </a>
-        </p>
+            <div class="kiwi-userbox-plugin-actions">
+                <div
+                    v-rawElement="plugin.el"
+                    v-for="plugin in pluginUiButtonElements"
+                    :key="plugin.id"
+                    :data-nick="(user.nick||'').toLowerCase()"
+                    class="kiwi-userbox-plugin-action"
+                />
+            </div>
+        </div>
 
         <form v-if="!isSelf" class="u-form kiwi-userbox-ignoreuser">
             <label>
@@ -136,6 +145,7 @@
 import * as ipRegex from 'ip-regex';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import * as IrcdDiffs from '@/helpers/IrcdDiffs';
+import GlobalApi from '@/libs/GlobalApi';
 import toHtml from '@/libs/renderers/Html';
 import parseMessage from '@/libs/MessageParser';
 import AwayStatusIndicator from './AwayStatusIndicator';
@@ -149,6 +159,7 @@ export default {
         return {
             whoisRequested: false,
             whoisLoading: false,
+            pluginUiButtonElements: GlobalApi.singleton().userboxButtonPlugins,
         };
     },
     computed: {
@@ -455,6 +466,7 @@ export default {
     padding: 1em;
     text-align: center;
     margin: 0;
+    user-select: none;
     box-sizing: border-box;
 
     .kiwi-userbox-action {
@@ -476,6 +488,20 @@ export default {
             width: auto;
         }
     }
+}
+
+.kiwi-userbox-plugin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 5px;
+    justify-content: center;
+}
+
+.kiwi-userbox-plugin-action {
+    white-space: nowrap;
+    box-sizing: borderbox;
+    max-width: 80%;
+    margin: 4px 2px;
 }
 
 .kiwi-userbox-opactions {

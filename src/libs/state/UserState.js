@@ -63,7 +63,7 @@ export default class UserState {
             typing.timeout = null;
         }
 
-        if (status === 'done') {
+        if (status === 'done' || status === 'paused') {
             Vue.delete(this.typingState, target.toLowerCase());
             return null;
         }
@@ -73,9 +73,7 @@ export default class UserState {
 
         // Paused state gets a longer timeout as it's usually someone stopping typing
         // to think about their words
-        let timeoutLen = status === 'paused' ?
-            30000 :
-            6000;
+        let timeoutLen = 40000;
 
         typing.timeout = setTimeout(() => this.typingStatus(target, 'done'), timeoutLen);
 

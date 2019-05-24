@@ -479,7 +479,7 @@ export default {
 
             this.$refs.input.reset();
 
-            this.stopTyping();
+            this.stopTyping(true);
         },
         historyBack() {
             if (this.history_pos > 0) {
@@ -573,9 +573,9 @@ export default {
                 clearTimeout(this.typingTimer);
                 this.typingTimer = null;
             }
-            this.typingTimer = setTimeout(this.stopTyping, 3000);
+            this.typingTimer = setTimeout(this.stopTyping, 5000);
 
-            if (Date.now() < this.lastTypingTime + 3000) {
+            if (Date.now() < this.lastTypingTime + 30000) {
                 return;
             }
 
@@ -583,7 +583,7 @@ export default {
 
             this.lastTypingTime = Date.now();
         },
-        stopTyping() {
+        stopTyping(suppressDone) {
             if (!this.buffer.getNetwork().ircClient.network.cap.isEnabled('message-tags')) {
                 return;
             }
@@ -601,6 +601,10 @@ export default {
                 clearTimeout(this.typingTimer);
                 this.typingTimer = null;
                 this.lastTypingTime = 0;
+            }
+
+            if (suppressDone) {
+                return;
             }
 
             this.$refs.input.getRawText().trim() ?

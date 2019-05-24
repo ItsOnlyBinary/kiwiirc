@@ -177,7 +177,9 @@ export function linkifyUsers(word, userlist) {
     }
 
     let escaped = _.escape(user.originalNick);
-    let colour = user.user.colour;
+    let colour = user.user ?
+        user.user.getColour() :
+        '';
 
     ret = `<a class="kiwi-nick" data-nick="${escaped}"`;
     if (colour) {

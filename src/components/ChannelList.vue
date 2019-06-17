@@ -6,7 +6,7 @@
                     <input v-model="search" :placeholder="$t('do_search')" class="u-input" >
                     <a
                         :class="{
-                            'u-button-primary': !isLoading,
+                             'u-button-primary': !isLoading,
                             'u-button-secondary': isLoading,
                         }"
                         class="u-button kiwi-channellist-refresh"

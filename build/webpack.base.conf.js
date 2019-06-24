@@ -77,6 +77,7 @@ module.exports = {
             resolve('src'),
             resolve('test'),
             resolve('node_modules/ip-regex'),
+            resolve('node_modules/runes'),
             resolve('node_modules/webpack-dev-server/client')
         ]
       },

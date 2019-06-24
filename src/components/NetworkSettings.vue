@@ -376,8 +376,8 @@ export default {
 }
 
 .kiwi-networksettings input[type='text'],
-    .kiwi-networksettings input[type='email'],
-    .kiwi-networksettings textarea {
+.kiwi-networksettings input[type='email'],
+.kiwi-networksettings textarea {
     clear: both;
     width: 100%;
 }

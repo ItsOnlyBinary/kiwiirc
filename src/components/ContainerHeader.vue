@@ -19,7 +19,7 @@
                 <div
                     v-rawElement="{
                         el: plugin.el,
-                        props: {
+                        data: {
                             containerheader: self,
                         }
                     }"
@@ -129,7 +129,7 @@
                 <div
                     v-rawElement="{
                         el: plugin.el,
-                        props: {
+                        data: {
                             containerheader: self,
                         }
                     }"

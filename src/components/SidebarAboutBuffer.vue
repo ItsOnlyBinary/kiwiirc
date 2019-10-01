@@ -59,7 +59,7 @@
             <div
                 v-rawElement="{
                     el: plugin.el,
-                    props: {
+                    data: {
                         aboutbuffer: self,
                     }
                 }"

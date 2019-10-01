@@ -29,7 +29,7 @@
                 <div
                     v-rawElement="{
                         el: plugin.el,
-                        props: {
+                        data: {
                             user: user,
                             userbox: self,
                         }

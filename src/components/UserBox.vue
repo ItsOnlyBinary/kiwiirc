@@ -27,10 +27,15 @@
             </a>
             <div class="kiwi-userbox-plugin-actions">
                 <div
-                    v-rawElement="plugin.el"
+                    v-rawElement="{
+                        el: plugin.el,
+                        props: {
+                            user: user,
+                            userbox: self,
+                        }
+                    }"
                     v-for="plugin in pluginUiButtonElements"
                     :key="plugin.id"
-                    :data-nick="(user.nick||'').toLowerCase()"
                     class="kiwi-userbox-plugin-action"
                 />
             </div>
@@ -157,6 +162,7 @@ export default {
     props: ['buffer', 'network', 'user'],
     data: function data() {
         return {
+            self: this,
             whoisRequested: false,
             whoisLoading: false,
             pluginUiButtonElements: GlobalApi.singleton().userboxButtonPlugins,

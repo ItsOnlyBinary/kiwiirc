@@ -19,8 +19,11 @@
                 <div
                     v-rawElement="{
                         el: plugin.el,
-                        data: {
-                            containerheader: self,
+                        props: {
+                            kiwi: {
+                                buffer: buffer,
+                                containerheader: self,
+                            }
                         }
                     }"
                     v-for="plugin in pluginUiChannelElements"
@@ -129,8 +132,11 @@
                 <div
                     v-rawElement="{
                         el: plugin.el,
-                        data: {
-                            containerheader: self,
+                        props: {
+                            kiwi: {
+                                buffer: buffer,
+                                containerheader: self,
+                            }
                         }
                     }"
                     v-for="plugin in pluginUiQueryElements"

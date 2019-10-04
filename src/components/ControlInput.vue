@@ -102,7 +102,9 @@
                             v-rawElement="{
                                 el: plugin.el,
                                 props: {
-                                    controlinput: self,
+                                    kiwi: {
+                                        controlinput: self,
+                                    }
                                 }
                             }"
                             class="kiwi-controlinput-tool"

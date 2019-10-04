@@ -59,8 +59,10 @@
             <div
                 v-rawElement="{
                     el: plugin.el,
-                    data: {
-                        aboutbuffer: self,
+                    props: {
+                        kiwi: {
+                            aboutbuffer: self,
+                        }
                     }
                 }"
             />

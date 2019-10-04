@@ -29,9 +29,11 @@
                 <div
                     v-rawElement="{
                         el: plugin.el,
-                        data: {
-                            user: user,
-                            userbox: self,
+                        props: {
+                            kiwi: {
+                                user: user,
+                                userbox: self,
+                            }
                         }
                     }"
                     v-for="plugin in pluginUiButtonElements"

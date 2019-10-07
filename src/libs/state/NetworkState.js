@@ -140,6 +140,11 @@ export default class NetworkState {
         return false;
     }
 
+    getTime(time) {
+        // this gets called 8 times before it is ready
+        return time || this.ircClient.getExpectedServerTime();
+    }
+
     currentUser() {
         return this.appState.getUser(this.id, this.nick);
     }

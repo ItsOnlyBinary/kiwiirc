@@ -6,6 +6,7 @@
                 <i v-if="!shouldShowLoading" class="fa fa-frown-o" aria-hidden="true"/>
             </div>
             <div class="kiwi-notconnected-buttons">
+                <recaptcha class="kiwi-notconnected-captcha" />
                 <template v-if="isChannel()">
                     <span class="kiwi-notconnected-button" @click="reconnect">
                         <i class="fa fa-arrow-circle-o-right" aria-hidden="true"/>
@@ -47,7 +48,12 @@
 
 'kiwi public';
 
+import Recaptcha from '@/components/Recaptcha';
+
 export default {
+    components: {
+        Recaptcha,
+    },
     props: ['buffer', 'network'],
     data() {
         return {
@@ -136,6 +142,10 @@ export default {
     position: relative;
     right: -3px;
     top: 3px;
+}
+
+.kiwi-notconnected-captcha {
+    display: inline-block;
 }
 
 .kiwi-notconnected-buttons {

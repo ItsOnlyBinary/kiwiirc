@@ -1,6 +1,5 @@
 <template>
     <startup-layout ref="layout"
-                    :class="{ 'kiwi-welcome-simple--recaptcha': recaptchaSiteId }"
                     class="kiwi-welcome-simple"
     >
         <template v-slot:connection v-if="startupOptions.altComponent">
@@ -50,11 +49,7 @@
                     />
                 </div>
 
-                <div
-                    v-if="recaptchaSiteId"
-                    :data-sitekey="recaptchaSiteId"
-                    class="g-recaptcha"
-                />
+                <recaptcha />
 
                 <button
                     :disabled="!readyToStart"
@@ -80,12 +75,14 @@ import * as Misc from '@/helpers/Misc';
 import state from '@/libs/state';
 import Logger from '@/libs/Logger';
 import BouncerProvider from '@/libs/BouncerProvider';
+import Recaptcha from '@/components/Recaptcha';
 import StartupLayout from './CommonLayout';
 
 let log = Logger.namespace('Welcome.vue');
 
 export default {
     components: {
+        Recaptcha,
         StartupLayout,
     },
     data: function data() {
@@ -100,8 +97,6 @@ export default {
             toggablePass: true,
             showNick: true,
             show_password_box: false,
-            recaptchaSiteId: '',
-            recaptchaResponseCache: '',
             connectWithoutChannel: false,
             showPlainText: false,
         };
@@ -226,15 +221,6 @@ export default {
         if (options.autoConnect && this.nick && (this.channel || this.connectWithoutChannel)) {
             this.startUp();
         }
-
-        this.recaptchaSiteId = options.recaptchaSiteId || '';
-    },
-    mounted() {
-        if (this.recaptchaSiteId) {
-            let scr = document.createElement('script');
-            scr.src = 'https://www.google.com/recaptcha/api.js';
-            this.$el.appendChild(scr);
-        }
     },
     methods: {
         onAltClose(event) {
@@ -252,27 +238,6 @@ export default {
             }
 
             this.$state.settings.startupOptions.altComponent = null;
-        },
-        captchaSuccess() {
-            if (!this.recaptchaSiteId) {
-                return true;
-            }
-
-            return !!this.captchaResponse();
-        },
-        captchaResponse() {
-            // Cache the response code since the recaptcha UI may not be here if we come back to
-            // this screen after an IRC connection fail
-            if (this.recaptchaResponseCache) {
-                return this.recaptchaResponseCache;
-            }
-
-            let gEl = this.$el.querySelector('#g-recaptcha-response');
-            this.recaptchaResponseCache = gEl ?
-                gEl.value :
-                '';
-
-            return this.recaptchaResponseCache;
         },
         readableStateError(err) {
             return Misc.networkErrorMessage(err);
@@ -293,10 +258,6 @@ export default {
             // irc network address in both the server-side and client side configs
             options.server = options.server || 'default';
             options.port = options.port || 6667;
-
-            if (!this.captchaSuccess()) {
-                return;
-            }
 
             let netAddress = _.trim(options.server);
 
@@ -329,9 +290,6 @@ export default {
                 net.connection.encoding = _.trim(options.encoding);
             }
 
-            if (!this.network && options.recaptchaSiteId) {
-                net.captchaResponse = this.captchaResponse();
-            }
             this.network = net;
 
             // Only switch to the first channel we join if multiple are being joined

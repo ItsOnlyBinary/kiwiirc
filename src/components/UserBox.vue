@@ -471,18 +471,23 @@ export default {
 
 .kiwi-userbox-actions {
     width: 100%;
-    padding: 1em;
+    padding: 0.5em;
     text-align: center;
     margin: 0;
     user-select: none;
     box-sizing: border-box;
+
+    /* using display flex here to prevent spaces making things uneven */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 
     .kiwi-userbox-action {
         display: inline-block;
         border: 1px solid;
         padding: 0.5em 1em;
         cursor: pointer;
-        margin: 0 2px;
+        margin: 0.5em;
         transition: all 0.3s;
         border-radius: 3px;
     }
@@ -501,15 +506,12 @@ export default {
 .kiwi-userbox-plugin-actions {
     display: flex;
     flex-wrap: wrap;
-    margin-top: 5px;
     justify-content: center;
 }
 
 .kiwi-userbox-plugin-action {
     white-space: nowrap;
     box-sizing: borderbox;
-    max-width: 80%;
-    margin: 4px 2px;
 }
 
 .kiwi-userbox-opactions {

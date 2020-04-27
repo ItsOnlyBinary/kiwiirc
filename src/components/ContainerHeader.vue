@@ -17,6 +17,8 @@
                 class="kiwi-header-options"
             >
                 <div
+                    v-for="plugin in pluginUiChannelElements"
+                    :key="plugin.id"
                     v-rawElement="{
                         el: plugin.el,
                         props: {
@@ -26,8 +28,6 @@
                             }
                         }
                     }"
-                    v-for="plugin in pluginUiChannelElements"
-                    :key="plugin.id"
                     class="kiwi-header-option"
                 />
                 <div
@@ -130,6 +130,8 @@
             </div>
             <div :key="buffer.id" class="kiwi-header-options">
                 <div
+                    v-for="plugin in pluginUiQueryElements"
+                    :key="plugin.id"
                     v-rawElement="{
                         el: plugin.el,
                         props: {
@@ -139,8 +141,6 @@
                             }
                         }
                     }"
-                    v-for="plugin in pluginUiQueryElements"
-                    :key="plugin.id"
                     class="kiwi-header-option"
                 />
                 <div class="kiwi-header-option kiwi-header-option-leave">

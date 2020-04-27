@@ -17,6 +17,8 @@
 
         <div class="kiwi-statebrowser-tools">
             <div
+                v-for="plugin in pluginUiElements"
+                :key="plugin.id"
                 v-rawElement="{
                     el: plugin.el,
                     props: {
@@ -25,8 +27,6 @@
                         }
                     }
                 }"
-                v-for="plugin in pluginUiElements"
-                :key="plugin.id"
                 class="kiwi-statebrowser-tool"
             />
         </div>

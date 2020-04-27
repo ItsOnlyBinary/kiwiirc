@@ -27,6 +27,8 @@
             </a>
             <div class="kiwi-userbox-plugin-actions">
                 <div
+                    v-for="plugin in pluginUiButtonElements"
+                    :key="plugin.id"
                     v-rawElement="{
                         el: plugin.el,
                         props: {
@@ -36,8 +38,6 @@
                             }
                         }
                     }"
-                    v-for="plugin in pluginUiButtonElements"
-                    :key="plugin.id"
                     class="kiwi-userbox-plugin-action"
                 />
             </div>

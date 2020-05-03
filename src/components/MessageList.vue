@@ -778,7 +778,6 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 .kiwi-messagelist-message-nick {
     margin: 10px 0;
     opacity: 0.85;
-    text-align: center;
     border: none;
 
     &:hover {

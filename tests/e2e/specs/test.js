@@ -1,7 +1,7 @@
 // https://docs.cypress.io/api/introduction/api.html
 
-describe('My First Test', () => {
-    it('Visits the app root url', () => {
+describe('Kiwi IRC', () => {
+    it('loads and connects to irc', () => {
         cy.visit('/');
 
         // Wait for app to be ready
@@ -25,7 +25,9 @@ describe('My First Test', () => {
 
         // Click connect
         cy.get('.kiwi-welcome-simple-start').click();
+    });
 
+    it('can send and receive messages', () => {
         // Type into ControlInput.vue and press enter
         cy.get('.kiwi-ircinput-editor').type('kiwi irc rocks :D {enter}');
 
@@ -34,7 +36,9 @@ describe('My First Test', () => {
             expect(el).to.contain('kiwi irc rocks');
             expect(el).to.not.contain('foo');
         });
+    });
 
+    it('can change channels', () => {
         // Change channel
         cy.get('.kiwi-statebrowser-channel-name').contains('#cypress2').click();
 
@@ -47,3 +51,4 @@ describe('My First Test', () => {
         });
     });
 });
+

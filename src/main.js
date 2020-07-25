@@ -470,6 +470,10 @@ function startApp() {
     });
 
     api.emit('ready');
+
+    if (window.Cypress) {
+        window.appReady = true;
+    }
 }
 
 function showError(err) {

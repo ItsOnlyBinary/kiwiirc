@@ -4,15 +4,16 @@
   "description": "Web based IRC client",
   "author": "Darren <darren@darrenwhitlen.com>",
   "scripts": {
+    "dev": "npm run translate && vue-cli-service serve",
     "build": "npm run translate && vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit",
     "lint": "npm run lint:eslint && npm run lint:stylelint",
     "lint:eslint": "vue-cli-service lint --no-fix",
     "lint:stylelint": "stylelint \"src/**/*.{vue,htm,html,css,sss,less,scss}\"",
-    "dev": "npm run translate && vue-cli-service serve",
-    "test": "vue-cli-service test:unit",
-    "translate": "node build/webpack/locales.js",
-    "gendocs": "rm -rf srcdocs/ && jsdoc -c jsdoc.json"
+    "test": "vue-cli-service test:unit && vue-cli-service test:e2e --headless",
+    "test:unit": "vue-cli-service test:unit",
+    "test:e2e": "vue-cli-service test:e2e",
+    "gendocs": "rm -rf srcdocs/ && jsdoc -c jsdoc.json",
+    "translate": "node build/webpack/locales.js"
   },
   "dependencies": {
     "@babel/runtime-corejs3": "^7.9.2",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.3.1",
+    "@vue/cli-plugin-e2e-cypress": "~4.4.0",
     "@vue/cli-plugin-eslint": "~4.3.1",
     "@vue/cli-plugin-unit-jest": "~4.3.1",
     "@vue/cli-service": "~4.3.1",

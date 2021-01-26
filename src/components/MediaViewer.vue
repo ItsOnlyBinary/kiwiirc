@@ -22,7 +22,12 @@
                 :sandbox="iframeSandboxOptions"
                 class="kiwi-mediaviewer-iframe"
             />
-            <component :is="component" v-else-if="component" :component-props="componentProps" />
+            <component
+                :is="component"
+                v-else-if="component"
+                :component-props="componentProps"
+                :media-viewer="thisMV"
+            />
             <preview-provider
                 v-else
                 :url="url"
@@ -70,6 +75,9 @@ export default {
             ];
 
             return options.join(' ');
+        },
+        thisMV() {
+            return this;
         },
     },
     watch: {

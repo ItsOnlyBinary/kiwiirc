@@ -6,8 +6,11 @@
 
         <template v-if="isChannel()">
             <div class="kiwi-header-name-container">
-                <div class="kiwi-header-name">{{ buffer.name }}</div>
+                <div class="kiwi-header-name">
+                    <div class="kiwi-header-name-full">{{ buffer.name }}</div>{{ buffer.name }}
+                </div>
             </div>
+            <div class="kiwi-header-topic" v-html="formattedTopic" />
             <div
                 v-if="isJoined && isConnected"
                 :key="buffer.id"
@@ -302,11 +305,11 @@ export default {
     font-weight: bold;
     cursor: default;
     margin: 0;
-    margin-right: 0.5em;
     opacity: 1;
     font-size: 20px;
     line-height: 43px;
-    flex-grow: 1;
+    min-width: 100px;
+    flex-grow: 2;
     text-align: left;
     overflow-x: hidden;
     white-space: nowrap;
@@ -318,10 +321,32 @@ export default {
     padding: 0 10px;
 }
 
-.kiwi-header-name:hover {
+.kiwi-header-name-full {
+    display: none;
     position: absolute;
     padding-right: 10px;
     z-index: 1;
+}
+
+.kiwi-header-name:hover .kiwi-header-name-full {
+    background-color: inherit;
+    display: block;
+}
+
+.kiwi-header-topic {
+    align-self: center;
+    text-align: left;
+    padding: 4px 10px;
+    max-height: 100%;
+    box-sizing: border-box;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    flex-shrink: 2;
+}
+
+.kiwi-header-topic:hover {
+    background-color: inherit;
+    overflow: visible;
 }
 
 .kiwi-header-options {
@@ -491,6 +516,10 @@ export default {
 
     .kiwi-header-name {
         padding: 0;
+    }
+
+    .kiwi-header-topic {
+        display: none;
     }
 
     .kiwi-header-option span {

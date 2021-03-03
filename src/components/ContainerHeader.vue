@@ -337,6 +337,8 @@ export default {
     align-self: center;
     text-align: left;
     padding: 4px 10px;
+    font-size: 10px;
+    line-height: 12px;
     max-height: 100%;
     box-sizing: border-box;
     text-overflow: ellipsis;

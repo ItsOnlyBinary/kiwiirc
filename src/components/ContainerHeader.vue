@@ -151,24 +151,12 @@
                     }"
                     class="kiwi-header-option"
                 />
-                <div class="kiwi-header-option kiwi-header-option-leave">
-                    <a @click="closeCurrentBuffer">
-                        <i class="fa fa-times" aria-hidden="true" />
-                    </a>
-                </div>
             </div>
         </template>
 
         <template v-else-if="isSpecial()">
             <div class="kiwi-header-name-container">
                 <div class="kiwi-header-name">{{ buffer.name }}</div>
-            </div>
-            <div class="kiwi-header-options">
-                <div class="kiwi-header-option kiwi-header-option-leave">
-                    <a @click="closeCurrentBuffer">
-                        <i class="fa fa-times" aria-hidden="true" />
-                    </a>
-                </div>
             </div>
         </template>
     </div>
@@ -388,16 +376,6 @@ export default {
 
 .kiwi-header-option--active a {
     opacity: 1;
-}
-
-.kiwi-header-option-leave {
-    opacity: 1;
-    margin: 0;
-    transition: all 0.3s;
-}
-
-.kiwi-header-option-leave i {
-    margin: 0;
 }
 
 /* The not joined button */

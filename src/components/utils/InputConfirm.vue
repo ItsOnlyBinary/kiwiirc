@@ -3,7 +3,7 @@
         <div v-if="state==='pre'" @click="prompt"><slot /></div>
 
         <template v-if="state==='prompt'">
-            <span class="u-input-confirm-label">{{ label }}</span>
+            <span v-if="!!label" class="u-input-confirm-label">{{ label }}</span>
             <a :class="['u-button-'+connoteCss.yes]" class="u-button" @click="complete(true)">
                 {{ $t('yes') }}
             </a>

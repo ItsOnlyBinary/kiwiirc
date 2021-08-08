@@ -81,7 +81,7 @@
             collapsed ? 'kiwi-statebrowser-network-toggable-area--collapsed' : '',
         ]" class="kiwi-statebrowser-network-toggable-area"
         >
-            <transition name="kiwi-statebrowser-network-status-transition">
+            <transition-expand>
                 <div v-if="network.state !== 'connected'" class="kiwi-statebrowser-network-status">
                     <template v-if="network.state_error">
                         <i class="fa fa-exclamation-triangle" aria-hidden="true" />
@@ -104,7 +104,7 @@
                         {{ $t('connecting') }}
                     </template>
                 </div>
-            </transition>
+            </transition-expand>
             <div
                 v-for="(itemBuffers, type) in filteredBuffersByType"
                 :key="type"
@@ -144,6 +144,17 @@
                             <i class="fa fa-search" aria-hidden="true" />
                         </div>
                     </div>
+                    <div
+                        v-else-if="type === 'queries' && itemBuffers.length > 1"
+                        class="kiwi-statebrowser-channels-options"
+                    >
+                        <div
+                            class="kiwi-statebrowser-close-queries-button"
+                            @click.stop.prevent="showPrompt('closeGroup', type)"
+                        >
+                            <i class="fa fa-times" aria-hidden="true" />
+                        </div>
+                    </div>
                     <div class="kiwi-statebrowser-buffer-actions">
                         <div class="kiwi-statebrowser-channel-labels">
                             <div
@@ -179,6 +190,17 @@
                         </div>
                     </div>
                 </div>
+                <transition-expand>
+                    <div v-if="prompts.closeGroup === type" class="kiwi-statebrowser-close-queries">
+                        <span>{{ $t('prompt_close_queries') }}</span>
+                        <input-confirm
+                            :flip-connotation="true"
+                            class="kiwi-statebrowser-close-queries-prompt"
+                            @ok="closeQueries(itemBuffers)"
+                            @submit="prompts.closeGroup=null"
+                        />
+                    </div>
+                </transition-expand>
                 <div
                     v-if="itemBuffers.length && (
                         (show_channels && type === 'channels') ||
@@ -224,6 +246,9 @@ export default {
             channel_add_input: '',
             show_channels: true,
             show_queries: true,
+            prompts: {
+                closeGroup: null,
+            },
         };
     },
     computed: {
@@ -435,6 +460,14 @@ export default {
                 this.show_queries = !this.show_queries;
             }
         },
+        showPrompt(prompt, buffer) {
+            this.prompts[prompt] = buffer;
+        },
+        closeQueries(buffers) {
+            buffers.forEach((buffer) => {
+                this.$state.removeBuffer(buffer);
+            });
+        },
         closeFilterChannel() {
             this.channel_filter = '';
             this.channel_filter_display = false;
@@ -544,18 +577,6 @@ export default {
     opacity: 1;
 }
 
-/* During DOM entering and leaving */
-.kiwi-statebrowser-network-status-transition-enter-active,
-.kiwi-statebrowser-network-status-transition-leave-active {
-    transition: height 0.7s, padding 0.7s;
-}
-
-.kiwi-statebrowser-network-status-transition-enter,
-.kiwi-statebrowser-network-status-transition-leave-active {
-    height: 0;
-    padding: 0;
-}
-
 .kiwi-statebrowser-channel {
     position: relative;
     display: flex;
@@ -625,6 +646,32 @@ export default {
 .kiwi-statebrowser-channel:hover .kiwi-statebrowser-channel-labels,
 .kiwi-statebrowser-channel-active .kiwi-statebrowser-channel-labels {
     display: none;
+}
+
+.kiwi-statebrowser-close-queries-button {
+    width: 38px; /* Visualy the same width as a single digit label */
+    cursor: pointer;
+    margin-right: 0;
+    z-index: 10;
+}
+
+.kiwi-statebrowser-close-queries {
+    padding: 0.4em 0 0.6em 0;
+}
+
+.kiwi-statebrowser-close-queries-prompt.u-input-confirm {
+    padding: 0.4em 0 0 0;
+    font-weight: 400;
+    line-height: 1.6em;
+    text-transform: initial;
+}
+
+.kiwi-statebrowser-close-queries-prompt > * {
+    margin-right: 10px;
+}
+
+.kiwi-statebrowser-close-queries-prompt > *:last-child {
+    margin-right: 0;
 }
 
 /* Add channel input */

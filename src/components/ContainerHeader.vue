@@ -79,18 +79,6 @@
                     {{ $t('container_join') }}
                 </a>
             </div>
-
-            <transition name="kiwi-header-prompttrans">
-                <input-confirm
-                    v-if="prompts.closeChannel"
-                    :label="$t('prompt_leave_channel')"
-                    :flip-connotation="true"
-                    class="kiwi-header-prompt"
-                    @ok="closeCurrentBuffer"
-                    @submit="prompts.closeChannel=false"
-                />
-            </transition>
-
         </template>
 
         <template v-else-if="isServer()">
@@ -186,9 +174,6 @@ export default {
             self: this,
             pluginUiChannelElements: GlobalApi.singleton().channelHeaderPlugins,
             pluginUiQueryElements: GlobalApi.singleton().queryHeaderPlugins,
-            prompts: {
-                closeChannel: false,
-            },
         };
     },
     computed: {
@@ -226,9 +211,6 @@ export default {
         });
     },
     methods: {
-        showPrompt(prompt) {
-            this.prompts[prompt] = true;
-        },
         isChannel() {
             return this.buffer.isChannel();
         },
@@ -260,9 +242,6 @@ export default {
             let network = this.buffer.getNetwork();
             this.buffer.enabled = true;
             network.ircClient.join(this.buffer.name);
-        },
-        closeCurrentBuffer() {
-            this.$state.removeBuffer(this.buffer);
         },
         onHeaderClick(event) {
             let channelName = event.target.getAttribute('data-channel-name');
@@ -442,30 +421,6 @@ export default {
 .kiwi-header-buffersettings {
     padding: 5px;
     margin-top: 1em;
-}
-
-.kiwi-header-prompt {
-    position: absolute;
-    right: 0;
-    top: 46px;
-
-    /* z-index 1 higher than the sidebar */
-    z-index: 11;
-}
-
-.kiwi-header-prompttrans-enter,
-.kiwi-header-prompttrans-leave-to {
-    top: -45px;
-}
-
-.kiwi-header-prompttrans-enter-to,
-.kiwi-header-prompttrans-leave {
-    top: 46px;
-}
-
-.kiwi-header-prompttrans-enter-active,
-.kiwi-header-prompttrans-leave-active {
-    transition: top 0.2s;
 }
 
 @media screen and (max-width: 769px) {

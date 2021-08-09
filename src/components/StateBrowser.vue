@@ -445,6 +445,26 @@ export default {
     opacity: 1;
 }
 
+.kiwi-statebrowser-close-button {
+    width: 38px; /* Visualy the same width as a single digit label */
+    cursor: pointer;
+    display: none;
+}
+
+/*
+    Hovering over the buffer name should show the close icon, but hide labels
+    An active buffer should always show the close icon
+*/
+.kiwi-statebrowser-channel:hover .kiwi-statebrowser-close-button,
+.kiwi-statebrowser-channel-active .kiwi-statebrowser-close-button {
+    display: block;
+}
+
+.kiwi-statebrowser-channel:hover .kiwi-statebrowser-channel-labels,
+.kiwi-statebrowser-channel-active .kiwi-statebrowser-channel-labels {
+    display: none;
+}
+
 @media screen and (max-width: 769px) {
     .kiwi-statebrowser {
         left: -100%;

@@ -459,20 +459,12 @@
     background-color: var(--brand-primary);
 }
 
-.kiwi-statebrowser-channel-leave:hover {
+.kiwi-statebrowser-close-button:hover {
     background: var(--brand-error);
 }
 
-.kiwi-statebrowser-close-queries-button:hover {
-    background: var(--brand-error);
-}
-
-.kiwi-statebrowser-close-queries {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.kiwi-statebrowser-close-queries-prompt.u-input-confirm {
-    background: initial;
+.kiwi-statebrowser-buffer-close {
+    background-color: rgba(128, 128, 128, 0.2);
 }
 
 .kiwi-statebrowser-newchannel a {

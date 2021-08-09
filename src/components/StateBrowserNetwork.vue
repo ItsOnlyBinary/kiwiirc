@@ -125,7 +125,9 @@
                                         'fa-caret-right'
                             ]"
                         />
-                        {{ type === 'channels' ? $t('channels') : $t('messages') }}
+                        <span
+                            class="kiwi-statebrowser-buffertype-name"
+                        >{{ type === 'channels' ? $t('channels') : $t('messages') }}</span>
                     </div>
 
                     <div v-if="type === 'channels'" class="kiwi-statebrowser-channels-options">
@@ -149,7 +151,7 @@
                         class="kiwi-statebrowser-channels-options"
                     >
                         <div
-                            class="kiwi-statebrowser-close-queries-button"
+                            class="kiwi-statebrowser-close-button kiwi-statebrowser-close-group"
                             @click.stop.prevent="showPrompt('closeGroup', type)"
                         >
                             <i class="fa fa-times" aria-hidden="true" />
@@ -191,11 +193,11 @@
                     </div>
                 </div>
                 <transition-expand>
-                    <div v-if="prompts.closeGroup === type" class="kiwi-statebrowser-close-queries">
+                    <div v-if="prompts.closeGroup === type" class="kiwi-statebrowser-buffer-close">
                         <span>{{ $t('prompt_close_queries') }}</span>
                         <input-confirm
                             :flip-connotation="true"
-                            class="kiwi-statebrowser-close-queries-prompt"
+                            class="kiwi-statebrowser-buffer-close-prompt"
                             @ok="closeQueries(itemBuffers)"
                             @submit="prompts.closeGroup=null"
                         />
@@ -460,8 +462,12 @@ export default {
                 this.show_queries = !this.show_queries;
             }
         },
-        showPrompt(prompt, buffer) {
-            this.prompts[prompt] = buffer;
+        showPrompt(prompt, value) {
+            if (this.prompts[prompt] === value) {
+                this.prompts[prompt] = null;
+            } else {
+                this.prompts[prompt] = value;
+            }
         },
         closeQueries(buffers) {
             buffers.forEach((buffer) => {
@@ -626,52 +632,16 @@ export default {
     margin: 10px;
 }
 
-.kiwi-statebrowser-channel-leave {
-    width: 38px; /* Visualy the same width as a single digit label */
-    cursor: pointer;
-    margin-right: 0;
-    z-index: 10;
-    display: none;
-}
-
-/*
-    Hovering over the buffer name should show the close icon, but hide labels
-    An active buffer should always show the close icon
-*/
-.kiwi-statebrowser-channel:hover .kiwi-statebrowser-channel-leave,
-.kiwi-statebrowser-channel-active .kiwi-statebrowser-channel-leave {
+.kiwi-statebrowser-close-button.kiwi-statebrowser-close-group {
     display: block;
 }
 
-.kiwi-statebrowser-channel:hover .kiwi-statebrowser-channel-labels,
-.kiwi-statebrowser-channel-active .kiwi-statebrowser-channel-labels {
-    display: none;
+.kiwi-statebrowser-buffer-close {
+    padding-top: 0.4em;
 }
 
-.kiwi-statebrowser-close-queries-button {
-    width: 38px; /* Visualy the same width as a single digit label */
-    cursor: pointer;
-    margin-right: 0;
-    z-index: 10;
-}
-
-.kiwi-statebrowser-close-queries {
-    padding: 0.4em 0 0.6em 0;
-}
-
-.kiwi-statebrowser-close-queries-prompt.u-input-confirm {
-    padding: 0.4em 0 0 0;
-    font-weight: 400;
-    line-height: 1.6em;
-    text-transform: initial;
-}
-
-.kiwi-statebrowser-close-queries-prompt > * {
-    margin-right: 10px;
-}
-
-.kiwi-statebrowser-close-queries-prompt > *:last-child {
-    margin-right: 0;
+.kiwi-statebrowser-buffer-close-prompt.u-input-confirm {
+    padding-top: 0.4em;
 }
 
 /* Add channel input */

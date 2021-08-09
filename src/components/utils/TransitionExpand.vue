@@ -82,3 +82,12 @@ export default Vue.component('transition-expand', {
     height: 0;
 }
 </style>
+
+<style scoped>
+* {
+    will-change: height;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+</style>

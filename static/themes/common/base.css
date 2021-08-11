@@ -342,8 +342,6 @@
 }
 
 /* ---- State browser ( statebrowser) ---- */
-
-/* Statebrowser - Left sidebar ( StateBrowser.vue ) */
 .kiwi-statebrowser {
     background: var(--comp-statebrowser-bg);
     color: var(--comp-statebrowser-fg);
@@ -353,242 +351,19 @@
     background-color: var(--comp-usermenu-open-bg);
 }
 
-.kiwi-statebrowser-usermenu-body .u-link {
-    color: var(--brand-error);
-}
-
-.kiwi-statebrowser-divider {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-/* Add channel input */
-.kiwi-statebrowser-newchannel-inputwrap {
-    color: var(--brand-default-bg);
-}
-
-.kiwi-statebrowser-newchannel-inputwrap input[type='text'] {
-    color: var(--comp-statebrowser-bg);
-    background: var(--brand-default-bg);
-}
-
-.kiwi-statebrowser-newchannel-inputwrap--focus {
-    opacity: 1;
-    background-color: var(--brand-default-bg);
-}
-
-/* Channel search input */
-.kiwi-statebrowser-channelfilter {
-    transition: all 0.3s;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-    color: var(--brand-default-bg);
-}
-
-.kiwi-statebrowser-channelfilter::after {
-    color: var(--comp-statebrowser-fg);
-}
-
-.kiwi-statebrowser-channelfilter input {
-    background-color: var(--brand-default-bg);
-    color: var(--brand-default-fg);
-    outline: none;
-}
-
-.kiwi-statebrowser-channelfilter p {
-    color: var(--brand-primary);
-    font-size: 0.9em;
-    margin: 10px 0 10px 0;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.kiwi-statebrowser-channelfilter p:hover {
-    color: var(--brand-primary-hover);
-}
-
-.kiwi-statebrowser-newnetwork {
-    border-top-color: var(--comp-statebrowser-network-border);
-}
-
-.kiwi-statebrowser-newnetwork a {
-    color: var(--brand-default-bg);
-}
-
-.kiwi-statebrowser-newnetwork a:hover {
-    background: var(--brand-primary);
-    opacity: 1;
-    color: var(--comp-statebrowser-fg);
-}
-
-.kiwi-statebrowser-network .kiwi-statebrowser-network-header {
-    background-color: var(--comp-statebrowser-bg-networkname);
-}
-
-.kiwi-statebrowser-network .kiwi-statebrowser-network-header a {
-    color: var(--comp-statebrowser-fg);
-}
-
-/* Active Network Styling */
-.kiwi-statebrowser-network.kiwi-statebrowser-network--active .kiwi-statebrowser-network-header {
-    border-left: 3px solid var(--brand-primary);
-}
-
-/* Channel Styling */
-.kiwi-statebrowser-channels .kiwi-statebrowser-channel {
-    border-bottom: 1px solid var(--brand-shadow);
-    color: var(--comp-statebrowser-fg);
-}
-
-.kiwi-statebrowser-channel .kiwi-statebrowser-channel-name {
-    color: var(--comp-statebrowser-fg);
-}
-
-.kiwi-statebrowser-channel-active {
-    border-left-color: var(--brand-primary);
-    background: var(--comp-statebrowser-channel-active-bg);
-}
-
-.kiwi-statebrowser-channel-active .kiwi-statebrowser-channel-name {
-    color: var(--comp-statebrowser-channel-active-fg);
-}
-
-.kiwi-network-name-option-chanfilter.active {
-    background: var(--brand-primary);
-}
-
-.kiwi-statebrowser-channel-settings:hover {
-    background-color: var(--brand-primary);
-}
-
-.kiwi-statebrowser-close-button:hover {
-    background: var(--brand-error);
-}
-
-.kiwi-statebrowser-buffer-close {
-    background-color: rgba(128, 128, 128, 0.2);
-}
-
-.kiwi-statebrowser-newchannel a {
-    border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.kiwi-statebrowser-newchannel a:hover {
-    background: var(--brand-primary);
-    opacity: 1;
-    color: var(--comp-statebrowser-fg);
-}
-
-.kiwi-statebrowser-switcher a:first-of-type {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.kiwi-statebrowser-switcher a:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.kiwi-statebrowser-options {
-    background: var(--brand-midtone);
-}
-
-.kiwi-statebrowser-availablenetworks-link {
-    border-right: 15px solid var(--brand-error);
-}
-
-.kiwi-statebrowser-availablenetworks-link--connected {
-    border-color: var(--brand-primary);
-}
-
-.kiwi-statebrowser-channel-notjoined .kiwi-statebrowser-channel-name {
-    color: var(--brand-error);
-}
-
-.kiwi-statebrowser-channel-popup {
-    background: #383838;
-    border: 3px solid var(--brand-midtone);
-    border-left: none;
-}
-
-.kiwi-statebrowser-nonetworks {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.kiwi-statebrowser-availablenetworks {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.kiwi-statebrowser-availablenetworks-toggle {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.kiwi-statebrowser-network-header {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.kiwi-statebrowser-network-status {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Icon before the network in network list */
-.kiwi-statebrowser-network-name::before {
-    content: '\f233';
-    font-family: fontAwesome, Helvetica, Arial, Verdana, Tahoma, sans-serif;
-    margin-right: 2px;
-    font-weight: 100;
-    text-decoration: none;
-}
-
-/* Icons in the Channel List */
-.kiwi-statebrowser-channel[data-name^="*"]::before {
-    content: '\f006';
-}
-
-.kiwi-statebrowser-channel[data-name="#help"]::before {
-    content: '\f059';
-}
-
-.kiwi-statebrowser-channel::before {
-    font-family: fontAwesome, Helvetica, Arial, Verdana, Tahoma, sans-serif;
-    margin-right: 8px;
-    font-weight: 100;
-}
-
-.kiwi-statebrowser-channel-label {
-    background: var(--brand-primary);
-    color: var(--brand-default-bg);
-}
-
-.kiwi-statebrowser-channel-label--highlight {
-    background: var(--brand-error);
-}
-
-.kiwi-statebrowser-usermenu-avatar:hover .kiwi-avatar-inner,
-.kiwi-statebrowser-usermenu--open .kiwi-avatar-inner {
-    background-color: var(--brand-primary) !important;
-    color: var(--brand-default-bg) !important;
-}
-
-.kiwi-statebrowser-usermenu-avatar--connected .kiwi-avatar-inner {
-    border-color: #42b992;
-}
-
-.kiwi-statebrowser-usermenu-avatar--disconnected .kiwi-avatar-inner {
-    border-color: var(--brand-error);
-}
-
 .kiwi-statebrowser-usermenu .kiwi-awaystatusindicator {
     border-color: var(--comp-statebrowser-bg);
 }
 
-.kiwi-statebrowser-network .kiwi-statebrowser-network-header a.kiwi-statebrowser-network-toggle:hover {
-    background-color: var(--brand-error);
-    border-top-color: var(--brand-error);
+.kiwi-statebrowser-usermenu .kiwi-statebrowser-usermenu-button.kiwi-button-left:hover {
+    background-color: rgba(128, 128, 128, 0.2);
 }
 
-.kiwi-statebrowser-appsettings:hover {
-    opacity: 1;
-}
-
-.kiwi-statebrowser-scrollarea h4 {
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
+.kiwi-statebrowser-usermenu .kiwi-statebrowser-usermenu-avatar:hover .kiwi-avatar-inner,
+.kiwi-statebrowser-usermenu .kiwi-statebrowser-usermenu-avatar--open .kiwi-avatar-inner {
+    /* !important is required here due to the background colour being set on the element */
+    /* stylelint-disable-next-line declaration-no-important */
+    background-color: var(--brand-primary) !important;
 }
 
 /* ---- End of statebrowser ---- */

@@ -783,6 +783,7 @@ function createNewState() {
             addMultipleUsersToBuffer(buffer, newUsers) {
                 let network = this.getNetwork(buffer.networkid);
                 let bufUsers = _.clone(buffer.users);
+                let usersForSorted = [];
 
                 state.usersTransaction(network.id, (users) => {
                     newUsers.forEach((newUser) => {
@@ -793,7 +794,12 @@ function createNewState() {
                         if (!userObj) {
                             userObj = this.addUser(network, user, users);
                         }
-                        bufUsers[userObj.nick.toLowerCase()] = userObj;
+
+                        let lowerNick = userObj.nick.toLowerCase();
+                        if (!bufUsers[lowerNick]) {
+                            usersForSorted.push(userObj);
+                        }
+                        bufUsers[lowerNick] = userObj;
 
                         // Add the buffer to the users buffer list
                         if (!userObj.buffers[buffer.id]) {
@@ -808,6 +814,7 @@ function createNewState() {
                 });
 
                 buffer.users = bufUsers;
+                buffer.sortedUsers.insert(usersForSorted);
             },
 
             addUserToBuffer(buffer, user, modes) {
@@ -826,15 +833,21 @@ function createNewState() {
                 }
 
                 buffer.addUser(userObj);
-
+                let addSorted = false;
                 // Add the buffer to the users buffer list
                 if (!userObj.buffers[buffer.id]) {
+                    addSorted = true;
                     state.$set(userObj.buffers, buffer.id, {
                         modes: modes || [],
                         buffer: buffer,
                     });
                 } else {
                     state.$set(userObj.buffers[buffer.id], 'modes', modes || []);
+                }
+
+                if (addSorted) {
+                    // Must happen after the buffer has been added to the user state
+                    buffer.sortedUsers.insert(userObj);
                 }
             },
 

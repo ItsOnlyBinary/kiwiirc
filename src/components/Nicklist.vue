@@ -10,8 +10,8 @@
             <span>
                 {{
                     filter_visible ?
-                        sortedUsers.length :
-                        $t('person', {count: sortedUsers.length})
+                        filteredUsers.length :
+                        $t('person', {count: filteredUsers.length})
                 }}
             </span>
 
@@ -25,7 +25,7 @@
         </div>
 
         <DynamicScroller
-            :items="sortedUsers"
+            :items="filteredUsers"
             :min-item-size="34"
             :key-field="'nick'"
             class="kiwi-nicklist-users"
@@ -53,31 +53,7 @@
 
 'kiwi public';
 
-import Logger from '@/libs/Logger';
 import NicklistUser from './NicklistUser';
-
-let log = Logger.namespace('Nicklist');
-
-// This provides a better sort for numbered nicks but does not work on ios9
-let intlCollator = null;
-if (global.Intl) {
-    intlCollator = new Intl.Collator({}, { numeric: true });
-}
-
-// Hot function, so it's here for easier caching
-function strCompare(a, b) {
-    if (intlCollator) {
-        return intlCollator.compare(a, b);
-    }
-
-    if (a === b) {
-        return 0;
-    }
-
-    return a > b ?
-        1 :
-        -1;
-}
 
 export default {
     components: {
@@ -96,106 +72,14 @@ export default {
         shouldShowAvatars() {
             return this.buffer.setting('nicklist_avatars');
         },
-        sortedUsers() {
-            // Get a list of network prefixes and give them a rank number
-            let netPrefixes = this.network.ircClient.network.options.PREFIX;
-            let prefixOrders = Object.create(null);
-            netPrefixes.forEach((prefix, idx) => {
-                prefixOrders[prefix.mode] = idx;
-            });
-
-            // A few things here:
-            // * Since vuejs will sort in-place and update views when .sort is called
-            //   on an array, clone it first so that we have a plain array to sort
-            // * Keep a map of lowercased nicks to we don't need to call .toLowerCase()
-            //   on each one all the time. This is a hot function!
-            let nickMap = Object.create(null);
-            let users = [];
-            let bufferUsers = this.buffer.users;
-            let nickFilter = this.user_filter.toLowerCase();
-            /* eslint-disable guard-for-in, no-restricted-syntax */
-            for (let lowercaseNick in bufferUsers) {
-                let user = bufferUsers[lowercaseNick];
-                nickMap[user.nick] = lowercaseNick;
-                if (!nickFilter || lowercaseNick.indexOf(nickFilter) !== -1) {
-                    users.push(user);
-                }
+        filteredUsers() {
+            if (!this.user_filter) {
+                return this.buffer.sortedUsers.array;
             }
 
-            let bufferId = this.buffer.id;
-            return users.sort((a, b) => {
-                let bufferA = a.buffers[bufferId];
-                let bufferB = b.buffers[bufferId];
-
-                if (!bufferA) {
-                    let msg = 'Nicklist.sortedUsers() User A does not have the buffer in its list!';
-                    log.error(msg, a.nick, a.buffers);
-                    return -1;
-                }
-                if (!bufferB) {
-                    let msg = 'Nicklist.sortedUsers() User B does not have the buffer in its list!';
-                    log.error(msg, b.nick, b.buffers);
-                    return 1;
-                }
-
-                let modesA = bufferA.modes;
-                let modesB = bufferB.modes;
-
-                // Neither user has a prefix, compare text
-                if (
-                    modesA.length === 0 &&
-                    modesB.length === 0
-                ) {
-                    // Compare away status
-                    if (this.$state.setting('nicklistGroupAway')) {
-                        if (a.away && !b.away) {
-                            return 1;
-                        }
-                        if (!a.away && b.away) {
-                            return -1;
-                        }
-                    }
-
-                    return strCompare(nickMap[a.nick], nickMap[b.nick]);
-                }
-
-                // Compare via prefixes..
-                if (
-                    modesA.length > 0 &&
-                    modesB.length === 0
-                ) {
-                    return -1;
-                }
-
-                if (
-                    modesA.length === 0 &&
-                    modesB.length > 0
-                ) {
-                    return 1;
-                }
-
-                // Both users have a prefix so find the highest ranking one
-                let aP = prefixOrders[this.buffer.userMode(a)];
-                let bP = prefixOrders[this.buffer.userMode(b)];
-                if (aP > bP) {
-                    return 1;
-                } else if (aP < bP) {
-                    return -1;
-                }
-
-                // Prefixes are the same, compare away status
-                if (this.$state.setting('nicklistGroupAway')) {
-                    if (a.away && !b.away) {
-                        return 1;
-                    }
-                    if (!a.away && b.away) {
-                        return -1;
-                    }
-                }
-
-                // Prefixes are the same, resort to comparing text
-                return strCompare(nickMap[a.nick], nickMap[b.nick]);
-            });
+            return this.buffer.sortedUsers.array.filter(
+                (user) => user.nick.includes(this.user_filter)
+            );
         },
         useColouredNicks() {
             return this.buffer.setting('coloured_nicklist');

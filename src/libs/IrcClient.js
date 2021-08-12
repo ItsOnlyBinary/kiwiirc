@@ -1024,6 +1024,10 @@ function clientMiddleware(state, network) {
                         }
 
                         modeStrs[mode.mode].push({ target: mode.param });
+
+                        // The user may need to change position in the sorted array
+                        buffer.sortedUsers.remove(user);
+                        buffer.sortedUsers.insert(user);
                     } else {
                         // Not a user prefix, add it as a channel mode
                         // TODO: Why are these not appearing as the 'channel info' command?

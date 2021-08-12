@@ -3,6 +3,7 @@
 import Vue from 'vue';
 import _ from 'lodash';
 import { def } from './common';
+import SortedArray from '../SortedArray';
 import batchedAdd from '../batchedAdd';
 import * as bufferTools from '../bufferTools';
 
@@ -21,6 +22,7 @@ export default class BufferState {
         this.enabled = true;
         this.created_at = null;
         this.users = Object.create(null);
+        this.sortedUsers = new SortedArray(null, (a, b) => this.userSorter(a, b));
         this.modes = Object.create(null);
         this.flags = {
             unread: 0,
@@ -441,7 +443,7 @@ export default class BufferState {
 
     removeUser(nick) {
         let userObj = this.state.getUser(this.networkid, nick);
-
+        this.sortedUsers.remove(userObj);
         // A user could be queued to be added, so make sure it's not there as it
         // would just be added again. Eg. user joins/parts during a flood
         _.pull(this.addUserBatch.queue(), userObj);
@@ -569,6 +571,114 @@ export default class BufferState {
     isReady() {
         return this.getLoadingState() === 'done';
     }
+
+    userSorter(a, b) {
+        if (!window.kiwi.sorterCountA) {
+            window.kiwi.sorterCountA = 0;
+        }
+        window.kiwi.sorterCountA++;
+        // Get a list of network prefixes and give them a rank number
+        const network = this.state.getNetwork(this.networkid);
+        let netPrefixes = network.ircClient.network.options.PREFIX;
+        let prefixOrders = Object.create(null);
+        netPrefixes.forEach((prefix, idx) => {
+            prefixOrders[prefix.mode] = idx;
+        });
+
+        let bufferA = a.buffers[this.id];
+        let bufferB = b.buffers[this.id];
+
+        if (!bufferA) {
+            let msg = 'userSorter() User A does not have the buffer in its list!';
+            console.error(msg, a.nick, a.buffers);
+            return -1;
+        }
+        if (!bufferB) {
+            let msg = 'userSorter() User B does not have the buffer in its list!';
+            console.error(msg, b.nick, b.buffers);
+            return 1;
+        }
+
+        let modesA = bufferA.modes;
+        let modesB = bufferB.modes;
+
+        // Neither user has a prefix, compare text
+        if (
+            modesA.length === 0 &&
+            modesB.length === 0
+        ) {
+            // Compare away status
+            // TODO currently not supported by sortedUsers (does not update)
+            // if (this.state.setting('nicklistGroupAway')) {
+            //     if (a.away && !b.away) {
+            //         return 1;
+            //     }
+            //     if (!a.away && b.away) {
+            //         return -1;
+            //     }
+            // }
+
+            return strCompare(a.nick.toLowerCase(), b.nick.toLowerCase());
+        }
+
+        // Compare via prefixes..
+        if (
+            modesA.length > 0 &&
+            modesB.length === 0
+        ) {
+            return -1;
+        }
+
+        if (
+            modesA.length === 0 &&
+            modesB.length > 0
+        ) {
+            return 1;
+        }
+
+        // Both users have a prefix so find the highest ranking one
+        let aP = prefixOrders[this.userMode(a)];
+        let bP = prefixOrders[this.userMode(b)];
+        if (aP > bP) {
+            return 1;
+        } else if (aP < bP) {
+            return -1;
+        }
+
+        // Prefixes are the same, compare away status
+        if (this.state.setting('nicklistGroupAway')) {
+            if (a.away && !b.away) {
+                return 1;
+            }
+            if (!a.away && b.away) {
+                return -1;
+            }
+        }
+
+        // Prefixes are the same, resort to comparing text
+        return strCompare(a.nick.toLowerCase(), b.nick.toLowerCase());
+    }
+}
+
+// This provides a better sort for numbered nicks but does not work on ios9
+let intlCollator = null;
+if (global.Intl) {
+    intlCollator = new Intl.Collator({}, { numeric: true });
+}
+
+// Hot function, so it's here for easier caching
+function strCompare(a, b) {
+    if (intlCollator) {
+        return intlCollator.compare(a, b);
+    }
+
+    if (a === b) {
+        return 0;
+    }
+
+    return a > b ?
+        1 :
+        -1;
 }
 
 /**

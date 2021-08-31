@@ -1,4 +1,4 @@
-<template functional>
+<template>
     <div
         :class="[
             'kiwi-messagelist-message-' + props.message.type,

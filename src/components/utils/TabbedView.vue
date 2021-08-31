@@ -18,7 +18,9 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
+import Vue from 'vue';
+
+/* eslint-disable vue/one-component-per-file */
 
 Vue.component('tabbed-tab', {
     props: {
@@ -32,7 +34,7 @@ Vue.component('tabbed-tab', {
     template: '<div v-if="active" class="u-tabbed-content"><slot></slot></div>',
 });
 
-export default Vue.component('tabbed-view', {
+export default {
     data: function data() {
         return {
             // We increment this when we need to re-render the tabs.
@@ -88,7 +90,7 @@ export default Vue.component('tabbed-view', {
             });
         },
     },
-});
+};
 </script>
 
 <style>

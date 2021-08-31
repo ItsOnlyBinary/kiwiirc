@@ -1,15 +1,15 @@
-<template functional>
+<template>
     <div
-        :data-nick="props.message&&props.message.nick"
-        :class="[$options.m.hasAvatar(props) ? 'kiwi-avatar--image' : '', data.staticClass]"
+        :data-nick="$props.message && $props.message.nick"
+        :class="[$options.m.hasAvatar($props) ? 'kiwi-avatar--image' : '', $data.staticClass]"
         class="kiwi-avatar"
     >
         <span
-            :style="$options.m.avatarStyle(props)"
-            :class="{'kiwi-avatar--default': $options.m.isDefault(props)}"
+            :style="$options.m.avatarStyle($props)"
+            :class="{'kiwi-avatar--default': $options.m.isDefault($props)}"
             class="kiwi-avatar-inner"
         >
-            {{ $options.m.hasAvatar(props) ? '' : $options.m.firstNickLetter(props) }}
+            {{ $options.m.hasAvatar($props) ? '' : $options.m.firstNickLetter($props) }}
         </span>
     </div>
 </template>

@@ -32,7 +32,7 @@
                         :buffer="buffer"
                         :sidebar-state="sidebarState"
                     >
-                        <template v-if="mediaviewerOpen" v-slot:before>
+                        <template v-if="mediaviewerOpen" #before>
                             <media-viewer
                                 :url="mediaviewerUrl"
                                 :component="mediaviewerComponent"
@@ -112,7 +112,7 @@ export default {
             mediaviewerComponentProps: {},
             mediaviewerIframe: false,
             themeUrl: '',
-            sidebarState: new SidebarState(),
+            sidebarState: null,
         };
     },
     computed: {
@@ -127,6 +127,7 @@ export default {
         },
     },
     created() {
+        console.log('created');
         this.listenForActiveComponents();
         this.watchForThemes();
         this.initStateBrowser();
@@ -139,6 +140,7 @@ export default {
         this.listen(window, 'touchstart', (event) => this.onTouchStart(event));
     },
     mounted() {
+        console.log('mounted');
         // Decide which startup screen to use depending on the config
         let startupScreens = {
             welcome: startupWelcome,
@@ -158,6 +160,7 @@ export default {
             this.startupComponent = startup;
         }
         this.trackWindowDimensions();
+        this.sidebarState = new SidebarState();
     },
     methods: {
         // Triggered by a startup screen event
@@ -382,13 +385,9 @@ export default {
 </script>
 
 <style lang="less">
-html {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-body {
+html,
+body,
+#app {
     height: 100%;
     margin: 0;
     padding: 0;

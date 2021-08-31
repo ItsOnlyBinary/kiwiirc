@@ -19,7 +19,8 @@ module.exports = {
         resolve: {
             extensions: ['.js', '.vue', '.json'],
             alias: {
-                vue$: 'vue/dist/vue.common.js',
+                // vue$: '@vue/compat/dist/vue.esm-bundler.js',
+                // vue: '@vue/compat',
             },
             // This prevents yarn link modules from getting linted
             symlinks: false,
@@ -77,6 +78,11 @@ module.exports = {
         const vueRule = config.module.rule('vue');
         const vueCacheOptions = vueRule.uses.get('cache-loader').get('options');
         const vueOptions = vueRule.uses.get('vue-loader').get('options');
+        // vueOptions.compilerOptions = {
+        //     compatConfig: {
+        //         MODE: 2,
+        //     },
+        // };
         vueRule.uses.clear();
         vueRule.use('cache-loader').loader('cache-loader').options(vueCacheOptions);
         vueRule.use('exports-loader').loader('exports-loader');
@@ -95,6 +101,23 @@ module.exports = {
             .exclude.add(path.join(__dirname, 'index.html')).end()
             .use('html-loader')
             .loader('html-loader');
+
+        config.resolve.alias.set('vue', '@vue/compat/dist/vue.esm-bundler.js');
+        config.resolve.alias.set('vue$', '@vue/compat/dist/vue.esm-bundler.js');
+        config.module
+            .rule('vue')
+            .use('vue-loader')
+            // eslint-disable-next-line arrow-body-style
+            .tap((options) => {
+                return {
+                    ...options,
+                    compilerOptions: {
+                        compatConfig: {
+                            MODE: 2,
+                        },
+                    },
+                };
+            });
 
         // Remove the old 'app' entry
         config.entryPoints.delete('app');

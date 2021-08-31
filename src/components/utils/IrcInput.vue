@@ -28,9 +28,7 @@ import * as htmlparser from 'htmlparser2';
 import * as Colours from '@/helpers/Colours';
 import * as Misc from '@/helpers/Misc';
 
-let Vue = require('vue');
-
-export default Vue.component('irc-input', {
+export default {
     props: ['placeholder'],
     data() {
         return {
@@ -438,7 +436,7 @@ export default Vue.component('irc-input', {
             selection.addRange(range);
         },
     },
-});
+};
 </script>
 
 <style>

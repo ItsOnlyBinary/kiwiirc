@@ -22,9 +22,7 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-prompt', {
+export default {
     props: ['label', 'hideCancel', 'noprompt', 'block'],
     data: function data() {
         return {
@@ -53,7 +51,7 @@ export default Vue.component('input-prompt', {
             this.state = 'pre';
         },
     },
-});
+};
 </script>
 
 <style>

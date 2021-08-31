@@ -105,7 +105,7 @@ export const configTemplates = {
         showColorPicker: false,
         showSendButton: false,
         showAwayStatusIndicators: true,
-        sidebarDefault: 'nicklist',
+        sidebarDefault: '',
         showRaw: false,
         useBufferHistory: true,
         hideSettings: null,

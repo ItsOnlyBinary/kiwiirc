@@ -1,5 +1,8 @@
 const rulesDirPlugin = require('eslint-plugin-rulesdir');
+
 rulesDirPlugin.RULES_DIR = 'build/eslint/rules/';
+
+/* eslint-disable quote-props */
 
 module.exports = {
     root: true,
@@ -10,7 +13,7 @@ module.exports = {
     extends: [
         'plugin:vue/recommended',
         '@vue/airbnb',
-        'standard'
+        'standard',
     ],
     env: {
         'browser': true,
@@ -64,6 +67,11 @@ module.exports = {
         'vue/require-prop-types': 0,
         'vue/require-default-prop': 0,
         'vue/singleline-html-element-content-newline': 0,
+
+        // TODO: vue 3 hacks/fixes
+        'vue/no-mutating-props': 0,
+        'vue/no-v-for-template-key': 0,
+        'vue/component-definition-name-casing': 0,
     },
     overrides: [{
         files: [

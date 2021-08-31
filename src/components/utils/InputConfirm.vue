@@ -17,9 +17,7 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-confirm', {
+export default {
     props: ['label', 'flipConnotation'],
     data: function data() {
         return {
@@ -49,7 +47,7 @@ export default Vue.component('input-confirm', {
             this.state = 'pre';
         },
     },
-});
+};
 </script>
 
 <style>

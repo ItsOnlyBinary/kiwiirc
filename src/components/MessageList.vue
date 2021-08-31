@@ -1,5 +1,6 @@
 <template>
     <div
+        ref="el"
         :key="'messagelist-' + buffer.name"
         class="kiwi-messagelist"
         :class="{'kiwi-messagelist--smoothscroll': smooth_scroll}"
@@ -29,17 +30,15 @@
                     <span>{{ (new Date(day.messages[0].time)).toDateString() }}</span>
                 </div>
 
-                <template v-for="message in day.messages">
+                <template v-for="message in day.messages" :key="message.id">
                     <div
                         v-if="shouldShowUnreadMarker(message)"
-                        :key="'msgunreadmarker' + message.id"
                         class="kiwi-messagelist-seperator"
                     >
                         <span>{{ $t('unread_messages') }}</span>
                     </div>
 
                     <div
-                        :key="'msg' + message.id"
                         :class="[
                             'kiwi-messagelist-item',
                             selectedMessages[message.id] ?
@@ -424,7 +423,10 @@ export default {
             }
         },
         checkScrollingState() {
-            let el = this.$el;
+            let el = this.$refs.el;
+            if (!el) {
+                return;
+            }
             let scrolledUpByPx = el.scrollHeight - (el.offsetHeight + el.scrollTop);
 
             // We need to know at this point (before the DOM has updated with new messages) if we
@@ -457,7 +459,10 @@ export default {
             this.maybeScrollToBottom();
         },
         scrollToBottom() {
-            this.$el.scrollTop = this.$el.scrollHeight;
+            if (!this.$refs.el) {
+                return;
+            }
+            this.$refs.el.scrollTop = this.$refs.el.scrollHeight;
         },
         maybeScrollToBottom() {
             if (this.auto_scroll) {
@@ -465,26 +470,26 @@ export default {
             }
         },
         maybeScrollToId(id) {
-            let messageElement = this.$el.querySelector('.kiwi-messagelist-message[data-message-id="' + id + '"]');
+            let messageElement = this.$refs.el.querySelector('.kiwi-messagelist-message[data-message-id="' + id + '"]');
             if (messageElement && messageElement.offsetTop) {
-                this.$el.scrollTop = messageElement.offsetTop;
+                this.$refs.el.scrollTop = messageElement.offsetTop;
                 this.auto_scroll = false;
             }
         },
         getSelectedMessages() {
             let sel = document.getSelection();
             let r = sel.getRangeAt(0);
-            let messageEls = [...this.$el.querySelectorAll('.kiwi-messagelist-message')];
+            let messageEls = [...this.$refs.el.querySelectorAll('.kiwi-messagelist-message')];
             let selectedMessageEls = messageEls.filter((el) => r.intersectsNode(el));
             return selectedMessageEls;
         },
         restrictTextSelection() { // Prevents the selection cursor escaping the message list.
             document.querySelector('body').classList.add('kiwi-unselectable');
-            this.$el.style.userSelect = 'text';
+            this.$refs.el.style.userSelect = 'text';
         },
         unrestrictTextSelection() { // Allows all page elements to be selected again.
             document.querySelector('body').classList.remove('kiwi-unselectable');
-            this.$el.style.userSelect = 'auto';
+            this.$refs.el.style.userSelect = 'auto';
         },
         removeSelections(removeNative = false) {
             this.selectedMessages = Object.create(null);
@@ -523,7 +528,7 @@ export default {
             let selectionChangeOff = null;
 
             this.listen(document, 'selectstart', (e) => {
-                if (!this.$el.contains(e.target)) {
+                if (!this.$refs.el.contains(e.target)) {
                     // Selected elsewhere on the page
                     copyData = '';
                     this.removeSelections();
@@ -544,7 +549,7 @@ export default {
             });
 
             let onSelectionChange = (e) => {
-                if (!this.$el) {
+                if (!this.$refs.el) {
                     return true;
                 }
 
@@ -554,7 +559,7 @@ export default {
 
                 if (!selection
                 || !selection.anchorNode
-                || !selection.anchorNode.parentNode.closest('.' + this.$el.className)) {
+                || !selection.anchorNode.parentNode.closest('.' + this.$refs.el.className)) {
                     this.unrestrictTextSelection();
                     this.removeSelections();
                     return true;

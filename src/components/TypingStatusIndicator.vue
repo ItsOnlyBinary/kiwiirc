@@ -1,4 +1,4 @@
-<template functional>
+<template>
     <span
         v-if="props.user && $options.m.status(props) !== ''"
         :class="{

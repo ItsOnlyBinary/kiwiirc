@@ -31,11 +31,18 @@ import WindowTitle from '@/libs/WindowTitle';
 import { configTemplates } from '@/res/configTemplates';
 
 // Global utilities
-import '@/components/utils/TabbedView';
-import '@/components/utils/InputText';
-import '@/components/utils/IrcInput';
-import '@/components/utils/InputPrompt';
-import '@/components/utils/InputConfirm';
+import TabbedView from '@/components/utils/TabbedView';
+import InputText from '@/components/utils/InputText';
+import IrcInput from '@/components/utils/IrcInput';
+import InputPrompt from '@/components/utils/InputPrompt';
+import InputConfirm from '@/components/utils/InputConfirm';
+
+// TODO: vue 3 changes
+Vue.component('tabbed-view', TabbedView);
+Vue.component('input-text', InputText);
+Vue.component('irc-input', IrcInput);
+Vue.component('input-prompt', InputPrompt);
+Vue.component('input-confirm', InputConfirm);
 
 Vue.use(VueVirtualScroller);
 

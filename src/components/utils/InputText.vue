@@ -63,9 +63,7 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-text', {
+export default {
     props: ['value', 'label', 'type', 'showPlainText'],
     data: function data() {
         return {
@@ -99,7 +97,7 @@ export default Vue.component('input-text', {
             return navigator.appVersion.indexOf('Edge') > -1;
         },
     },
-});
+};
 </script>
 
 <style>

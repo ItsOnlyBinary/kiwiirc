@@ -108,7 +108,7 @@ export default class InputHandler {
         };
 
         // Plugins may tap into this event to handle a command themselves
-        this.state.$emit('input.command.' + command, eventObj, command, params);
+        this.state.emit('input.command.' + command, eventObj, command, params);
         if (eventObj.handled) {
             return;
         }
@@ -478,7 +478,7 @@ inputCommands.query = function inputCommandQuery(event, command, line) {
     this.state.setActiveBuffer(network.id, buffer.name);
 
     if (message) {
-        this.state.$emit('input.raw', '/msg ' + buffer.name + ' ' + message);
+        this.state.emit('input.raw', '/msg ' + buffer.name + ' ' + message);
     }
 };
 
@@ -908,10 +908,10 @@ inputCommands.server = function inputCommandServer(event, command, line) {
 
 inputCommands.beep = function inputCommandBeep(event, command, line) {
     event.handled = true;
-    this.state.$emit('audio.bleep');
+    this.state.emit('audio.bleep');
 };
 
 inputCommands.notify = function inputCommandNotify(event, command, line) {
     event.handled = true;
-    this.state.$emit('notification.show', line);
+    this.state.emit('notification.show', line);
 };

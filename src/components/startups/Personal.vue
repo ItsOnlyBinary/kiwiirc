@@ -210,7 +210,7 @@ export default {
             return null;
         },
         toggleStateBrowser() {
-            this.$state.$emit('statebrowser.show');
+            this.$state.emit('statebrowser.show');
         },
         async init() {
             if (!firstRun) {

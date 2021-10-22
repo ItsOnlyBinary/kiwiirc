@@ -313,7 +313,7 @@ export default {
             let buffer = this.$state.addBuffer(this.network.id, this.user.nick);
             this.$state.setActiveBuffer(this.network.id, buffer.name);
             if (this.$state.ui.is_narrow) {
-                this.$state.$emit('userbox.hide');
+                this.$state.emit('userbox.hide');
             }
         },
         onChannelsClick(event) {

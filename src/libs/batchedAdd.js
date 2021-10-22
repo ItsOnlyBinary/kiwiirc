@@ -53,6 +53,7 @@ export default function batchedAdd(singleFn, batchedFn, numInsertsSec = 3) {
             numInLastSec++;
         }
 
+        // console.log('batchedAdd', inTick, numInLastSec, numInsertsSec);
         // If already queuing or we reached our limit on items/sec, queue the item
         if (queue.length || numInLastSec > numInsertsSec) {
             queue.push(item);

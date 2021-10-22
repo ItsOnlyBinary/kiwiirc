@@ -216,7 +216,7 @@ export default {
             }
         },
         openUserbox(user) {
-            this.$state.$emit('userbox.show', user, {
+            this.$state.emit('userbox.show', user, {
                 buffer: this.buffer,
             });
         },

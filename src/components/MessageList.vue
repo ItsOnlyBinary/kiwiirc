@@ -345,7 +345,7 @@ export default {
         openUserBox(nick) {
             let user = this.$state.getUser(this.buffer.networkid, nick);
             if (user) {
-                this.$state.$emit('userbox.show', user, {
+                this.$state.emit('userbox.show', user, {
                     buffer: this.buffer,
                 });
             }
@@ -367,7 +367,7 @@ export default {
             let nick = (user && user.nick) ?
                 user.nick :
                 dataNick;
-            this.$state.$emit('input.insertnick', nick);
+            this.$state.emit('input.insertnick', nick);
         },
         onMessageClick(event, message, delay) {
             // Delaying the click for 200ms allows us to check for a second click. ie. double click
@@ -401,7 +401,7 @@ export default {
                     message.embed.type = 'url';
                     message.embed.payload = url;
                 } else {
-                    this.$state.$emit('mediaviewer.show', url);
+                    this.$state.emit('mediaviewer.show', url);
                 }
             }
 
@@ -628,9 +628,9 @@ export default {
             // First open the embed in the main media preview
             let embed = message.embed;
             if (embed.type === 'url') {
-                this.$state.$emit('mediaviewer.show', embed.payload);
+                this.$state.emit('mediaviewer.show', embed.payload);
             } else if (embed.type === 'component') {
-                this.$state.$emit('mediaviewer.show', {
+                this.$state.emit('mediaviewer.show', {
                     component: embed.payload,
                 });
             }

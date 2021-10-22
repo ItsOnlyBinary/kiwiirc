@@ -115,7 +115,7 @@ export default {
     },
     created: function created() {
         this.listen(this.$state, 'sidebar.toggle', () => {
-            this.$state.$emit('sidebar.' + (this.sidebarState.isDrawn ? 'hide' : 'show'));
+            this.$state.emit('sidebar.' + (this.sidebarState.isDrawn ? 'hide' : 'show'));
         });
         this.listen(this.$state, 'sidebar.show', () => {
             this.sidebarState.showNicklist();
@@ -166,11 +166,11 @@ export default {
     },
     methods: {
         toggleStateBrowser: function toggleStateBrowser() {
-            this.$state.$emit('statebrowser.toggle');
+            this.$state.emit('statebrowser.toggle');
         },
         toggleSidebar: function toggleSidebar() {
             if (this.buffer.isChannel()) {
-                this.$state.$emit('sidebar.toggle');
+                this.$state.emit('sidebar.toggle');
             }
         },
     },

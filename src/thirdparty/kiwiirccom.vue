@@ -73,7 +73,7 @@ const ctor = {
             network.showServerBuffer('settings');
         },
         toggleStateBrowser() {
-            this.$state.$emit('statebrowser.show');
+            this.$state.emit('statebrowser.show');
         },
         async init() {
             this.$state.persistence.watchStateForChanges();

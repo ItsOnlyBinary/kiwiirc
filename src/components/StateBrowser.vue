@@ -143,10 +143,10 @@ export default {
             network.showServerBuffer('settings');
         },
         clickAppSettings: function clickAppSettings() {
-            this.$state.$emit('active.component.toggle', AppSettings);
+            this.$state.emit('active.component.toggle', AppSettings);
         },
         hideStatebrowser: function hideStatebrowser() {
-            this.$state.$emit('statebrowser.hide');
+            this.$state.emit('statebrowser.hide');
         },
         connectProvidedNetwork: function connectProvidedNetwork(pNet) {
             let net = this.$state.addNetwork(pNet.name, pNet.nick, {

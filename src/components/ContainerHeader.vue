@@ -49,7 +49,7 @@
                         @click="sidebarState.toggleNicklist()"
                     >
                         <i class="fa fa-users" aria-hidden="true" />
-                        <span>{{ Object.keys(buffer.users).length }}</span>
+                        <span>{{ buffer.usersCount }}</span>
                     </a>
                 </div>
                 <div

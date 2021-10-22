@@ -1,6 +1,8 @@
 /** @module */
 
-import Vue from 'vue';
+/* eslint-disable no-underscore-dangle */
+
+import Vue, { shallowReactive, computed } from 'vue';
 import _ from 'lodash';
 import { def } from './common';
 import batchedAdd from '../batchedAdd';
@@ -20,7 +22,11 @@ export default class BufferState {
         this.joined = false;
         this.enabled = true;
         this.created_at = null;
-        this.users = Object.create(null);
+        this.usersCount = computed(() => {
+            console.log('computed usersCount');
+            return Object.keys(this.users).length;
+        });
+        this._usersCount = 0;
         this.modes = Object.create(null);
         this.flags = {
             unread: 0,
@@ -34,12 +40,15 @@ export default class BufferState {
         this.settings = { };
         this.last_read = 0;
         this.active_timeout = null;
-        this.message_count = 0;
         this.current_input = '';
         this.input_history = [];
         this.input_history_pos = 0;
         this.show_input = true;
         this.latest_messages = [];
+
+        this.reactive = shallowReactive(Object.create(null));
+        this.reactive.message_count = 0;
+        this.reactive.users = shallowReactive(Object.create(null));
 
         // Counter for chathistory requests. While this value is 0, it means that this buffer is
         // still loading messages
@@ -56,6 +65,7 @@ export default class BufferState {
             buffer: this.name,
             messages: [],
             messageIds: Object.create(null),
+            version: 0,
         };
         this.messageDict.push(messagesObj);
         def(this, 'messagesObj', messagesObj, false);
@@ -115,6 +125,23 @@ export default class BufferState {
 
     set topic(newVal) {
         this.topics.push(newVal);
+    }
+
+    get users() {
+        return this.reactive.users;
+    }
+
+    set users(val) {
+        this.reactive.users = shallowReactive(val);
+    }
+
+    /* eslint-disable camelcase */
+    get message_count() {
+        return this.reactive.message_count;
+    }
+
+    set message_count(val) {
+        this.reactive.message_count = val;
     }
 
     getNetwork() {
@@ -530,7 +557,7 @@ export default class BufferState {
     }
 
     scrollToMessage(id) {
-        this.state.$emit('messagelist.scrollto', { id: id });
+        this.state.emit('messagelist.scrollto', { id: id });
     }
 
     getLoadingState() {
@@ -577,9 +604,11 @@ export default class BufferState {
  */
 function createUserBatch(bufferState) {
     let addSingleUser = (u) => {
+        console.log('addSingleUser');
         bufferState.state.$set(bufferState.users, u.nick.toLowerCase(), u);
     };
     let addMultipleUsers = (users) => {
+        console.log('addMultipleUsers');
         let o = _.clone(bufferState.users);
         users.forEach((u) => {
             o[u.nick.toLowerCase()] = u;

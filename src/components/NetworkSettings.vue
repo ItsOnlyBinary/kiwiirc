@@ -278,7 +278,7 @@ export default {
 
             if (this.network.state === 'connected') {
                 this.switch_tabs_on_connect = false;
-                this.$state.$emit('server.tab.show', 'messages');
+                this.$state.emit('server.tab.show', 'messages');
             } else if (this.network.state_error) {
                 this.switch_tabs_on_connect = false;
             }
@@ -317,7 +317,7 @@ export default {
             }
 
             this.$state.removeNetwork(this.network.id);
-            this.$state.$emit('active.component');
+            this.$state.emit('active.component');
         },
         setZncPass() {
             let newPass = `${this.znc_username}/${this.znc_network}:${this.znc_password}`;

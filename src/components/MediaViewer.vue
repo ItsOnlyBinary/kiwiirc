@@ -91,7 +91,7 @@ export default {
     mounted() {
         this.updateEmbed();
         this.$nextTick(() => {
-            this.$state.$emit('mediaviewer.opened');
+            this.$state.emit('mediaviewer.opened');
         });
     },
     methods: {

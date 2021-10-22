@@ -107,12 +107,12 @@ export default class NetworkState {
     }
 
     showServerBuffer(tabName) {
-        this.appState.$emit('active.component', null);
+        this.appstate.emit('active.component', null);
         this.appState.setActiveBuffer(this.id, this.serverBuffer().name);
         // Hacky, but the server buffer component listens for events to switch
         // between tabs
         setImmediate(() => {
-            this.appState.$emit('server.tab.show', tabName || 'settings');
+            this.appstate.emit('server.tab.show', tabName || 'settings');
         });
     }
 

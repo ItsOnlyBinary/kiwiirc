@@ -68,12 +68,12 @@ export default class Message {
 
         this.toBlocks(messageList.buffer, messageList.useExtraFormatting);
 
-        state.$emit('message.prestyle', { message: this, blocks: this.blocks });
+        state.emit('message.prestyle', { message: this, blocks: this.blocks });
 
         let content = toHtml(this.blocks, showEmoticons);
         this.html = content;
 
-        state.$emit('message.poststyle', { message: this, blocks: this.blocks });
+        state.emit('message.poststyle', { message: this, blocks: this.blocks });
         return this.html;
     }
 
@@ -92,7 +92,7 @@ export default class Message {
         this.mentioned_urls = blocks.filter((block) => block.type === 'url').map((block) => block.meta.url);
         this.maybeAutoEmbed();
 
-        state.$emit('message.blocks', { message: this, blocks: blocks });
+        state.emit('message.blocks', { message: this, blocks: blocks });
         this.blocks = blocks;
         return blocks;
     }

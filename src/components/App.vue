@@ -39,7 +39,7 @@
                                 :component-props="mediaviewerComponentProps"
                                 :is-iframe="mediaviewerIframe"
                                 class="kiwi-main-mediaviewer"
-                                @close="$state.$emit('mediaviewer.hide', { source: 'user' });"
+                                @close="$state.emit('mediaviewer.hide', { source: 'user' });"
                             />
                         </template>
                     </container>
@@ -319,10 +319,10 @@ export default {
                 return;
             }
 
-            this.$state.$emit('buffer.paste', event);
+            this.$state.emit('buffer.paste', event);
         },
         emitDocumentClick(event) {
-            this.$state.$emit('document.clicked', event);
+            this.$state.emit('document.clicked', event);
         },
         onTouchStart(event) {
             // Parts of the UI adjust themselves if we're known to be using a touchscreen
@@ -341,7 +341,7 @@ export default {
             this.$state.ui.favicon_counter = 0;
         },
         onKeyDown(event) {
-            this.$state.$emit('document.keydown', event);
+            this.$state.emit('document.keydown', event);
 
             let meta = false;
 
@@ -369,7 +369,7 @@ export default {
                 event.preventDefault();
             } else if (meta && event.keyCode === 79) {
                 // meta + o
-                this.$state.$emit('active.component.toggle', AppSettings);
+                this.$state.emit('active.component.toggle', AppSettings);
                 event.preventDefault();
             } else if (meta && event.keyCode === 83) {
                 // meta + s

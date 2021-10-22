@@ -328,7 +328,7 @@ export default {
     },
     methods: {
         closeSettings: function closeSettings() {
-            this.$state.$emit('active.component');
+            this.$state.emit('active.component');
         },
         refreshTheme: function refreshTheme() {
             ThemeManager.instance().reload();

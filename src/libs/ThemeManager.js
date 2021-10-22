@@ -61,7 +61,7 @@ export default class ThemeManager {
         }
 
         this.state.setting('theme', theTheme.name);
-        this.state.$emit('theme.change');
+        this.state.emit('theme.change');
     }
 
     reload() {
@@ -80,7 +80,7 @@ export default class ThemeManager {
         }
 
         theme.url = url;
-        this.state.$emit('theme.change');
+        this.state.emit('theme.change');
     }
 
     static themeUrl(theme) {
@@ -104,7 +104,7 @@ export default class ThemeManager {
         }
 
         if (theme.name === 'custom') {
-            this.state.$emit('theme.change');
+            this.state.emit('theme.change');
         }
     }
 

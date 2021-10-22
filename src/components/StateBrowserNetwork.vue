@@ -393,10 +393,10 @@ export default {
         },
         setActiveBuffer: function switchContainer(buffer) {
             // Clear any active component to show the buffer again
-            this.$state.$emit('active.component', null);
+            this.$state.emit('active.component', null);
             this.$state.setActiveBuffer(buffer.networkid, buffer.name);
             if (this.$state.ui.is_narrow) {
-                this.$state.$emit('statebrowser.hide');
+                this.$state.emit('statebrowser.hide');
             }
         },
         showNetworkSettings(network) {

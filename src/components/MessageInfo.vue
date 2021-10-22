@@ -62,7 +62,7 @@ export default {
     },
     methods: {
         urlPreview: function urlPreview(url) {
-            this.$state.$emit('mediaviewer.show', url);
+            this.$state.emit('mediaviewer.show', url);
         },
         areWeAnOp: function areWeAnOp() {
             let ourNick = this.buffer.getNetwork().nick;

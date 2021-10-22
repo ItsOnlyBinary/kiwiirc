@@ -86,7 +86,7 @@ export default class GlobalApi extends EventEmitter {
         let pluginLogger = Logger.namespace(`Plugin ${plugin.name}`);
         try {
             plugin.fn(this, pluginLogger);
-            this.state.$emit('plugin.loaded', { name: plugin.name });
+            this.state.emit('plugin.loaded', { name: plugin.name });
         } catch (err) {
             pluginLogger.error(err.stack);
         }
@@ -117,16 +117,16 @@ export default class GlobalApi extends EventEmitter {
         let thisEmit = this.emit;
 
         // TODO: vue 3
-        // this.state.$emit = (...args) => {
-        //     try {
-        //         thisEmit.call(this, 'all', args[0], ...args.slice(1));
-        //         thisEmit.call(this, ...args);
-        //     } catch (err) {
-        //         Logger.error(err.stack);
-        //     }
+        this.state.emit = (...args) => {
+            try {
+                thisEmit.call(this, 'all', args[0], ...args.slice(1));
+                thisEmit.call(this, ...args);
+            } catch (err) {
+                Logger.error(err.stack);
+            }
 
-        //     return stateEmit.call(this.state, ...args);
-        // };
+            return stateEmit.call(this.state, ...args);
+        };
 
         // Let plugins emit events into the internal state
         this.emit = (...args) => {
@@ -248,9 +248,9 @@ export default class GlobalApi extends EventEmitter {
         // null disables any active component and reverts the UI back to the buffers
         let tab = this.tabs[name];
         if (tab) {
-            this.state.$emit('active.component', tab.component, tab.props);
+            this.state.emit('active.component', tab.component, tab.props);
         } else {
-            this.state.$emit('active.component', null);
+            this.state.emit('active.component', null);
         }
     }
 
@@ -259,7 +259,7 @@ export default class GlobalApi extends EventEmitter {
      * @param {Object} component The vuejs component to render
      */
     showInSidebar(component) {
-        this.state.$emit('sidebar.component', component);
+        this.state.emit('sidebar.component', component);
     }
 
     /**

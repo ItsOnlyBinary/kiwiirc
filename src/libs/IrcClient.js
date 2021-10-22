@@ -61,7 +61,7 @@ export function create(state, network) {
         }
 
         let eventObj = { network, transport: null };
-        state.$emit('network.connecting', eventObj);
+        state.emit('network.connecting', eventObj);
 
         if (eventObj.transport) {
             // A plugin might use its own transport of some kind
@@ -97,7 +97,7 @@ export function create(state, network) {
         }
 
         let eventObj = { network, message, handled: false };
-        state.$emit('ircout', eventObj);
+        state.emit('ircout', eventObj);
         if (!eventObj.handled) {
             originalIrcClientRaw.apply(ircClient, [message]);
         }
@@ -167,12 +167,12 @@ function clientMiddleware(state, network) {
     function rawEventsHandler(command, event, rawLine, client, next) {
         // Allow plugins to override raw IRC events
         let eventObj = { ...event, raw: rawLine, handled: false };
-        state.$emit('irc.raw', command, eventObj, network);
+        state.emit('irc.raw', command, eventObj, network);
         if (eventObj.handled) {
             return;
         }
 
-        state.$emit('irc.raw.' + command, command, eventObj, network);
+        state.emit('irc.raw.' + command, command, eventObj, network);
         if (eventObj.handled) {
             return;
         }
@@ -225,7 +225,7 @@ function clientMiddleware(state, network) {
         // Trigger this event through the state object first. If it's been handled
         // somewhere else then we ignore it.
         let ircEventObj = { handled: false };
-        state.$emit('irc.' + command, event, network, ircEventObj);
+        state.emit('irc.' + command, event, network, ircEventObj);
         if (ircEventObj.handled) {
             next();
             return;
@@ -269,7 +269,7 @@ function clientMiddleware(state, network) {
 
             if (network.auto_commands) {
                 network.auto_commands.split('\n').forEach((line) => {
-                    state.$emit('input.raw', line[0] === '/' ? line : `/${line}`);
+                    state.emit('input.raw', line[0] === '/' ? line : `/${line}`);
                 });
             }
 

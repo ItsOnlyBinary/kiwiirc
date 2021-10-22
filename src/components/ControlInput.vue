@@ -542,7 +542,7 @@ export default {
             }
 
             let ircText = this.$refs.input.buildIrcText();
-            this.$state.$emit('input.raw', ircText);
+            this.$state.emit('input.raw', ircText);
 
             // Add to history, keeping the history trimmed to the last 50 entries
             this.history.push(rawInput);

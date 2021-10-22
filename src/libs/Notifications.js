@@ -13,7 +13,7 @@ export function requestPermission(state) {
 
     // Permissions already been granted?
     if (Notification.permission === 'granted') {
-        state.$emit('notification.enabled');
+        state.emit('notification.enabled');
         isEnabled = true;
         return;
     }
@@ -21,7 +21,7 @@ export function requestPermission(state) {
     if (Notification.permission !== 'denied') {
         Notification.requestPermission((permission) => {
             if (permission === 'granted') {
-                state.$emit('notification.enabled');
+                state.emit('notification.enabled');
                 isEnabled = true;
             } else {
                 isEnabled = false;

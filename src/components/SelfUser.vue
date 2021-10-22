@@ -99,7 +99,7 @@ export default {
             this.self_user_settings_open = true;
         },
         openProfile() {
-            this.$state.$emit('userbox.show', this.network.currentUser());
+            this.$state.emit('userbox.show', this.network.currentUser());
         },
         closeSelfUser() {
             this.$emit('close');

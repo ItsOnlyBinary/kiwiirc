@@ -1,6 +1,6 @@
 'kiwi public';
 
-import Vue from 'vue';
+import Vue, { reactive } from 'vue';
 import _ from 'lodash';
 
 import NetworkState from './state/NetworkState';
@@ -72,7 +72,7 @@ function createNewState() {
     });
 
     // Messages are seperate from the above state object to keep them from being reactive. Saves CPU
-    const messages = [
+    const messages = reactive([
         /* {
             networkid: 1,
             buffer: '#kiwiirc',
@@ -81,7 +81,7 @@ function createNewState() {
                 Message
             ],
         }, */
-    ];
+    ]);
 
     const availableStartups = Object.create(null);
 
@@ -324,7 +324,7 @@ function createNewState() {
                 this.addBuffer(network.id, '*').joined = true;
 
                 let eventObj = { network };
-                state.$emit('network.new', eventObj);
+                state.emit('network.new', eventObj);
 
                 return network;
             },
@@ -356,7 +356,7 @@ function createNewState() {
                 }
 
                 let eventObj = { network };
-                state.$emit('network.removed', eventObj);
+                state.emit('network.removed', eventObj);
             },
 
             getActiveBuffer() {
@@ -509,7 +509,7 @@ function createNewState() {
                 network.buffers.push(buffer);
 
                 let eventObj = { buffer };
-                state.$emit('buffer.new', eventObj);
+                state.emit('buffer.new', eventObj);
 
                 return buffer;
             },
@@ -523,7 +523,7 @@ function createNewState() {
                 }
 
                 let eventObj = { buffer };
-                state.$emit('buffer.close', eventObj);
+                state.emit('buffer.close', eventObj);
 
                 let bufferIdx = network.buffers.indexOf(buffer);
                 if (bufferIdx > -1) {
@@ -671,7 +671,7 @@ function createNewState() {
                     }
 
                     if (notifyTitle) {
-                        this.$emit('notification.show', notifyMessage, {
+                        this.emit('notification.show', notifyMessage, {
                             title: notifyTitle,
                             onclick: () => {
                                 state.setActiveBuffer(buffer.networkid, buffer.name);
@@ -699,10 +699,10 @@ function createNewState() {
                         (buffer.setting('flash_title') === 'highlight' && isHighlight)
                     )
                 ) {
-                    this.$emit('notification.title', true);
+                    this.emit('notification.title', true);
                 }
 
-                this.$emit('message.new', { message: bufferMessage, buffer });
+                this.emit('message.new', { message: bufferMessage, buffer });
             },
 
             getUser(networkid, nick, usersArr_) {
@@ -784,32 +784,27 @@ function createNewState() {
 
             addMultipleUsersToBuffer(buffer, newUsers) {
                 let network = this.getNetwork(buffer.networkid);
-                let bufUsers = _.clone(buffer.users);
 
-                state.usersTransaction(network.id, (users) => {
-                    newUsers.forEach((newUser) => {
-                        let user = newUser.user;
-                        let modes = newUser.modes;
-                        let userObj = state.getUser(network.id, user.nick, users);
+                newUsers.forEach((newUser) => {
+                    let user = newUser.user;
+                    let modes = newUser.modes;
+                    let userObj = state.getUser(network.id, user.nick);
 
-                        if (!userObj) {
-                            userObj = this.addUser(network, user, users);
-                        }
-                        bufUsers[userObj.nick.toLowerCase()] = userObj;
+                    if (!userObj) {
+                        userObj = this.addUser(network, user);
+                    }
+                    buffer.addUser(userObj);
 
-                        // Add the buffer to the users buffer list
-                        if (!userObj.buffers[buffer.id]) {
-                            state.$set(userObj.buffers, buffer.id, {
-                                modes: modes || [],
-                                buffer: buffer,
-                            });
-                        } else {
-                            userObj.buffers[buffer.id].modes = modes || [];
-                        }
-                    });
+                    // Add the buffer to the users buffer list
+                    if (!userObj.buffers[buffer.id]) {
+                        state.$set(userObj.buffers, buffer.id, {
+                            modes: modes || [],
+                            buffer: buffer,
+                        });
+                    } else {
+                        userObj.buffers[buffer.id].modes = modes || [];
+                    }
                 });
-
-                buffer.users = bufUsers;
             },
 
             addUserToBuffer(buffer, user, modes) {

@@ -6,6 +6,7 @@
             'kiwi-wrap--touch': $state.ui.is_touch,
         }"
         :data-activebuffer="buffer ? buffer.name.toLowerCase() : ''"
+        :data-theme="themeName"
         class="kiwi-wrap kiwi-theme-bg"
         @click="emitDocumentClick"
         @paste.capture="emitBufferPaste"
@@ -111,6 +112,7 @@ export default {
             mediaviewerComponent: null,
             mediaviewerComponentProps: {},
             mediaviewerIframe: false,
+            themes: null,
             themeUrl: '',
             sidebarState: new SidebarState(),
         };
@@ -124,6 +126,9 @@ export default {
         },
         buffer() {
             return this.$state.getActiveBuffer();
+        },
+        themeName() {
+            return (this.themes.currentTheme().name || '').toLowerCase();
         },
     },
     created() {
@@ -208,11 +213,11 @@ export default {
             });
         },
         watchForThemes() {
-            let themes = ThemeManager.instance();
-            this.themeUrl = ThemeManager.themeUrl(themes.currentTheme());
+            this.themes = ThemeManager.instance();
+            this.themeUrl = ThemeManager.themeUrl(this.themes.currentTheme());
             this.$nextTick(() => cssVarsPonyfill());
             this.listen(this.$state, 'theme.change', () => {
-                this.themeUrl = ThemeManager.themeUrl(themes.currentTheme());
+                this.themeUrl = ThemeManager.themeUrl(this.themes.currentTheme());
                 this.$nextTick(() => cssVarsPonyfill());
             });
         },

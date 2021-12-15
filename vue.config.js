@@ -62,6 +62,9 @@ module.exports = {
                 ],
             }),
         ],
+        devServer: {
+            historyApiFallback: false,
+        },
     },
     chainWebpack: (config) => {
         config.plugin('html').tap((args) => {

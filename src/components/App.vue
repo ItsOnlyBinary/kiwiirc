@@ -6,11 +6,18 @@
             'kiwi-wrap--touch': $state.ui.is_touch,
         }"
         :data-activebuffer="buffer ? buffer.name.toLowerCase() : ''"
+        :data-theme="themeName.toLowerCase()"
         class="kiwi-wrap kiwi-theme-bg"
         @click="emitDocumentClick"
         @paste.capture="emitBufferPaste"
     >
-        <link :href="themeUrl" rel="stylesheet" type="text/css">
+        <link
+            class="kiwi-theme-link"
+            :href="themeUrl"
+            rel="stylesheet"
+            type="text/css"
+            @load="emitThemeLoaded"
+        >
 
         <template v-if="!hasStarted || (!fallbackComponent && networks.length === 0)">
             <component :is="startupComponent" @start="startUp" />
@@ -64,7 +71,6 @@
 'kiwi public';
 
 import 'font-awesome-webpack-4';
-import cssVarsPonyfill from 'css-vars-ponyfill';
 import '@/res/globalStyle.css';
 import Tinycon from 'tinycon';
 
@@ -82,6 +88,7 @@ import { State as SidebarState } from '@/components/Sidebar';
 import * as Notifications from '@/libs/Notifications';
 import * as bufferTools from '@/libs/bufferTools';
 import ThemeManager from '@/libs/ThemeManager';
+import GlobalApi from '@/libs/GlobalApi';
 import Logger from '@/libs/Logger';
 
 let log = Logger.namespace('App.vue');
@@ -111,6 +118,7 @@ export default {
             mediaviewerComponent: null,
             mediaviewerComponentProps: {},
             mediaviewerIframe: false,
+            themeName: '',
             themeUrl: '',
             sidebarState: new SidebarState(),
         };
@@ -208,13 +216,45 @@ export default {
             });
         },
         watchForThemes() {
-            let themes = ThemeManager.instance();
+            const themes = ThemeManager.instance();
+            this.themeName = themes.currentTheme().name;
             this.themeUrl = ThemeManager.themeUrl(themes.currentTheme());
-            this.$nextTick(() => cssVarsPonyfill());
+
             this.listen(this.$state, 'theme.change', () => {
-                this.themeUrl = ThemeManager.themeUrl(themes.currentTheme());
-                this.$nextTick(() => cssVarsPonyfill());
+                const previousThemeName = this.themeName;
+                const themeUrl = ThemeManager.themeUrl(themes.currentTheme());
+
+                // Load event only fires once for link's
+                // work around this by recreating the link when the theme changes
+                const oldLink = this.$el.querySelector('link.kiwi-theme-link');
+                const link = Object.assign(document.createElement('link'), {
+                    className: 'kiwi-theme-link',
+                    href: themeUrl,
+                    rel: 'stylesheet',
+                    type: 'text/css',
+                });
+                link.addEventListener('load', (event) => {
+                    // console.log('event', event.target.nextSibling);
+                    // Theme loaded successfully
+                    // remove old theme link
+                    if (this.$el.contains(oldLink)) {
+                        this.$el.removeChild(oldLink);
+                    }
+
+                    this.themeName = themes.currentTheme().name;
+                    this.emitThemeLoaded();
+                });
+                link.addEventListener('error', (event) => {
+                    // Theme failed to load
+                    // remove the theme link
+                    this.$el.removeChild(event.target);
+                    themes.setTheme(previousThemeName);
+                });
+                this.$el.prepend(link);
             });
+        },
+        emitThemeLoaded() {
+            GlobalApi.singleton().emit('theme.loaded');
         },
         initStateBrowser() {
             this.listen(this.$state, 'statebrowser.toggle', () => {

@@ -18,7 +18,6 @@
     "@babel/runtime-corejs3": "^7.16.3",
     "@panter/vue-i18next": "^0.15.2",
     "compare-versions": "^3.6.0",
-    "css-vars-ponyfill": "^2.4.7",
     "event-emitter": "^0.3.5",
     "font-awesome": "^4.7.0",
     "font-awesome-webpack-4": "^1.0.0",

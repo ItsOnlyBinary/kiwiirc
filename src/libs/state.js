@@ -754,7 +754,8 @@ function createNewState() {
                     return;
                 }
 
-                let users = _.clone(network.users);
+                let users = Object.create(null);
+                Object.apply(users, network.users);
                 fn(users);
                 network.users = users;
             },
@@ -807,7 +808,8 @@ function createNewState() {
 
             addMultipleUsersToBuffer(buffer, newUsers) {
                 let network = this.getNetwork(buffer.networkid);
-                let bufUsers = _.clone(buffer.users);
+                let bufUsers = Object.create(null);
+                Object.apply(bufUsers, buffer.users);
 
                 state.usersTransaction(network.id, (users) => {
                     newUsers.forEach((newUser) => {

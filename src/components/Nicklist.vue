@@ -27,7 +27,7 @@
         <DynamicScroller
             :items="sortedUsers"
             :min-item-size="34"
-            :key-field="'nick'"
+            :key-field="'nickUpper'"
             class="kiwi-nicklist-users"
         >
             <template v-slot="{ item, index, active }">
@@ -38,7 +38,7 @@
                     :data-index="index"
                 >
                     <nicklist-user
-                        :key="item.nick"
+                        :key="item.nickUpper"
                         :user="item"
                         :nicklist="self"
                         :network="network"
@@ -112,11 +112,11 @@ export default {
             let nickMap = Object.create(null);
             let users = [];
             let bufferUsers = this.buffer.users;
-            let nickFilter = this.user_filter.toLowerCase();
+            let nickFilter = this.user_filter.toUpperCase();
             /* eslint-disable guard-for-in, no-restricted-syntax */
             for (let lowercaseNick in bufferUsers) {
                 let user = bufferUsers[lowercaseNick];
-                nickMap[user.nick] = lowercaseNick;
+                nickMap['n' + user.nick] = lowercaseNick;
                 if (!nickFilter || lowercaseNick.indexOf(nickFilter) !== -1) {
                     users.push(user);
                 }
@@ -156,7 +156,7 @@ export default {
                         }
                     }
 
-                    return strCompare(nickMap[a.nick], nickMap[b.nick]);
+                    return strCompare(nickMap['n' + a.nick], nickMap['n' + b.nick]);
                 }
 
                 // Compare via prefixes..
@@ -194,7 +194,7 @@ export default {
                 }
 
                 // Prefixes are the same, resort to comparing text
-                return strCompare(nickMap[a.nick], nickMap[b.nick]);
+                return strCompare(nickMap['n' + a.nick], nickMap['n' + b.nick]);
             });
         },
         useColouredNicks() {

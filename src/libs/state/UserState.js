@@ -7,6 +7,7 @@ import { def } from './common';
 export default class UserState {
     constructor(user) {
         this.nick = user.nick;
+        this.nickUpper = user.nick.toUpperCase();
         this.host = user.host || '';
         this.username = user.username || '';
         this.realname = user.realname || '';

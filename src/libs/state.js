@@ -740,7 +740,7 @@ function createNewState() {
                 }
 
                 if (users) {
-                    user = users[nick.toLowerCase()];
+                    user = users[nick.toUpperCase()];
                 }
 
                 return user;
@@ -776,8 +776,8 @@ function createNewState() {
                 let usersArr = usersArr_ || network.users;
                 let userObj = null;
 
-                if (!usersArr[user.nick.toLowerCase()]) {
-                    userObj = usersArr[user.nick.toLowerCase()] = new UserState(user);
+                if (!usersArr[user.nick.toUpperCase()]) {
+                    userObj = usersArr[user.nick.toUpperCase()] = new UserState(user);
                 } else {
                     // Update the existing user object with any new info we have
                     userObj = state.getUser(network.id, user.nick, usersArr);
@@ -802,7 +802,7 @@ function createNewState() {
                     state.removeUserFromBuffer(buffer, user.nick);
                 });
 
-                this.$delete(network.users, user.nick.toLowerCase());
+                this.$delete(network.users, user.nick.toUpperCase());
             },
 
             addMultipleUsersToBuffer(buffer, newUsers) {
@@ -818,7 +818,7 @@ function createNewState() {
                         if (!userObj) {
                             userObj = this.addUser(network, user, users);
                         }
-                        bufUsers[userObj.nick.toLowerCase()] = userObj;
+                        bufUsers[userObj.nick.toUpperCase()] = userObj;
 
                         // Add the buffer to the users buffer list
                         if (!userObj.buffers[buffer.id]) {
@@ -873,7 +873,7 @@ function createNewState() {
                     return [];
                 }
 
-                let normalisedNick = nick.toLowerCase();
+                let normalisedNick = nick.toUpperCase();
                 let buffers = [];
                 network.buffers.forEach((buffer) => {
                     let bufferNameLower = buffer.name.toLowerCase();
@@ -898,10 +898,11 @@ function createNewState() {
                     return;
                 }
 
-                let normalisedNew = newNick.toLowerCase();
-                let normalisedOld = oldNick.toLowerCase();
+                let normalisedNew = newNick.toUpperCase();
+                let normalisedOld = oldNick.toUpperCase();
 
                 user.nick = newNick;
+                user.nickUpper = normalisedNew;
 
                 // If the nick has completely changed (ie. not just a case change) then update all
                 // associated buffers user lists

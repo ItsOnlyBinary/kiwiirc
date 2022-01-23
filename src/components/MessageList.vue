@@ -182,8 +182,10 @@ export default {
             // Group messages by day
             let days = [];
             let lastDay = null;
+            let offset = (new Date()).getTimezoneOffset() * 60;
             this.filteredMessages.forEach((message) => {
-                let day = Math.floor(message.time / 1000 / 86400);
+                let timeSec = message.time / 1000;
+                let day = Math.floor((timeSec - offset) / 86400);
                 if (!lastDay || day !== lastDay) {
                     days.push({ dayNum: day, messages: [] });
                     lastDay = day;

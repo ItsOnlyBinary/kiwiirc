@@ -31,6 +31,8 @@ export default class GlobalApi extends EventEmitter {
         this.state = null;
         /** The applications ThemeManager */
         this.themes = null;
+        /** The applications TitleManager */
+        this.title = null;
         this.controlInputPlugins = [];
         this.stateBrowserPlugins = [];
         this.channelHeaderPlugins = [];

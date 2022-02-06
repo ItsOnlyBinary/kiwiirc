@@ -515,7 +515,7 @@ function initInputCommands() {
 }
 
 function startApp() {
-    new WindowTitle(getState());
+    api.title = new WindowTitle(getState());
 
     api.emit('init');
 

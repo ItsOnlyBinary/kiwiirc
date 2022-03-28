@@ -260,7 +260,7 @@ export default {
             if (!this.$state.setting('buffers.shared_input')) {
                 this.inputRestore();
             }
-
+            this.debug('bc', this.buffer.name, this.$state.setting('buffers.shared_input'));
             this.autocomplete_open = false;
         },
     },
@@ -336,7 +336,7 @@ export default {
     methods: {
         inputUpdate(val) {
             this.current_input_value = val;
-
+            this.debug('up', val);
             if (this.$state.setting('buffers.shared_input')) {
                 this.$state.ui.current_input = val;
             } else {
@@ -349,7 +349,7 @@ export default {
             let currentInput = this.$state.setting('buffers.shared_input') ?
                 this.$state.ui.current_input :
                 this.buffer.current_input;
-
+            this.debug('re', currentInput);
             this.$refs.input.reset(currentInput, this.keep_focus);
             this.$refs.input.selectionToEnd();
         },
@@ -595,7 +595,7 @@ export default {
             this.$state.$emit('input.raw', ircText);
 
             this.historyAdd(rawInput);
-
+            this.debug('sent message');
             this.$refs.input.reset('', this.keep_focus);
 
             this.stopTyping(false);
@@ -758,6 +758,14 @@ export default {
             this.$refs.input.getRawText().trim() ?
                 network.ircClient.typing.pause(this.buffer.name) :
                 network.ircClient.typing.stop(this.buffer.name, sendStop);
+        },
+        debug(...args) {
+            const buffer = this.$state.getOrAddBufferByName(this.buffer.getNetwork().id, '*debug');
+            this.$state.addMessage(buffer, {
+                time: Date.now(),
+                nick: '',
+                message: JSON.stringify(args),
+            });
         },
     },
 };

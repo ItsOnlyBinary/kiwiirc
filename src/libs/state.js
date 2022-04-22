@@ -11,6 +11,9 @@ import Message from './Message';
 import * as Misc from '@/helpers/Misc';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import { configTemplates } from '@/res/configTemplates';
+import Logger from '@/libs/Logger';
+
+let log = Logger.namespace('state');
 
 function createNewState() {
     const stateObj = {
@@ -770,6 +773,12 @@ function createNewState() {
                 }
 
                 if (!network) {
+                    return null;
+                }
+
+                if (!user.nick) {
+                    let stack = (new Error()).stack.split('\n').slice(1).join('\n');
+                    log.error('tried to addUser() with missing nick', '\n' + stack);
                     return null;
                 }
 

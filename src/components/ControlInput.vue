@@ -626,6 +626,7 @@ export default {
         },
         focusChanged(event) {
             this.has_focus = event.type === 'focus';
+            this.debug('fc', event.type, event.relatedTarget?.tagName, event.relatedTarget?.className);
             if (
                 event.type === 'blur' &&
                 event.relatedTarget &&

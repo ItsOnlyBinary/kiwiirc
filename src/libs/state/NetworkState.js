@@ -22,6 +22,7 @@ export default class NetworkState {
         this.hidden = false;
         this.channel_list = [];
         this.channel_list_state = '';
+        this.ignored_list = [];
         // The IRCd type as mentioned in the 002 numeric
         this.ircd = '';
         this.connection = {

@@ -116,6 +116,7 @@ function createNewState() {
                             password: network.password,
                             hidden: network.hidden,
                             is_bnc: network.is_bnc,
+                            ignored_list: network.ignored_list,
                             buffers: [],
                         };
 
@@ -171,6 +172,7 @@ function createNewState() {
                         network.password = importNetwork.password;
                         network.hidden = importNetwork.hidden;
                         network.is_bnc = importNetwork.is_bnc;
+                        network.ignored_list = importNetwork.ignored_list || [];
 
                         this.networks.push(network);
 
@@ -786,6 +788,10 @@ function createNewState() {
                             userObj[prop] = val;
                         }
                     });
+                }
+                if (network.ignored_list !== undefined &&
+                    _.includes(network.ignored_list, user.nick)) {
+                    userObj.ignore = true;
                 }
 
                 return userObj;

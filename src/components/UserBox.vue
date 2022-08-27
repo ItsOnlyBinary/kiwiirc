@@ -388,8 +388,12 @@ export default {
             this.network.ircClient.raw('KICK', this.buffer.name, this.user.nick, reason);
         },
         toggleIgnore: function() {
+            if (this.user.ignore) {
+                this.network.ignored_list.pop(this.user.nick);
+            } else {
+                this.network.ignored_list.push(this.user.nick);
+            }
             this.user.ignore = !this.user.ignore;
-            this.network.ignored_list.push(this.user.nick);
         },
     },
 };

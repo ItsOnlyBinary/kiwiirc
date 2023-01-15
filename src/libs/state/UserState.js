@@ -18,7 +18,12 @@ export default class UserState {
         this.buffers = Object.create(null);
         this.hasWhois = false;
         this.typingState = Object.create(null);
-        this.avatar = user.avatar || { small: '', large: '' };
+        this.avatar = user.avatar || {
+            small: '',
+            small_failed: 0,
+            large: '',
+            large_failed: 0,
+        };
         this.ignore = false;
 
         Vue.observable(this);

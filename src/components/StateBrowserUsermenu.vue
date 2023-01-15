@@ -14,13 +14,8 @@
             <avatar
                 v-if="getUser"
                 :user="getUser"
-                size="large"
-            />
-            <away-status-indicator
-                v-if="network && network.state === 'connected'"
                 :network="network"
-                :user="getUser"
-                :toggle="false"
+                size="large"
             />
         </div>
         <div v-if="is_usermenu_open" class="kiwi-statebrowser-usermenu-body">
@@ -65,7 +60,7 @@ export default {
             return name;
         },
         getUser() {
-            if (this.network && this.network.currentUser()) {
+            if (this.network && this.network.state && this.network.currentUser()) {
                 return this.network.currentUser();
             }
 
@@ -125,21 +120,7 @@ export default {
     width: 80px;
     height: 80px;
     margin: 0 auto 0.4em auto;
-    font-size: 2.8em;
     transition: background 0.2s;
-}
-
-.kiwi-statebrowser-usermenu-avatar .kiwi-avatar-inner {
-    border-width: 3px;
-}
-
-.kiwi-statebrowser-usermenu .kiwi-awaystatusindicator {
-    position: absolute;
-    top: 4px;
-    right: 0;
-    width: 14px;
-    height: 14px;
-    border: 1px solid;
 }
 
 .kiwi-statebrowser-usermenu-body {

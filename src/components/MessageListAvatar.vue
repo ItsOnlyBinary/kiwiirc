@@ -1,5 +1,11 @@
 <template functional>
-    <component :is="$options.c.Avatar" :user="props.user" :message="props.message" size="small" />
+    <component
+        :is="$options.c.Avatar"
+        :network="props.network"
+        :user="props.user"
+        size="small"
+        :message="props.message"
+    />
 </template>
 
 <script>
@@ -14,7 +20,7 @@ export default {
     c: {
         Avatar,
     },
-    props: ['message', 'user'],
+    props: ['message', 'network', 'user'],
 };
 
 </script>

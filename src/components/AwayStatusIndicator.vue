@@ -52,7 +52,10 @@ export default {
     props: {
         network: Object,
         user: Object,
-        toggle: Boolean,
+        toggle: {
+            type: Boolean,
+            default: false,
+        },
     },
     m: methods,
 };

@@ -12,18 +12,13 @@
         class="kiwi-nicklist-user"
         @click="props.nicklist.openUserbox(props.user)"
     >
-        <div v-if="props.m().shouldShowAvatars()" class="kiwi-avatar-container">
+        <div v-if="props.m().shouldShowAvatars" class="kiwi-avatar-container">
             <component
                 :is="injections.components.Avatar"
                 v-if="props.user"
                 :user="props.user"
-                size="small"
-            />
-            <component
-                :is="injections.components.AwayStatusIndicator"
                 :network="props.network"
-                :user="props.user"
-                :toggle="false"
+                size="small"
             />
         </div>
         <div v-else>
@@ -165,13 +160,6 @@ export default {
 .kiwi-avatar-container .kiwi-avatar {
     width: 30px;
     height: 30px;
-}
-
-.kiwi-avatar-container .kiwi-awaystatusindicator {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
 }
 
 .kiwi-avatar-container-user-prefix {

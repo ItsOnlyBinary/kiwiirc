@@ -5,8 +5,7 @@
         </span>
         <div class="kiwi-userbox-header">
             <div class="kiwi-userbox-avatar">
-                <avatar :user="user" size="large" />
-                <away-status-indicator :network="network" :user="user" />
+                <avatar :user="user" :network="network" :size="80" />
             </div>
             <div class="kiwi-userbox-userinfo">
                 <span

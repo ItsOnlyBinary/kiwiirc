@@ -40,18 +40,11 @@
         <div class="kiwi-messagelist-modern-left">
             <component
                 :is="injections.components.MessageAvatar"
-                v-if="props.m().isMessage(props.message) && props.m().displayAvatar(props.message)"
+                v-if="props.m().displayAvatar(props.message)"
+                :network="props.m().getNetwork()"
                 :message="props.message"
                 :data-nick="props.message.nick"
                 :user="props.message.user"
-            />
-            <component
-                :is="injections.components.AwayStatusIndicator"
-                v-if="props.message.user && !props.m().isRepeat()"
-                :network="props.m().getNetwork()"
-                :user="props.message.user"
-                :toggle="false"
-                class="kiwi-messagelist-awaystatus"
             />
 
         </div>
@@ -136,7 +129,6 @@
 import { urlRegex } from '@/helpers/TextFormatting';
 import MessageInfo from './MessageInfo';
 import MessageListAvatar from './MessageListAvatar';
-import AwayStatusIndicator from './AwayStatusIndicator';
 import MediaViewer from './MediaViewer';
 
 const methods = {
@@ -200,15 +192,12 @@ const methods = {
     },
     displayAvatar(message) {
         let props = this.props;
-        // if there is no user attached hide the avatar
-        if (!message.user) {
-            return false;
-        }
+
         // dont show avatars in server or special buffers
         if (props.ml.buffer.isServer() || props.ml.buffer.isSpecial()) {
             return false;
         }
-        return true;
+        return this.isMessage(message);
     },
     userMode(user) {
         let props = this.props;
@@ -226,7 +215,6 @@ export default {
             default: {
                 MessageAvatar: MessageListAvatar,
                 MessageInfo,
-                AwayStatusIndicator,
                 MediaViewer,
             },
         },
@@ -268,17 +256,9 @@ export default {
     width: 50px;
 }
 
-.kiwi-messagelist-awaystatus {
-    width: 10px;
-    top: 4px;
-    right: 2px;
-    height: 10px;
-    position: absolute;
-}
-
 .kiwi-messagelist-message--modern .kiwi-avatar {
-    height: 40px;
     width: 40px;
+    height: 40px;
 }
 
 .kiwi-messagelist-message--modern.kiwi-messagelist-message--authorfirst {

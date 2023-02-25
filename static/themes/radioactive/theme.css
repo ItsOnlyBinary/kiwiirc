@@ -848,10 +848,10 @@
 }
 
 /* User Settings */
-.kiwi-statebrowser-appsettings {
+.kiwi-statebrowser-button {
     color: #14fdce;
 }
-.kiwi-statebrowser-appsettings:hover {
+.kiwi-statebrowser-button:hover {
     color: #fff;
     opacity: 1;
 }

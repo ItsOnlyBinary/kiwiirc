@@ -43,6 +43,7 @@ export default class GlobalApi extends EventEmitter {
         this.sideBarPlugins = [];
         this.userboxButtonPlugins = [];
         this.userboxInfoPlugins = [];
+        this.userboxWhoisPlugins = [];
         this.appSettingsPlugins = [];
         this.serverViewPlugins = [];
         this.aboutBufferPlugins = [];
@@ -179,6 +180,12 @@ export default class GlobalApi extends EventEmitter {
         case 'browser':
             this.stateBrowserPlugins.push(plugin);
             break;
+        case 'browser_header':
+            this.stateBrowserHeaderPlugins.push(plugin);
+            break;
+        case 'browser_footer':
+            this.stateBrowserFooterPlugins.push(plugin);
+            break;
         case 'header_channel':
             this.channelHeaderPlugins.push(plugin);
             break;
@@ -190,6 +197,9 @@ export default class GlobalApi extends EventEmitter {
             break;
         case 'userbox_info':
             this.userboxInfoPlugins.push(plugin);
+            break;
+        case 'userbox_whois':
+            this.userboxWhoisPlugins.push(plugin);
             break;
         case 'about_buffer':
             this.aboutBufferPlugins.push(plugin);

@@ -1,13 +1,46 @@
 <template>
     <div class="kiwi-statebrowser kiwi-theme-bg">
-
-        <div
-            v-if="!$state.setting('hideSettings')"
-            :title="$t('kiwi_settings')"
-            class="kiwi-statebrowser-appsettings"
-            @click="clickAppSettings"
-        >
-            <i class="fa fa-cog" aria-hidden="true" />
+        <div class="kiwi-statebrowser-header">
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-cog" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-arrows" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-clock-o" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-plus-square" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-upload" aria-hidden="true" />
+            </div>
         </div>
 
         <state-browser-usermenu
@@ -42,11 +75,61 @@
             </div>
         </div>
 
-        <div v-if="!isRestrictedServer" class="kiwi-statebrowser-newnetwork">
+        <div v-if="false && !isRestrictedServer" class="kiwi-statebrowser-newnetwork">
             <a class="u-button u-button-primary" @click="clickAddNetwork">
                 {{ $t('add_network') }}
                 <i class="fa fa-plus" aria-hidden="true" />
             </a>
+        </div>
+        <div class="kiwi-statebrowser-footer">
+            <div
+                v-if="!isRestrictedServer"
+                :title="$t('add_network')"
+                class="kiwi-statebrowser-button kiwi-statebrowser-addnetwork"
+                @click="clickAddNetwork"
+            >
+                <i class="fa fa-plus" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-cog" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-arrows" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-clock-o" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-plus-square" aria-hidden="true" />
+            </div>
+            <div
+                v-if="!$state.setting('hideSettings')"
+                :title="$t('kiwi_settings')"
+                class="kiwi-statebrowser-button"
+                @click="clickAppSettings"
+            >
+                <i class="fa fa-upload" aria-hidden="true" />
+            </div>
         </div>
     </div>
 </template>
@@ -89,6 +172,13 @@ export default {
         },
         networksToShow: function networksToShow() {
             return this.networks.filter((net) => !net.hidden);
+        },
+        headerPlugins() {
+            return GlobalApi.singleton().stateBrowserHeaderPlugins.slice(0, 4);
+        },
+        footerPlugins() {
+            const sliceEnd = this.isRestrictedServer ? 6 : 5;
+            return GlobalApi.singleton().stateBrowserFooterPlugins.slice(0, sliceEnd);
         },
     },
     created() {
@@ -163,21 +253,41 @@ export default {
     opacity: 0.3;
 }
 
+.kiwi-statebrowser-header,
+.kiwi-statebrowser-footer {
+    display: grid;
+    grid-template-columns: repeat(6, 34px);
+    grid-auto-flow: dense;
+    column-gap: 2px;
+    padding: 2px 3px;
+}
+
+.kiwi-statebrowser-footer {
+    border-top: 1px solid;
+}
+
 /* User Settings */
-.kiwi-statebrowser-appsettings {
-    position: absolute;
-    top: 0;
-    left: 0;
+.kiwi-statebrowser-button {
     width: 32px;
+    height: 32px;
     line-height: 32px;
     text-align: center;
     cursor: pointer;
+    margin: 1px;
+    border-radius: 8px;
     font-weight: 800;
     font-size: 20px;
     opacity: 0.8;
-    border-bottom-right-radius: 14px;
+    box-sizing: border-box;
     transition: background 0.2s, opacity 0.2s;
     z-index: 1;
+}
+.kiwi-statebrowser-addnetwork {
+    grid-column-start: 6;
+}
+
+.kiwi-wrap .kiwi-statebrowser-addnetwork:hover {
+    background-color: var(--brand-primary);
 }
 
 /* Add network button */

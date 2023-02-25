@@ -82,6 +82,22 @@
             <template v-if="whoisLoading">
                 <i class="fa fa-spinner" aria-hidden="true" />
             </template>
+            <template v-else-if="pluginUiWhoisElements.length">
+                <component
+                    :is="plugin.component"
+                    v-for="plugin in pluginUiInfoElements"
+                    :key="plugin.id"
+                    :plugin-props="{
+                        user: user,
+                        userbox: self,
+                    }"
+                    v-bind="plugin.props"
+                    :network="network"
+                    :buffer="buffer"
+                    :user="user"
+                    :sidebar-state="sidebarState"
+                />
+            </template>
             <template v-else>
                 <span class="kiwi-userbox-whois-line">
                     {{ user.away ?
@@ -198,6 +214,7 @@ export default {
             whoisLoading: false,
             pluginUiButtonElements: GlobalApi.singleton().userboxButtonPlugins,
             pluginUiInfoElements: GlobalApi.singleton().userboxInfoPlugins,
+            pluginUiWhoisElements: GlobalApi.singleton().userboxWhoisPlugins,
         };
     },
     computed: {

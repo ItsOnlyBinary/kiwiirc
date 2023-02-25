@@ -97,7 +97,7 @@ export default {
 .kiwi-statebrowser-usermenu {
     width: 100%;
     padding-bottom: 0;
-    padding-top: 34px;
+    padding-top: 8px;
 }
 
 .kiwi-statebrowser-usermenu-network {

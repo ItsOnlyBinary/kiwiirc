@@ -581,7 +581,7 @@
     border-top-color: var(--brand-error);
 }
 
-.kiwi-statebrowser-appsettings:hover {
+.kiwi-statebrowser-button:hover {
     background-color: rgba(128, 128, 128, 0.2);
     opacity: 1;
 }

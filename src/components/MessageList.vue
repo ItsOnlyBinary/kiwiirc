@@ -110,6 +110,7 @@
                 />
             </div>
         </div>
+        <typing-users-list v-if="buffer.setting('share_typing')" :buffer="buffer" />
         <div v-if="scrolledUpByPx > 1" class="kiwi-messagelist-scrolldown" @click="scrollToBottom">
             <i class="fa fa-angle-double-down" aria-hidden="true" />
         </div>
@@ -128,7 +129,8 @@ import BufferKey from './BufferKey';
 import MessageListMessageCompact from './MessageListMessageCompact';
 import MessageListMessageModern from './MessageListMessageModern';
 import MessageListMessageInline from './MessageListMessageInline';
-import LoadingAnimation from './LoadingAnimation.vue';
+import TypingUsersList from './TypingUsersList';
+import LoadingAnimation from './LoadingAnimation';
 
 require('@/libs/polyfill/Element.closest');
 
@@ -140,6 +142,7 @@ export default {
         MessageListMessageModern,
         MessageListMessageCompact,
         MessageListMessageInline,
+        TypingUsersList,
         LoadingAnimation,
     },
     props: ['buffer'],
@@ -730,10 +733,6 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     overflow: hidden;
 }
 
-.kiwi-messagelist--typingusers {
-    margin-bottom: 25px;
-}
-
 .kiwi-messagelist * {
     user-select: text;
 }
@@ -1044,7 +1043,7 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     display: flex;
     position: absolute;
     right: 20px;
-    bottom: 4px;
+    bottom: 10px;
     width: 30px;
     height: 30px;
     border-radius: 25%;
@@ -1055,6 +1054,11 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     user-select: none;
     opacity: 0.4;
     border: 2px solid;
+    z-index: 4;
+}
+
+.kiwi-messagelist--typingusers .kiwi-messagelist-scrolldown {
+    bottom: 34px;
 }
 
 @media screen and (max-width: 700px) {

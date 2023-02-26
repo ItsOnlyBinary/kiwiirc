@@ -45,7 +45,11 @@ export default {
 <style>
 
 .kiwi-typinguserslist {
+    height: 24px;
+    line-height: 24px;
     font-size: 0.9em;
+    flex-shrink: 0;
+    padding: 0 24px;
 }
 
 </style>

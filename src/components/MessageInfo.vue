@@ -16,6 +16,21 @@
             :class="{'kiwi-messageinfo-actions--open': requestingInput}"
             class="kiwi-messageinfo-actions"
         >
+            <template v-if="!requestingInput">
+                <component
+                    :is="plugin.component"
+                    v-for="plugin in pluginUiSections"
+                    :key="plugin.id"
+                    :plugin-props="{
+                        buffer: buffer,
+                        message: message,
+                    }"
+                    v-bind="plugin.props"
+                    :buffer="buffer"
+                    :message="message"
+                    class="u-link kiwi-messageinfo-reply kiwi-messageinfo-plugin"
+                />
+            </template>
             <a v-if="!requestingInput" class="u-link kiwi-messageinfo-reply" @click="openQuery">
                 Reply in private
             </a>
@@ -51,6 +66,8 @@
 <script>
 'kiwi public';
 
+import GlobalApi from '@/libs/GlobalApi';
+
 export default {
     components: {
     },
@@ -58,6 +75,7 @@ export default {
     data: function data() {
         return {
             requestingInput: false,
+            pluginUiSections: GlobalApi.singleton().messageInfoPlugins,
         };
     },
     computed: {
@@ -160,6 +178,7 @@ export default {
     padding: 5px 10px;
     display: inline-block;
     border-radius: 4px;
+    margin-right: 4px;
 }
 
 .kiwi-messageinfo-opbuttons .u-input-prompt input {

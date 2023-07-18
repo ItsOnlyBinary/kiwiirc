@@ -1,7 +1,7 @@
 module.exports = {
     presets: [
         [
-            '@vue/cli-plugin-babel/preset',
+            '@babel/preset-env',
             {
                 useBuiltIns: 'entry',
                 modules: 'commonjs',
@@ -10,16 +10,5 @@ module.exports = {
         ],
     ],
     plugins: [['@babel/plugin-transform-runtime', { corejs: 3, useESModules: true }]],
-    env: {
-        test: {
-            plugins: [
-                [
-                    'istanbul',
-                    {
-                        exclude: ['**/*.spec.js'],
-                    },
-                ],
-            ],
-        },
-    },
+    exclude: [/core-js/],
 };

@@ -2,7 +2,7 @@ const path = require('path');
 
 const entry = 'window._kiwi_exports';
 
-function accesorString(value) {
+function accessorString(value) {
     const childProperties = value.split('.');
     let propertyString = entry;
     let result = '';
@@ -16,17 +16,18 @@ function accesorString(value) {
     return result;
 }
 
-module.exports = function(source) {
+module.exports = function processSource(_source) {
+    let source = _source;
     if (source.indexOf('\'kiwi public\'') > -1) {
         let resource = this.resourcePath;
-        let pos = resource.lastIndexOf(path.sep + 'src' + path.sep);
+        const pos = resource.lastIndexOf(path.sep + 'src' + path.sep);
         resource = resource.substr(pos + 5);
         resource = resource.split(path.sep).join('.');
         resource = resource.replace(/\.(vue|js)$/, '');
 
         let a = '\r\n';
         a += `${entry} = ${entry} || {};\r\n`;
-        a += accesorString(resource);
+        a += accessorString(resource);
         a += `\r\n${entry}.${resource} = exports.default ? exports.default : exports;\r\n`;
 
         source += a;

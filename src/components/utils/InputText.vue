@@ -12,7 +12,7 @@
                     autocomplete="off"
                     autocorrect="off"
                     autocapitalize="off"
-                    spellcheck="false"
+                    :spellcheck="false"
                     class="u-input"
                     @keypress="$emit('keypress', $event)"
                 >
@@ -48,7 +48,7 @@
                 autocomplete="off"
                 autocorrect="off"
                 autocapitalize="off"
-                spellcheck="false"
+                :spellcheck="false"
                 class="u-input"
                 @keypress="$emit('keypress', $event)"
             >
@@ -63,11 +63,10 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-text', {
-    props: ['value', 'label', 'type', 'showPlainText'],
-    data: function data() {
+export default {
+    props: ['modelValue', 'label', 'type', 'showPlainText'],
+    emits: ['keypress', 'update:modelValue'],
+    data() {
         return {
             plainTextEnabled: false,
             inputIdCache: '',
@@ -84,22 +83,22 @@ export default Vue.component('input-text', {
         },
         currentValue: {
             get: function getCurrentValue() {
-                return this.value;
+                return this.modelValue;
             },
             set: function setCurrentValue(newVal) {
-                this.$emit('input', newVal);
+                this.$emit('update:modelValue', newVal);
             },
         },
     },
     methods: {
-        updateValue: function updateValue(newValue) {
-            this.$emit('input', newValue);
+        updateValue: function updateValue(newVal) {
+            this.$emit('update:modelValue', newVal);
         },
         isEdgeBrowser() {
             return navigator.appVersion.indexOf('Edge') > -1;
         },
     },
-});
+};
 </script>
 
 <style>

@@ -1,7 +1,8 @@
 'kiwi public';
 
-import Vue from 'vue';
+import { computed, reactive, shallowReactive } from 'vue';
 import _ from 'lodash';
+import EventEmitter from 'eventemitter3';
 
 import * as Misc from '@/helpers/Misc';
 import * as TextFormatting from '@/helpers/TextFormatting';
@@ -18,14 +19,8 @@ function createNewState() {
 
         // Settings may be overridden via config.json
         settings: configTemplates.default,
-        user_settings: {
-        },
-        connection: {
-            // disconnected / connecting / connected
-            status: 'connected',
-            sessionId: '',
-        },
-        ui: {
+        user_settings: reactive({}),
+        ui: reactive({
             active_network: 0,
             active_buffer: '',
             last_active_buffers: [],
@@ -40,37 +35,29 @@ function createNewState() {
             input_history: [],
             input_history_pos: 0,
             show_advanced_tab: false,
-        },
-        networks: [],
+        }),
+        networks: shallowReactive([]),
     };
 
-    const userDict = new Vue({
-        data() {
-            return {
-                networks: {},
-            };
-        },
+    const userDict = {
+        networks: {},
         /*
         (network id): {
             (lowercase nick): UserState,
             (lowercase nick): UserState,
         },
         */
-    });
+    };
 
-    const bufferDict = new Vue({
-        data() {
-            return {
-                networks: {},
-            };
-        },
+    const bufferDict = {
+        networks: {},
         /*
         (network id): [
             BufferState,
             BufferState,
         ]
         */
-    });
+    };
 
     // Messages are seperate from the above state object to keep them from being reactive. Saves CPU
     const messages = [
@@ -86,8 +73,7 @@ function createNewState() {
 
     const availableStartups = Object.create(null);
 
-    const state = new Vue({
-        data: stateObj,
+    const oldState = {
         methods: {
             // Export enough state so that it can be imported in future to resume
             exportState(includeBuffers) {
@@ -201,8 +187,8 @@ function createNewState() {
             },
 
             resetState() {
-                this.$set(this.$data, 'user_settings', {});
-                this.$set(this.$data, 'networks', []);
+                this.user_settings = {};
+                this.networks = [];
                 messages.splice(0);
             },
 
@@ -225,10 +211,14 @@ function createNewState() {
                 return result;
             },
 
+            settingComputed(name) {
+                return computed(() => this.setting(name));
+            },
+
             // Accept 'dotted.notation' to read a state property of any depth
             getSetting(name) {
                 let parts = name.split('.');
-                let val = this.$data;
+                let val = this;
 
                 for (let i = 0; i < parts.length; i++) {
                     val = val[parts[i]];
@@ -243,19 +233,20 @@ function createNewState() {
             // Accept 'dotted.notation' to set a state property of any depth
             setSetting(name, newVal) {
                 let parts = name.split('.');
-                let val = this.$data;
+                let val = this;
 
                 for (let i = 0; i < parts.length; i++) {
                     let propName = parts[i];
                     let nextVal = val[propName];
 
                     if (i < parts.length - 1 && typeof nextVal === 'undefined') {
-                        nextVal = this.$set(val, propName, {});
+                        val[propName] = {};
+                        nextVal = val[propName];
                     } else if (i === parts.length - 1) {
                         if (newVal === null) {
-                            this.$delete(val, propName);
+                            delete val[propName];
                         } else {
-                            this.$set(val, propName, newVal);
+                            val[propName] = newVal;
                         }
                     }
 
@@ -365,40 +356,35 @@ function createNewState() {
             },
 
             setActiveBuffer(networkid, bufferName) {
-                if (this.ui.active_network && this.ui.active_buffer) {
-                    const oldBuffer = this.getBufferByName(
-                        this.ui.active_network,
-                        this.ui.active_buffer,
-                    );
-                    if (oldBuffer) {
-                        oldBuffer.isVisible = false;
-                    }
-                }
-
                 if (!networkid) {
                     this.ui.active_network = 0;
                     this.ui.active_buffer = '';
-                    return;
-                }
+                } else {
+                    if (this.settings.useBufferHistory && this.ui.active_network) {
+                        // Keep track of last 20 viewed buffers. When closing buffers we can go back
+                        // to one of the previous ones
+                        this.ui.last_active_buffers.push({
+                            networkid: this.ui.active_network,
+                            bufferName: this.ui.active_buffer,
+                        });
 
-                if (this.setting('useBufferHistory') && this.ui.active_network) {
-                    // Keep track of last 20 viewed buffers. When closing buffers we can go back
-                    // to one of the previous ones
-                    this.ui.last_active_buffers.push({
-                        networkid: this.ui.active_network,
-                        bufferName: this.ui.active_buffer,
-                    });
+                        let lastActive = this.ui.last_active_buffers;
+                        this.ui.last_active_buffers = lastActive.splice(lastActive.length - 20);
+                    }
 
-                    let lastActive = this.ui.last_active_buffers;
-                    this.ui.last_active_buffers = lastActive.splice(lastActive.length - 20);
-                }
+                    this.ui.active_network = networkid;
+                    this.ui.active_buffer = bufferName;
 
-                this.ui.active_network = networkid;
-                this.ui.active_buffer = bufferName;
+                    // Clear any unread messages counters for this buffer
+                    let buffer = this.getBufferByName(networkid, bufferName);
+                    if (buffer && buffer.flags.unread) {
+                        buffer.flags.unread = 0;
+                    }
 
-                let buffer = this.getBufferByName(networkid, bufferName);
-                if (buffer) {
-                    buffer.isVisible = true;
+                    // Update the buffers last read time
+                    if (buffer) {
+                        buffer.markAsRead(true);
+                    }
                 }
             },
 
@@ -600,9 +586,14 @@ function createNewState() {
                     includeAsActivity = true;
                 }
 
+                let isActiveBuffer = (
+                    buffer.networkid === this.ui.active_network &&
+                    buffer.name === this.ui.active_buffer
+                );
+
                 let network = buffer.getNetwork();
                 let isNewMessage = message.time >= buffer.last_read;
-                let isHighlight = !network || buffer.isRaw() ?
+                let isHighlight = !network ?
                     false :
                     Misc.mentionsNick(bufferMessage.message, network.ircClient.user.nick);
 
@@ -613,7 +604,7 @@ function createNewState() {
 
                 // Check for extra custom highlight words
                 let extraHighlights = (state.setting('highlights') || '').toLowerCase().split(' ');
-                if (!isHighlight && !buffer.isRaw() && extraHighlights.length > 0) {
+                if (!isHighlight && extraHighlights.length > 0) {
                     extraHighlights.forEach((word) => {
                         if (!word) {
                             return;
@@ -625,7 +616,7 @@ function createNewState() {
                     });
                 }
 
-                if (!buffer.isRaw() && state.setting('teamHighlights')) {
+                if (state.setting('teamHighlights')) {
                     let m = bufferMessage.message;
                     let patterns = {
                         everyone: /(^|\s)@everybody($|\s|[,.;])/,
@@ -643,16 +634,16 @@ function createNewState() {
 
                 bufferMessage.isHighlight = isHighlight;
 
-                if (isNewMessage && buffer.isVisible) {
+                if (isNewMessage && isActiveBuffer && state.ui.app_has_focus) {
                     buffer.last_read = message.time;
                 }
 
                 // Handle buffer flags
                 if (
-                    isNewMessage &&
-                    includeAsActivity &&
-                    !buffer.isVisible &&
-                    !bufferMessage.ignore
+                    isNewMessage
+                    && includeAsActivity
+                    && !isActiveBuffer
+                    && !bufferMessage.ignore
                 ) {
                     buffer.incrementFlag('unread');
                     if (isHighlight) {
@@ -706,6 +697,7 @@ function createNewState() {
                 }
 
                 if (
+                    isActiveBuffer &&
                     !state.ui.app_has_focus &&
                     message.type !== 'traffic' &&
                     (
@@ -810,12 +802,12 @@ function createNewState() {
                     state.removeUserFromBuffer(buffer, user.nick);
                 });
 
-                this.$delete(network.users, user.nick.toUpperCase());
+                delete network.users[user.nick.toUpperCase()];
             },
 
             addMultipleUsersToBuffer(buffer, newUsers) {
                 let network = this.getNetwork(buffer.networkid);
-                let bufUsers = Object.assign(Object.create(null), buffer.users);
+                let bufUsers = Object.create(null);
 
                 state.usersTransaction(network.id, (users) => {
                     newUsers.forEach((newUser) => {
@@ -830,17 +822,16 @@ function createNewState() {
 
                         // Add the buffer to the users buffer list
                         if (!userObj.buffers[buffer.id]) {
-                            state.$set(userObj.buffers, buffer.id, {
+                            userObj.buffers[buffer.id] = {
                                 modes: modes || [],
                                 buffer: buffer,
-                            });
+                            };
                         } else {
                             userObj.buffers[buffer.id].modes = modes || [];
                         }
                     });
                 });
-
-                buffer.users = bufUsers;
+                Object.assign(buffer.users, bufUsers);
             },
 
             addUserToBuffer(buffer, user, modes) {
@@ -862,12 +853,12 @@ function createNewState() {
 
                 // Add the buffer to the users buffer list
                 if (!userObj.buffers[buffer.id]) {
-                    state.$set(userObj.buffers, buffer.id, {
+                    userObj.buffers[buffer.id] = {
                         modes: modes || [],
                         buffer: buffer,
-                    });
+                    };
                 } else {
-                    state.$set(userObj.buffers[buffer.id], 'modes', modes || []);
+                    userObj.buffers[buffer.id].modes = modes || [];
                 }
             },
 
@@ -931,15 +922,15 @@ function createNewState() {
                 // If the nick has completely changed (ie. not just a case change) then update all
                 // associated buffers user lists
                 if (normalisedOld !== normalisedNew) {
-                    state.$set(network.users, normalisedNew, network.users[normalisedOld]);
-                    state.$delete(network.users, normalisedOld);
+                    network.users[normalisedNew] = network.users[normalisedOld];
+                    delete network.users[normalisedOld];
 
                     Object.keys(user.buffers).forEach((bufferId) => {
                         let buffer = user.buffers[bufferId].buffer;
                         if (!buffer.addUserBatch.queue().includes(user)) {
                             // The user is not in the queue to be added to the buffer
-                            state.$set(buffer.users, normalisedNew, buffer.users[normalisedOld]);
-                            state.$delete(buffer.users, normalisedOld);
+                            buffer.users[normalisedNew] = buffer.users[normalisedOld];
+                            delete buffer.users[normalisedOld];
                         }
                     });
                 }
@@ -954,6 +945,14 @@ function createNewState() {
                 return availableStartups;
             },
         },
+    };
+
+    const state = new EventEmitter();
+    Object.assign(state, stateObj, oldState.methods, {
+        $on: state.on,
+        $off: state.off,
+        $once: state.once,
+        $emit: state.emit,
     });
 
     return state;

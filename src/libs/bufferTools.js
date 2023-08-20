@@ -31,13 +31,6 @@ export function orderedMessages(buffer, opts = {}) {
     let currentNick = network.nick;
     let bufferMessages = buffer.getMessages();
 
-    // Hack; We need to make vue aware that we depend on buffer.message_count in order to
-    // get the messagelist to update its DOM, as the change of message_count alerts
-    // us that the messages have changed. This is done so that vue does not have to make
-    // every emssage reactive which gets very expensive.
-    /* eslint-disable no-unused-vars */
-    let ignoredVar = buffer.message_count;
-
     let messages = [];
     if (opts.inPlace) {
         messages = bufferMessages;

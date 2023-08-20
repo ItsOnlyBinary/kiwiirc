@@ -68,6 +68,7 @@ import IPC from '@/libs/IPC';
 let firstRun = true;
 
 export default {
+    emits: ['start'],
     data: function data() {
         return {
             hasOtherTab: false,

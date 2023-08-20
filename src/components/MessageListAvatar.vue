@@ -1,5 +1,5 @@
-<template functional>
-    <component :is="$options.c.Avatar" :user="props.user" :message="props.message" size="small" />
+<template>
+    <component :is="$options.c.Avatar" :user="$props.user" :message="$props.message" size="small" />
 </template>
 
 <script>

@@ -1,106 +1,112 @@
-<template functional>
+<template>
     <div
         :class="[
-            props.m().isRepeat() ?
+            $props.m().isRepeat() ?
                 'kiwi-messagelist-message--authorrepeat' :
                 'kiwi-messagelist-message--authorfirst',
-            'kiwi-messagelist-message-' + props.message.type,
-            props.message.type_extra ?
-                'kiwi-messagelist-message-' + props.message.type + '-' + props.message.type_extra :
+            'kiwi-messagelist-message-' + $props.message.type,
+            $props.message.type_extra ?
+                'kiwi-messagelist-message-' +
+                $props.message.type + '-' +
+                $props.message.type_extra :
                 '',
-            props.ml.isMessageHighlight(props.message) ?
+            $props.ml.isMessageHighlight($props.message) ?
                 'kiwi-messagelist-message--highlight' :
                 '',
-            props.ml.isHoveringOverMessage(props.message) ?
+            $props.ml.isHoveringOverMessage($props.message) ?
                 'kiwi-messagelist-message--hover' :
                 '',
-            props.ml.buffer.last_read && props.message.time > props.ml.buffer.last_read ?
+            $props.ml.buffer.last_read && $props.message.time > $props.ml.buffer.last_read ?
                 'kiwi-messagelist-message--unread' :
                 '',
-            props.message.nick.toLowerCase() === props.ml.ourNick.toLowerCase() ?
+            $props.message.nick.toLowerCase() === $props.ml.ourNick.toLowerCase() ?
                 'kiwi-messagelist-message--own' :
                 '',
-            props.ml.message_info_open === props.message ?
+            $props.ml.message_info_open === $props.message ?
                 'kiwi-messagelist-message--info-open' :
                 '',
-            props.ml.message_info_open && props.ml.message_info_open !== props.message ?
+            $props.ml.message_info_open && $props.ml.message_info_open !== $props.message ?
                 'kiwi-messagelist-message--blur' :
                 '',
-            (props.message.user && props.m().userMode(props.message.user)) ?
-                'kiwi-messagelist-message--user-mode-'+props.m().userMode(props.message.user) :
+            ($props.message.user && $props.m().userMode($props.message.user)) ?
+                'kiwi-messagelist-message--user-mode-'+$props.m().userMode($props.message.user) :
                 '',
-            data.staticClass,
+            $data.staticClass ? $data.staticClass : '',
         ]"
-        :data-message-id="props.message.id"
-        :data-nick="(props.message.nick||'').toLowerCase()"
+        :data-message-id="$props.message.id"
+        :data-nick="($props.message.nick||'').toLowerCase()"
         class="kiwi-messagelist-message kiwi-messagelist-message--compact"
-        @click="props.ml.onMessageClick($event, props.message, true)"
-        @dblclick="props.ml.onMessageDblClick($event, props.message)"
+        @click="$props.ml.onMessageClick($event, $props.message, true)"
+        @dblclick="$props.ml.onMessageDblClick($event, $props.message)"
     >
         <div
-            v-if="props.ml.bufferSetting('show_timestamps')"
-            :title="props.ml.formatTimeFull(props.message.time)"
+            v-if="$props.ml.bufferSetting('show_timestamps')"
+            :title="$props.ml.formatTimeFull($props.message.time)"
             class="kiwi-messagelist-time"
         >
-            {{ props.ml.formatTime(props.message.time) }}
+            {{ $props.ml.formatTime($props.message.time) }}
         </div>
         <a
-            :style="{ 'color': props.ml.userColour(props.message.user) }"
+            :style="{ 'color': $props.ml.userColour($props.message.user) }"
             :class="[
                 'kiwi-messagelist-nick',
-                (props.message.user && props.m().userMode(props.message.user)) ?
-                    'kiwi-messagelist-nick--mode-'+props.m().userMode(props.message.user) :
+                ($props.message.user && $props.m().userMode($props.message.user)) ?
+                    'kiwi-messagelist-nick--mode-'+$props.m().userMode($props.message.user) :
                     ''
             ]"
-            :data-nick="(props.message.nick||'').toLowerCase()"
-            @mouseover="props.ml.hover_nick=props.message.nick.toLowerCase();"
-            @mouseout="props.ml.hover_nick='';"
+            :data-nick="($props.message.nick||'').toLowerCase()"
+            @mouseover="$props.ml.hover_nick=$props.message.nick.toLowerCase();"
+            @mouseout="$props.ml.hover_nick='';"
         >
             <component
-                :is="injections.components.AwayStatusIndicator"
-                v-if="props.message.user"
-                :network="props.m().getNetwork()" :user="props.message.user"
+                :is="$options.components.AwayStatusIndicator"
+                v-if="$props.message.user"
+                :network="$props.m().getNetwork()" :user="$props.message.user"
                 :toggle="false"
             />
             <span class="kiwi-messagelist-nick--prefix">
-                {{ props.message.user ? props.m().userModePrefix(props.message.user) : '' }}
+                {{ $props.message.user ? $props.m().userModePrefix($props.message.user) : '' }}
             </span>
-            {{ props.message.nick }}
+            {{ $props.message.nick }}
         </a>
         <div
-            v-if="props.message.bodyTemplate &&
-                props.message.bodyTemplate.$el &&
-                props.ml.isTemplateVue(props.message.bodyTemplate)"
-            v-rawElement="props.message.bodyTemplate.$el"
+            v-if="$props.message.bodyTemplate &&
+                $props.message.bodyTemplate.$el &&
+                $props.ml.isTemplateVue($props.message.bodyTemplate)"
+            v-rawElement="$props.message.bodyTemplate.$el"
             class="kiwi-messagelist-body"
         />
         <component
-            :is="props.message.bodyTemplate"
-            v-else-if="props.message.bodyTemplate"
-            v-bind="props.message.bodyTemplateProps"
-            :buffer="props.ml.buffer"
-            :message="props.message"
-            :idx="props.idx"
-            :ml="props.ml"
+            :is="$props.message.bodyTemplate"
+            v-else-if="$props.message.bodyTemplate"
+            v-bind="$props.message.bodyTemplate$props"
+            :buffer="$props.ml.buffer"
+            :message="$props.message"
+            :idx="$props.idx"
+            :ml="$props.ml"
             class="kiwi-messagelist-body"
         />
-        <div v-else class="kiwi-messagelist-body" v-html="props.ml.formatMessage(props.message)" />
-
-        <component
-            :is="injections.components.MessageInfo"
-            v-if="props.ml.message_info_open===props.message"
-            :message="props.message"
-            :buffer="props.ml.buffer"
-            @close="props.ml.toggleMessageInfo()"
+        <div
+            v-else
+            class="kiwi-messagelist-body"
+            v-html="$props.ml.formatMessage($props.message)"
         />
 
-        <div v-if="props.message.embed.payload && props.ml.shouldAutoEmbed">
+        <component
+            :is="$options.components.MessageInfo"
+            v-if="$props.ml.message_info_open===$props.message"
+            :message="$props.message"
+            :buffer="$props.ml.buffer"
+            @close="$props.ml.toggleMessageInfo()"
+        />
+
+        <div v-if="$props.message.embed.payload && $props.ml.shouldAutoEmbed">
             <component
-                :is="injections.components.MediaViewer"
-                :url="props.message.embed.payload"
+                :is="$options.components.MediaViewer"
+                :url="$props.message.embed.payload"
                 :show-pin="true"
-                @close="props.message.embed.payload = ''"
-                @pin="props.ml.openEmbedInPreview(props.message)"
+                @close="$props.message.embed.payload = ''"
+                @pin="$props.ml.openEmbedInPreview($props.message)"
             />
         </div>
     </div>
@@ -152,14 +158,10 @@ const methods = {
 };
 
 export default {
-    inject: {
-        components: {
-            default: {
-                AwayStatusIndicator,
-                MessageInfo,
-                MediaViewer,
-            },
-        },
+    components: {
+        AwayStatusIndicator,
+        MessageInfo,
+        MediaViewer,
     },
     props: {
         ml: Object,

@@ -7,7 +7,7 @@
         :class="{'kiwi-messagelist--smoothscroll': smooth_scroll}"
         @click.self="onListClick"
     >
-        <div v-resizeobserver="onListResize">
+        <div v-resizeobserver="onListResize" class="kiwi-messagelist-content">
             <div
                 v-if="shouldShowChathistoryTools"
                 class="kiwi-messagelist-scrollback"
@@ -106,6 +106,7 @@
                 :network="buffer.getNetwork()"
             />
         </div>
+        <typing-users-list v-if="buffer.setting('share_typing')" :buffer="buffer" />
     </div>
 </template>
 
@@ -121,6 +122,7 @@ import MessageListMessageCompact from './MessageListMessageCompact';
 import MessageListMessageModern from './MessageListMessageModern';
 import MessageListMessageInline from './MessageListMessageInline';
 import LoadingAnimation from './LoadingAnimation.vue';
+import TypingUsersList from './TypingUsersList';
 
 require('@/libs/polyfill/Element.closest');
 
@@ -137,6 +139,7 @@ export default {
         MessageListMessageCompact,
         MessageListMessageInline,
         LoadingAnimation,
+        TypingUsersList,
     },
     props: ['buffer'],
     data() {
@@ -196,6 +199,7 @@ export default {
                 '';
         },
         filteredMessagesGroupedDay() {
+            const start = performance.now();
             // Group messages by day
             let days = [];
             let lastDay = null;
@@ -208,7 +212,7 @@ export default {
 
                 days[days.length - 1].messages.push(message);
             });
-
+            console.log('messagelist', performance.now() - start);
             return days;
         },
         filteredMessages() {
@@ -726,8 +730,11 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
-    margin-bottom: 25px;
     position: relative;
+}
+
+.kiwi-messagelist-content {
+    height: 100%;
 }
 
 .kiwi-messagelist--smoothscroll {

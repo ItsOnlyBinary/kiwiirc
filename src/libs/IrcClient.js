@@ -515,7 +515,7 @@ function clientMiddleware(state, network) {
             if (event.nick === client.user.nick) {
                 network.buffers.forEach((b) => {
                     if ((b.flags.redirect_to || '').toLowerCase() === event.channel.toLowerCase()) {
-                        state.$delete(b.flags, 'redirect_to');
+                        delete b.flags.redirect_to;
                         b.rename(event.channel);
                     }
                 });
@@ -1037,9 +1037,9 @@ function clientMiddleware(state, network) {
                     let modeChar = mode.mode.substr(1);
 
                     if (adding) {
-                        state.$set(buffer.modes, modeChar, mode.param);
+                        buffer.modes[modeChar] = mode.param;
                     } else if (!adding) {
-                        state.$delete(buffer.modes, modeChar);
+                        delete buffer.modes[modeChar];
                     }
 
                     modeStrs.push(mode.mode + (mode.param ? ' ' + mode.param : ''));
@@ -1111,9 +1111,9 @@ function clientMiddleware(state, network) {
                         let modeChar = mode.mode.substr(1);
 
                         if (adding) {
-                            state.$set(buffer.modes, modeChar, mode.param);
+                            buffer.modes[modeChar] = mode.param;
                         } else if (!adding) {
-                            state.$delete(buffer.modes, modeChar);
+                            delete buffer.modes[modeChar];
                         }
 
                         modeStrs[mode.mode].push({ target: buffer.name, param: mode.param });

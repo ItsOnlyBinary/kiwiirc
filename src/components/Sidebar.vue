@@ -162,15 +162,12 @@
 
 import UserBox from '@/components/UserBox';
 import GlobalApi from '@/libs/GlobalApi';
-import SidebarState from './SidebarState';
 import BufferSettings from './BufferSettings';
 import ChannelInfo from './ChannelInfo';
 import SidebarAboutBuffer from './SidebarAboutBuffer';
 import ChannelBanlist from './ChannelBanlist';
 import ChannelInvitelist from './ChannelInvitelist';
 import Nicklist from './Nicklist';
-
-export { SidebarState as State };
 
 export default {
     components: {

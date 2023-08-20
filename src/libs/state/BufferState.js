@@ -1,6 +1,6 @@
 /** @module */
 
-import Vue from 'vue';
+import { shallowReactive } from 'vue';
 import _ from 'lodash';
 import { def } from './common';
 import batchedAdd from '../batchedAdd';
@@ -46,8 +46,6 @@ export default class BufferState {
         // still loading messages
         this.chathistory_request_count = 0;
 
-        Vue.observable(this);
-
         // Some non-enumerable properties (vues $watch won't cover these properties)
         def(this, 'state', state, false);
         def(this, 'messageDict', messageDict, false);
@@ -55,7 +53,7 @@ export default class BufferState {
         let messagesObj = {
             networkid: this.networkid,
             buffer: this.name,
-            messages: [],
+            messages: shallowReactive([]),
             messageIds: Object.create(null),
         };
         this.messageDict.push(messagesObj);
@@ -273,7 +271,7 @@ export default class BufferState {
 
     setting(name, val) {
         if (typeof val !== 'undefined') {
-            this.state.$set(this.settings, name, val);
+            this.settings[name] = val;
             return val;
         }
 
@@ -302,7 +300,7 @@ export default class BufferState {
 
     flag(name, val) {
         if (typeof val !== 'undefined') {
-            this.state.$set(this.flags, name, val);
+            this.flags[name] = val;
             return val;
         }
 
@@ -430,7 +428,7 @@ export default class BufferState {
         // would just be added again. Eg. user joins/parts during a flood
         _.pull(this.addUserBatch.queue(), userObj);
 
-        this.state.$delete(this.users, nick.toUpperCase());
+        delete this.users[nick.toUpperCase()];
 
         if (userObj) {
             delete userObj.buffers[this.id];
@@ -446,7 +444,7 @@ export default class BufferState {
             delete userObj.buffers[this.id];
         });
 
-        this.state.$set(this, 'users', {});
+        Object.keys(this.users).forEach((key) => delete this.users[key]);
     }
 
     addMessage(message) {
@@ -563,14 +561,14 @@ export default class BufferState {
  */
 function createUserBatch(bufferState) {
     let addSingleUser = (u) => {
-        bufferState.state.$set(bufferState.users, u.nick.toUpperCase(), u);
+        bufferState.users[u.nick.toUpperCase()] = u;
     };
     let addMultipleUsers = (users) => {
-        let o = Object.assign(Object.create(null), bufferState.users);
+        let o = Object.create(null);
         users.forEach((u) => {
             o[u.nick.toUpperCase()] = u;
         });
-        bufferState.users = o;
+        Object.assign(bufferState.users, o);
     };
 
     return batchedAdd(addSingleUser, addMultipleUsers, 2);

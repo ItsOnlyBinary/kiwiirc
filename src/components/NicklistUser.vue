@@ -1,53 +1,56 @@
-<template functional>
+<template>
     <div
         :class="[
-            props.nicklist.userMode(props.user) ?
-                'kiwi-nicklist-user--mode-' + props.nicklist.userMode(props.user) :
+            $props.nicklist.userMode($props.user) ?
+                'kiwi-nicklist-user--mode-' + $props.nicklist.userMode($props.user) :
                 '',
-            props.user.away ? 'kiwi-nicklist-user--away' : '',
-            props.user.ignore ? 'kiwi-nicklist-user--ignore' : '',
-            data.staticClass,
+            $props.user.away ? 'kiwi-nicklist-user--away' : '',
+            $props.user.ignore ? 'kiwi-nicklist-user--ignore' : '',
+            $data.staticClass ? $data.staticClass : '',
         ]"
-        :data-nick="(props.user.nick||'').toLowerCase()"
+        :data-nick="($props.user.nick||'').toLowerCase()"
         class="kiwi-nicklist-user"
-        @click="props.nicklist.openUserbox(props.user)"
+        @click="$props.nicklist.openUserbox($props.user)"
     >
-        <div v-if="props.m().shouldShowAvatars()" class="kiwi-avatar-container">
+        <div v-if="$props.m().shouldShowAvatars()" class="kiwi-avatar-container">
             <component
-                :is="injections.components.Avatar"
-                v-if="props.user"
-                :user="props.user"
+                :is="$options.components.Avatar"
+                v-if="$props.user"
+                :user="$props.user"
                 size="small"
             />
             <component
-                :is="injections.components.AwayStatusIndicator"
-                :network="props.network"
-                :user="props.user"
+                :is="$options.components.AwayStatusIndicator"
+                :network="$props.network"
+                :user="$props.user"
                 :toggle="false"
             />
         </div>
         <div v-else>
             <component
-                :is="injections.components.AwayStatusIndicator"
-                :network="props.network"
-                :user="props.user"
+                :is="$options.components.AwayStatusIndicator"
+                :network="$props.network"
+                :user="$props.user"
                 :toggle="false"
             />
         </div>
         <span class="kiwi-nicklist-user-prefix">
-            {{ props.nicklist.userModePrefix(props.user) }}
+            {{ $props.nicklist.userModePrefix($props.user) }}
         </span><span
-            :style="{ 'color': props.m().userColour() }"
+            :style="{ 'color': $props.m().userColour() }"
             class="kiwi-nicklist-user-nick"
-        >{{ props.user.nick }}
+        >{{ $props.user.nick }}
         </span>
-        <span class="kiwi-nicklist-messageuser" @click.stop="props.nicklist.openQuery(props.user)">
+        <span
+            class="kiwi-nicklist-messageuser"
+            @click.stop="$props.nicklist.openQuery($props.user)"
+        >
             <i class="fa fa-comment" aria-hidden="true" />
         </span>
         <component
-            :is="injections.components.TypingStatusIndicator"
-            :user="props.user"
-            :buffer="props.nicklist.buffer"
+            :is="$options.components.TypingStatusIndicator"
+            :user="$props.user"
+            :buffer="$props.nicklist.buffer"
         />
     </div>
 </template>
@@ -75,14 +78,10 @@ const methods = {
 };
 
 export default {
-    inject: {
-        components: {
-            default: {
-                AwayStatusIndicator,
-                TypingStatusIndicator,
-                Avatar,
-            },
-        },
+    components: {
+        AwayStatusIndicator,
+        TypingStatusIndicator,
+        Avatar,
     },
     props: {
         network: Object,

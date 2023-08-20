@@ -1,6 +1,7 @@
 'kiwi public';
 
-import Vue from 'vue';
+import { shallowReactive } from 'vue';
+
 import parseMessage from '@/libs/MessageParser';
 import toHtml from '@/libs/renderers/Html';
 import GlobalApi from '@/libs/GlobalApi';
@@ -34,7 +35,7 @@ export default class Message {
         def(this, 'ignore', false);
         def(this, 'mentioned_urls', []);
         // If embed.payload is truthy, it will be embedded within the message
-        this.embed = { type: 'url', payload: null };
+        this.embed = shallowReactive({ type: 'url', payload: null });
         this.html = '';
         this.blocks = [];
         def(this, 'hasRendered', false);
@@ -49,7 +50,7 @@ export default class Message {
         // We don't want the user object to be enumerable
         Object.defineProperty(this, 'user', { value: user });
 
-        Vue.observable(this);
+        // Vue.observable(this);
     }
 
     render() {

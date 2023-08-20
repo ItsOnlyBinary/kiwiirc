@@ -136,6 +136,7 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { markRaw } from 'vue';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import * as settingTools from '@/libs/settingTools';
 import autocompleteCommands from '@/res/autocompleteCommands';
@@ -388,7 +389,7 @@ export default {
                     buffer: this.buffer,
                     ircinput: this.$refs.input,
                 };
-                this.active_tool = tool;
+                this.active_tool = markRaw(tool);
             }
         },
         toggleBold() {

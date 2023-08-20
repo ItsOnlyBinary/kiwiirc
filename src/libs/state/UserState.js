@@ -1,6 +1,5 @@
 /** @module */
 
-import Vue from 'vue';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import { def } from './common';
 
@@ -20,8 +19,6 @@ export default class UserState {
         this.typingState = Object.create(null);
         this.avatar = user.avatar || { small: '', large: '' };
         this.ignore = false;
-
-        Vue.observable(this);
 
         // Whois details are non-enumerable properties (vues $watch won't cover these properties)
         def(this, 'actual_host', '', true);
@@ -59,7 +56,7 @@ export default class UserState {
 
         let typing = this.typingState[target];
         if (!typing) {
-            Vue.set(this.typingState, target, { started: 0, status: '' });
+            this.typingState[target] = { started: 0, status: '' };
             typing = this.typingState[target];
         }
 
@@ -69,7 +66,7 @@ export default class UserState {
         }
 
         if (status === 'done') {
-            Vue.delete(this.typingState, target);
+            delete this.typingState[target];
             return null;
         }
 

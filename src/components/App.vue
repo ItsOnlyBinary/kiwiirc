@@ -64,6 +64,8 @@
 <script>
 'kiwi public';
 
+import { markRaw, toRef, watch } from 'vue';
+
 import cssVarsPonyfill from 'css-vars-ponyfill';
 import '@/res/globalStyle.css';
 import Tinycon from 'tinycon';
@@ -78,9 +80,9 @@ import AppSettings from '@/components/AppSettings';
 import Container from '@/components/Container';
 import ControlInput from '@/components/ControlInput';
 import MediaViewer from '@/components/MediaViewer';
-import { State as SidebarState } from '@/components/Sidebar';
 import * as Notifications from '@/libs/Notifications';
 import * as bufferTools from '@/libs/bufferTools';
+import useSidebarState from '@/libs/SidebarState';
 import ThemeManager from '@/libs/ThemeManager';
 import Logger from '@/libs/Logger';
 
@@ -112,7 +114,7 @@ export default {
             mediaviewerComponentProps: {},
             mediaviewerIframe: false,
             themeUrl: '',
-            sidebarState: new SidebarState(),
+            sidebarState: useSidebarState(),
         };
     },
     computed: {
@@ -155,7 +157,7 @@ export default {
         if (!startup) {
             Logger.error(`Startup screen "${startupName}" does not exist`);
         } else {
-            this.startupComponent = startup;
+            this.startupComponent = markRaw(startup);
         }
         this.trackWindowDimensions();
     },
@@ -203,7 +205,7 @@ export default {
                     this.activeComponent = null;
                 } else if (component) {
                     this.activeComponentProps = props;
-                    this.activeComponent = component;
+                    this.activeComponent = markRaw(component);
                 }
             });
         },
@@ -259,7 +261,7 @@ export default {
                 fallback: true,
             });
 
-            this.$state.$watch('ui.favicon_counter', (newVal) => {
+            watch(toRef(this.$state, 'ui.favicon_counter'), (newVal) => {
                 if (newVal) {
                     Tinycon.setBubble(newVal);
                 } else {
@@ -394,13 +396,7 @@ export default {
 @import "~font-awesome/less/path.less";
 @import "~font-awesome/less/animated.less";
 
-html {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-body {
+html, body, #app {
     height: 100%;
     margin: 0;
     padding: 0;

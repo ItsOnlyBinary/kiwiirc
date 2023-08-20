@@ -43,7 +43,7 @@ export default {
     created() {
         this.updateEmbed();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.cleanEmbed();
     },
     methods: {

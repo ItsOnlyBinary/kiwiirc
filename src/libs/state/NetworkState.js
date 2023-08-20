@@ -1,6 +1,5 @@
 /** @module */
 
-import Vue from 'vue';
 import { def } from './common';
 import * as IrcClient from '../IrcClient';
 
@@ -50,8 +49,6 @@ export default class NetworkState {
         this.password = '';
         this.away = '';
 
-        Vue.observable(this);
-
         // Some non-enumerable properties (vues $watch won't cover these properties)
         def(this, 'appState', appState, false);
         def(this, 'userDict', userDict, false);
@@ -59,13 +56,13 @@ export default class NetworkState {
         def(this, 'frameworkClient', null, true);
 
         def(this, 'users', Object.create(null), (newVal) => {
-            appState.$set(userDict.networks, this.id, newVal);
+            userDict.networks[this.id] = newVal;
         });
 
         // Pending prviate messages awaiting whois operator check
         def(this, 'pendingPms', [], false);
 
-        bufferDict.$set(bufferDict.networks, this.id, []);
+        bufferDict.networks[this.id] = [];
     }
 
     get ircClient() {
@@ -94,7 +91,7 @@ export default class NetworkState {
 
     setting(name, val) {
         if (typeof val !== 'undefined') {
-            this.appState.$set(this.settings, name, val);
+            this.settings[name] = val;
             return val;
         }
 

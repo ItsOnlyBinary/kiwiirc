@@ -32,6 +32,8 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { watch } from 'vue';
+
 import Logger from '@/libs/Logger';
 import StartupLayout from './CommonLayout';
 
@@ -258,7 +260,7 @@ export default {
 
             let debouncedSaveState = _.debounce(saveState, 2000);
 
-            this.$state.$watch('networks', debouncedSaveState, { deep: true });
+            watch(this.$state.networks, debouncedSaveState, { deep: true });
 
             // Just before we connect to a network, make sure the BNC is sabed and connected to
             // it or at least trying to connect.

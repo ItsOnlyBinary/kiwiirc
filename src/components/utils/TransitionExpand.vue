@@ -12,11 +12,9 @@
 <script>
 'kiwi public';
 
-const Vue = require('vue');
-
 // Code created from https://markus.oberlehner.net/blog/transition-to-height-auto-with-vue/
 
-export default Vue.component('transition-expand', {
+export default {
     name: 'TransitionExpand',
     methods: {
         enter(element) {
@@ -66,7 +64,7 @@ export default Vue.component('transition-expand', {
             });
         },
     },
-});
+};
 </script>
 
 <style>

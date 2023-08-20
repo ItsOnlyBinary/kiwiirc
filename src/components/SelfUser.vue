@@ -52,6 +52,7 @@ export default {
     props: {
         network: Object,
     },
+    emits: ['close'],
     data() {
         return {
             new_nick: '',

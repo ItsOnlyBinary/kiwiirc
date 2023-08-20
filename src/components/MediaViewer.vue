@@ -56,6 +56,7 @@ export default {
         UrlEmbed,
     },
     props: ['url', 'component', 'componentProps', 'isIframe', 'showPin'],
+    emits: ['close', 'pin'],
     data() {
         return {
             debouncedUpdateEmbed: null,

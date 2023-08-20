@@ -222,7 +222,7 @@ const toggleAway = () => {
 }
 
 .kiwi-avatar-initials {
-    font-family: 'Roboto', Arial, sans-serif;
+    font-family: Roboto, Arial, sans-serif;
     font-weight: 900;
 }
 </style>

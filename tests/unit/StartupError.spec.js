@@ -1,20 +1,24 @@
-import Vue from 'vue';
-import StartupError from '@/components/StartupError';
-
-Vue.mixin({
-    computed: {
-        $t() {
-            return (key, options) => key;
-        },
-    },
-});
+import { createApp } from 'vue';
+import StartupError from '@/components/StartupError.vue';
 
 describe('StartupError.vue', () => {
     it('should render correct contents', () => {
-        const vm = new Vue({
-            el: document.createElement('div'),
-            render: (h) => h(StartupError, { props: { error: 'some error' } }),
+        const el = document.createElement('div');
+        const app = createApp(
+            StartupError,
+            { error: 'some error' }
+        );
+
+        app.mixin({
+            computed: {
+                $t() {
+                    return (key, options) => key;
+                },
+            },
         });
-        expect(vm.$el.querySelector('span.kiwi-error-text').textContent).toEqual('some error');
+
+        app.mount(el);
+
+        expect(el.querySelector('span.kiwi-error-text').textContent).toEqual('some error');
     });
 });

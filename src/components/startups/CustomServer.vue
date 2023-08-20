@@ -137,6 +137,7 @@ import _ from 'lodash';
 import * as Misc from '@/helpers/Misc';
 
 export default {
+    emits: ['start'],
     data: function data() {
         return {
             title: 'Where are you connecting today?',

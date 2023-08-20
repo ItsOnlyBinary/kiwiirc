@@ -25,77 +25,65 @@
                 <a v-else>{{ $t('messages_loading') }}</a>
             </div>
 
-            <remove-before-update>
-                <template v-for="day in filteredMessagesGroupedDay">
+            <template v-for="day in filteredMessagesGroupedDay" :key="day.dayNum">
+                <div
+                    v-if="filteredMessagesGroupedDay.length > 1 && day.messages.length > 0"
+                    :key="'msgdatemarker' + day.dayNum"
+                    class="kiwi-messagelist-seperator"
+                >
+                    <span>{{ (new Date(day.messages[0].time)).toDateString() }}</span>
+                </div>
+                <template v-for="message in day.messages" :key="'msg' + message.id">
                     <div
-                        v-if="filteredMessagesGroupedDay.length > 1 && day.messages.length > 0"
-                        :key="'msgdatemarker' + day.dayNum"
+                        v-if="shouldShowUnreadMarker(message)"
+                        :key="'msgunreadmarker' + message.id"
                         class="kiwi-messagelist-seperator"
                     >
-                        <span>{{ (new Date(day.messages[0].time)).toDateString() }}</span>
+                        <span>{{ $t('unread_messages') }}</span>
                     </div>
-                    <remove-before-update :key="day.dayNum">
-                        <template v-for="message in day.messages">
-                            <div
-                                v-if="shouldShowUnreadMarker(message)"
-                                :key="'msgunreadmarker' + message.id"
-                                class="kiwi-messagelist-seperator"
-                            >
-                                <span>{{ $t('unread_messages') }}</span>
-                            </div>
 
-                            <div
-                                :key="'msg' + message.id"
-                                :class="[
-                                    'kiwi-messagelist-item',
-                                    selectedMessages[message.id] ?
-                                        'kiwi-messagelist-item--selected' :
-                                        ''
-                                ]"
-                            >
-                                <!-- message.template is checked first for a custom component,
-                                    then each message layout checks for a message.bodyTemplate
-                                    custom component to apply only to the body area
-                                -->
-                                <div
-                                    v-if="message.render() &&
-                                        message.template &&
-                                        message.template.$el &&
-                                        isTemplateVue(message.template)"
-                                    v-rawElement="message.template.$el"
-                                />
-                                <component
-                                    :is="message.template"
-                                    v-else-if="message.render() && message.template"
-                                    v-bind="message.templateProps"
-                                    :buffer="buffer"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-modern
-                                    v-else-if="listType === 'modern'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-inline
-                                    v-else-if="listType === 'inline'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-compact
-                                    v-else-if="listType === 'compact'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                            </div>
-                        </template>
-                    </remove-before-update>
+                    <div
+                        :class="[
+                            'kiwi-messagelist-item',
+                            selectedMessages[message.id] ?
+                                'kiwi-messagelist-item--selected' :
+                                ''
+                        ]"
+                    >
+                        <!-- message.template is checked first for a custom component,
+                            then each message layout checks for a message.bodyTemplate
+                            custom component to apply only to the body area
+                        -->
+                        <component
+                            :is="message.template"
+                            v-if="message.render() && message.template"
+                            v-bind="message.templateProps"
+                            :buffer="buffer"
+                            :message="message"
+                            :idx="filteredMessages.indexOf(message)"
+                            :ml="thisMl"
+                        />
+                        <message-list-message-modern
+                            v-else-if="listType === 'modern'"
+                            :message="message"
+                            :idx="filteredMessages.indexOf(message)"
+                            :ml="thisMl"
+                        />
+                        <message-list-message-inline
+                            v-else-if="listType === 'inline'"
+                            :message="message"
+                            :idx="filteredMessages.indexOf(message)"
+                            :ml="thisMl"
+                        />
+                        <message-list-message-compact
+                            v-else-if="listType === 'compact'"
+                            :message="message"
+                            :idx="filteredMessages.indexOf(message)"
+                            :ml="thisMl"
+                        />
+                    </div>
                 </template>
-            </remove-before-update>
+            </template>
 
             <transition name="kiwi-messagelist-joinloadertrans">
                 <div v-if="shouldShowJoiningLoader" class="kiwi-messagelist-joinloader">
@@ -115,11 +103,10 @@
 <script>
 'kiwi public';
 
-import Vue from 'vue';
+import { watch } from 'vue';
 import strftime from 'strftime';
 import Logger from '@/libs/Logger';
 import * as bufferTools from '@/libs/bufferTools';
-import RemoveBeforeUpdate from './utils/RemoveBeforeUpdate';
 import MessageListMessageCompact from './MessageListMessageCompact';
 import MessageListMessageModern from './MessageListMessageModern';
 import MessageListMessageInline from './MessageListMessageInline';
@@ -136,7 +123,6 @@ const BOTTOM_SCROLL_MARGIN = 60;
 
 export default {
     components: {
-        RemoveBeforeUpdate,
         MessageListMessageModern,
         MessageListMessageCompact,
         MessageListMessageInline,
@@ -217,6 +203,13 @@ export default {
             return days;
         },
         filteredMessages() {
+            // Hack; We need to make vue aware that we depend on buffer.message_count in order to
+            // get the messagelist to update its DOM, as the change of message_count alerts
+            // us that the messages have changed. This is done so that vue does not have to make
+            // every emssage reactive which gets very expensive.
+            /* eslint-disable no-unused-vars */
+            let ignoredVar = this.buffer.message_count;
+
             return bufferTools.orderedMessages(this.buffer);
         },
         shouldShowJoiningLoader() {
@@ -227,18 +220,6 @@ export default {
         },
     },
     watch: {
-        filteredMessages() {
-            // Data has changed and now preparing to update the DOM.
-            // Check our scrolling state before the DOM updates so that we know if we're scrolled
-            // at the bottom before new messages are added
-            this.checkScrollingState();
-
-            // Wait until after the DOM has updated before possibly scrolling down based on the
-            // previous check
-            this.$nextTick(() => {
-                this.maybeScrollToBottom();
-            });
-        },
         buffer(newBuffer, oldBuffer) {
             if (oldBuffer) {
                 oldBuffer.isMessageTrimming = true;
@@ -269,6 +250,21 @@ export default {
             // this.smooth_scroll = true;
         });
 
+        // this watcher was moved here due to it firing before mounted() could scroll
+        // to the bottom, this resulted in auto_scroll being set to false
+        watch(() => this.buffer.message_count, () => {
+            // Data has changed and now preparing to update the DOM.
+            // Check our scrolling state before the DOM updates so that we know
+            // if we're scrolled at the bottom before new messages are added
+            this.checkScrollingState();
+
+            // Wait until after the DOM has updated before possibly scrolling down based on the
+            // previous check
+            this.$nextTick(() => {
+                this.maybeScrollToBottom();
+            });
+        }, { deep: true });
+
         this.listen(this.$state, 'mediaviewer.opened', () => {
             this.$nextTick(this.maybeScrollToBottom.apply(this));
         });
@@ -280,15 +276,6 @@ export default {
         });
     },
     methods: {
-        isTemplateVue(template) {
-            const isVue = template instanceof Vue;
-            if (isVue && !window.kiwi_deprecations_messageTemplate) {
-                window.kiwi_deprecations_messageTemplate = true;
-                // eslint-disable-next-line no-console
-                console.warn('deprecated message.template or message.bodyTemplate, please use `message.template = kiwi.Vue.extend(component object)`');
-            }
-            return isVue;
-        },
         isHoveringOverMessage(message) {
             return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();
         },

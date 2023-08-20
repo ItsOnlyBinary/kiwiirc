@@ -1,14 +1,14 @@
-<template functional>
+<template>
     <span
-        v-if="$options.m.shouldShowStatus(props)"
+        v-if="$options.m.shouldShowStatus($props)"
         :class="{
-            'kiwi-awaystatusindicator--offline': !props.user || props.user.isOffline(),
-            'kiwi-awaystatusindicator--away': props.user && props.user.isAway(),
-            'kiwi-awaystatusindicator--self': $options.m.isUserSelf(props),
-            [data.staticClass]: !!data.staticClass,
+            'kiwi-awaystatusindicator--offline': !$props.user || $props.user.isOffline(),
+            'kiwi-awaystatusindicator--away': $props.user && $props.user.isAway(),
+            'kiwi-awaystatusindicator--self': $options.m.isUserSelf($props),
+            [$data.staticClass]: !!$data.staticClass,
         }"
         class="kiwi-awaystatusindicator"
-        @click="$options.m.toggleSelfAway(props)"
+        @click="$options.m.toggleSelfAway($props)"
     />
 </template>
 

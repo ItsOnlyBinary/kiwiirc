@@ -4,9 +4,9 @@
             ref="editor"
             :placeholder="placeholder"
             class="kiwi-ircinput-editor"
-            contenteditable="true"
+            :contenteditable="true"
             role="textbox"
-            spellcheck="true"
+            :spellcheck="true"
             @keypress="updateValueProps(); $emit('keypress', $event)"
             @keydown="updateValueProps(); $emit('keydown', $event)"
             @keyup="updateValueProps(); $emit('keyup', $event)"
@@ -30,10 +30,9 @@ import * as Colours from '@/helpers/Colours';
 import * as Misc from '@/helpers/Misc';
 import * as EmojiProvider from '@/libs/EmojiProvider';
 
-let Vue = require('vue');
-
-export default Vue.component('irc-input', {
+export default {
     props: ['placeholder'],
+    emits: ['blur', 'click', 'focus', 'input', 'keydown', 'keypress', 'keyup', 'textInput'],
     data() {
         return {
             last_known_value: '',
@@ -545,7 +544,7 @@ export default Vue.component('irc-input', {
             selection.addRange(range);
         },
     },
-});
+};
 </script>
 
 <style>

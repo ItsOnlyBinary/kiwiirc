@@ -1,6 +1,7 @@
 /** @module */
 
-import Vue from 'vue';
+import { reactive } from 'vue';
+
 import getState from '@/libs/state';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import { def } from './common';
@@ -27,7 +28,7 @@ export default class UserState {
 
         this.avatarCache = null;
 
-        Vue.observable(this);
+        const thisReactive = reactive(this);
 
         // Whois details are non-enumerable properties (vues $watch won't cover these properties)
         // watch hasWhois to know when this data is populated
@@ -57,6 +58,9 @@ export default class UserState {
             registered: null,
             secure: null,
         }, true);
+
+        // eslint-disable-next-line no-constructor-return
+        return thisReactive;
     }
 
     get avatar() {
@@ -95,7 +99,7 @@ export default class UserState {
 
         let typing = this.typingState[target];
         if (!typing) {
-            Vue.set(this.typingState, target, { started: 0, status: '' });
+            this.typingState[target] = { started: 0, status: '' };
             typing = this.typingState[target];
         }
 
@@ -105,7 +109,7 @@ export default class UserState {
         }
 
         if (status === 'done') {
-            Vue.delete(this.typingState, target);
+            delete this.typingState[target];
             return null;
         }
 

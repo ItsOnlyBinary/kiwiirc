@@ -3,8 +3,9 @@
 /** @module */
 
 import _ from 'lodash';
-import Vue from 'vue';
 import strftime from 'strftime';
+import { defineComponent, markRaw } from 'vue';
+
 import PluginWrapper from '@/components/utils/PluginWrapper';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import { urlRegex } from './TextFormatting';
@@ -336,7 +337,7 @@ export function parseIntZero(inp) {
  * @param {Component} componentOrElement The vue.js component object or html element
  * @param {Object} args Optional arguments for this plugin { title: '', props: {} }
  */
-export function makePluginObject(pluginId, componentOrElement, args = {}) {
+export function makePluginObject(app, pluginId, componentOrElement, args = {}) {
     const plugin = {
         id: pluginId,
         component: null,
@@ -352,19 +353,13 @@ export function makePluginObject(pluginId, componentOrElement, args = {}) {
     if (componentOrElement instanceof Element) {
         // componentOrElement is an html element, so wrap it in a functional component
 
-        // eslint-disable-next-line no-underscore-dangle
-        if (componentOrElement.__vue__ && !window.kiwi_deprecations_vueEl) {
-            window.kiwi_deprecations_vueEl = true;
-            // eslint-disable-next-line no-console
-            console.warn('deprecated component.$el added to plugin api, please switch to just passing the vue.js component object');
-        }
-        plugin.component = PluginWrapper;
+        plugin.component = markRaw(PluginWrapper);
         plugin.props = Object.assign(plugin.props, {
             pluginElement: componentOrElement,
         });
     } else if (componentOrElement instanceof Object) {
         // componentOrElement is an object, attempt to make a vue component from it
-        plugin.component = Vue.extend(componentOrElement);
+        plugin.component = markRaw(defineComponent(componentOrElement));
     } else {
         plugin.component = componentOrElement;
     }

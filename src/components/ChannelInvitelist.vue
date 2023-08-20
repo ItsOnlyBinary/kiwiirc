@@ -60,21 +60,14 @@
             <div class="kiwi-sidebar-settings-access-table-header" />
             <div v-if="areWeAnOp" class="kiwi-sidebar-settings-access-table-header" />
 
-            <template v-for="invite in sortedInviteList">
-                <div
-                    :key="'mask' + invite.invited"
-                    class="kiwi-sidebar-settings-access-mask"
-                >
+            <template v-for="invite in sortedInviteList" :key="invite.invited">
+                <div class="kiwi-sidebar-settings-access-mask">
                     {{ displayMask(invite.invited) }}
                 </div>
-                <div
-                    :key="'who' + invite.invited"
-                    class="kiwi-sidebar-settings-access-who"
-                >
+                <div class="kiwi-sidebar-settings-access-who">
                     {{ invite.invited_by }}
                 </div>
                 <div
-                    :key="'when' + invite.invited"
                     class="kiwi-sidebar-settings-access-when"
                     :title="(new Date(invite.invited_at * 1000)).toLocaleString({
                         year: 'numeric', month: '2-digit', day: '2-digit'
@@ -86,11 +79,7 @@
                         })
                     }}
                 </div>
-                <div
-                    v-if="areWeAnOp"
-                    :key="'actions' + invite.invited"
-                    class="kiwi-sidebar-settings-access-actions"
-                >
+                <div v-if="areWeAnOp" class="kiwi-sidebar-settings-access-actions">
                     <i
                         class="fa fa-trash"
                         aria-hidden="true"

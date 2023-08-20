@@ -1,6 +1,7 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { watch, reactive } from 'vue';
 
 import * as TextFormatting from '@/helpers/TextFormatting';
 import * as Misc from '@/helpers/Misc';
@@ -18,9 +19,18 @@ export default class InputHandler {
         this.aliasRewriter.importFromString(state.setting('aliases'));
 
         // Only watch the user setting changes in order to reload them
-        state.$watch('user_settings.aliases', (newVal) => {
-            this.aliasRewriter.importFromString(state.setting('aliases'));
-        });
+        watch(
+            () => {
+                if (state.user_settings?.aliases) {
+                    return state.user_settings.aliases;
+                } else {
+                    return reactive({});
+                }
+            },
+            (newVal) => {
+                this.aliasRewriter.importFromString(state.setting('aliases'));
+            }
+        );
 
         this.listenForInput();
     }

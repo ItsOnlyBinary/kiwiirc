@@ -219,6 +219,8 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { toRef, watch } from 'vue';
+
 import ThemeManager from '@/libs/ThemeManager';
 import GlobalApi from '@/libs/GlobalApi';
 import localesList from '@/res/localesList';
@@ -245,29 +247,30 @@ export default {
         SettingsAliases,
         SettingsAdvanced,
     },
-    data: function data() {
+    data() {
         return {
             theme: '',
             customThemeUrl: '',
             pluginUiElements: GlobalApi.singleton().appSettingsPlugins,
             localesList,
+            teardownFn: null,
         };
     },
     computed: {
-        themeSupportsMonospace: function themeSupportsMonospace() {
+        themeSupportsMonospace() {
             let themeMgr = ThemeManager.instance();
             let val = themeMgr.themeVar('supports-monospace');
             return val === '1';
         },
-        canRegisterProtocolHandler: function canRegisterProtocolHandler() {
+        canRegisterProtocolHandler() {
             return !!navigator.registerProtocolHandler && this.$state.setting('allowRegisterProtocolHandler');
         },
         timestamps_24h: {
-            get: function get24Timestamps() {
+            get() {
                 // %H is 24 hour format
                 return this.$state.setting('buffers.timestamp_format').substr(0, 2) === '%H';
             },
-            set: function set24Timestamps(newVal) {
+            set(newVal) {
                 let newFormat = newVal ?
                     '%H:%M:%S' :
                     '%l:%M:%S %p';
@@ -327,12 +330,17 @@ export default {
             },
         },
     },
-    created: function created() {
+    created() {
         this.listenForThemeSettings();
 
         this.listen(this.$state, 'settings.tab.show', (tabName) => {
             this.showTab(tabName);
         });
+    },
+    beforeUnmount() {
+        if (this.teardownFn) {
+            this.teardownFn();
+        }
     },
     methods: {
         closeSettings: function closeSettings() {
@@ -377,11 +385,10 @@ export default {
             }, 800, { leading: false, trailing: true });
 
             // Remove all our attached events to cleanup
-            let teardownFn = () => {
+            this.teardownFn = () => {
                 this.$state.$off('theme.change', updateFn);
                 this.$state.$off('theme.failed', failedFn);
                 watches.forEach((unwatchFn) => unwatchFn());
-                this.$off('hook:destroy', teardownFn);
             };
 
             // Update our info with the latest theme settings before we start
@@ -390,14 +397,13 @@ export default {
 
             this.$state.$on('theme.change', updateFn);
             this.$state.$on('theme.failed', failedFn);
-            this.$once('hook:destroyed', teardownFn);
 
-            // $watch returns a function to stop watching the data field. Add them into
+            // watch returns a function to stop watching the data field. Add them into
             // an array to make it easier to iterate over them all and unwatch them all
             // when needed.
             watches = [
-                this.$watch('theme', watchTheme),
-                this.$watch('customThemeUrl', watchCustomThemeUrl),
+                watch(toRef(this, 'theme'), watchTheme),
+                watch(toRef(this, 'customThemeUrl'), watchCustomThemeUrl),
             ];
         },
         enableAdvancedTab() {

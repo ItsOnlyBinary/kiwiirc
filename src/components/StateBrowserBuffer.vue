@@ -68,6 +68,7 @@ export default {
         AwayStatusIndicator,
     },
     props: ['buffer', 'activePrompt'],
+    emits: ['selected'],
     computed: {
         network() {
             return this.buffer.getNetwork();

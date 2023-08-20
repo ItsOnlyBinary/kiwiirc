@@ -8,7 +8,7 @@ describe('NetworkState', () => {
         expect(network).toBeInstanceOf(NetworkState);
         expect(network.name).toBe('TestNetwork');
         expect(network.connection.nick).toBe('TestNick');
-        expect(network.appState).toBe(s);
+        expect(network.appState).toStrictEqual(s);
     });
 
     it('should add a NetworkState to the global state', () => {

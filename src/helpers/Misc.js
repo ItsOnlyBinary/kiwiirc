@@ -399,3 +399,35 @@ export function strCompare(a, b) {
         1 :
         -1;
 }
+
+const base62Digits = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+export function base62Encode(_int) {
+    let int = _int;
+    let result = '';
+
+    if (int === 0) {
+        return base62Digits[0];
+    }
+
+    while (int > 0) {
+        result = base62Digits[int % base62Digits.length] + result;
+        int = Math.floor(int / base62Digits.length);
+    }
+
+    return result;
+}
+
+export function base62Decode(str) {
+    let result = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        const charIdx = base62Digits.indexOf(str[i]);
+        if (charIdx < 0) {
+            return NaN;
+        }
+
+        result += charIdx * base62Digits.length ** (str.length - 1 - i);
+    }
+
+    return result;
+}

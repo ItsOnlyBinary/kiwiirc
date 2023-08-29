@@ -21,4 +21,28 @@ describe('Misc.js', () => {
             expect(doesMention).toEqual(c[2]);
         });
     });
+
+    it('base64Encode and Decode should match', () => {
+        const tests = [
+            [0, '0'],
+            [10, 'a'],
+            [61, 'Z'],
+            [62, '10'],
+            [55378008, '3KmlG'],
+        ];
+
+        tests.forEach(([key, value]) => {
+            const encoded = Misc.base62Encode(key);
+            const decoded = Misc.base62Decode(value);
+            expect(encoded).toEqual(value);
+            expect(decoded).toEqual(key);
+        });
+
+        for (let i = 0; i < 1000; i++) {
+            const random = Math.floor((Math.random() * 1000000));
+            const encoded = Misc.base62Encode(random);
+            const decoded = Misc.base62Decode(encoded);
+            expect(decoded).toEqual(random);
+        }
+    });
 });

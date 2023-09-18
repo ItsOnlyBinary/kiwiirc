@@ -111,6 +111,7 @@ export function orderedMessages(buffer, opts = {}) {
         // that the topic is first in the message list.
         if (
             messages[i].type === 'topic' &&
+            messages[i].type_extra === 'topic_join' &&
             messages[i - 1] &&
             messages[i - 1].type === 'traffic' &&
             messages[i - 1].nick === currentNick

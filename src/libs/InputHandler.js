@@ -54,7 +54,7 @@ export default class InputHandler {
     processLine(rawLine, context = this.defaultContext()) {
         this.validateContext(context);
         const { network, buffer } = context;
-        let line = rawLine;
+        let line = rawLine.trim();
         let stylesStrippedLine = Misc.stripStyles(line);
 
         // If no command specified, server buffers = send raw, channels/queries = send message
@@ -346,13 +346,11 @@ inputCommands.topic = function inputCommandTopic(event, command, line) {
     let bufferName = '';
     let newTopic = '';
 
+    let lineParts = line.split(' ');
     if (line === '') {
         // /topic
-        return;
-    }
-
-    let lineParts = line.split(' ');
-    if (network.isChannelName(lineParts[0])) {
+        bufferName = this.state.getActiveBuffer().name;
+    } else if (network.isChannelName(lineParts[0])) {
         // /topic #channel a topic
         bufferName = lineParts[0];
         newTopic = lineParts.slice(1).join(' ');
@@ -362,7 +360,13 @@ inputCommands.topic = function inputCommandTopic(event, command, line) {
         newTopic = line;
     }
 
-    network.ircClient.setTopic(bufferName, newTopic);
+    if (newTopic.trim() === ':') {
+        // The user wants to unset the topic
+        network.ircClient.raw(`TOPIC ${bufferName} :`);
+    } else {
+        // This will get or set the topic
+        network.ircClient.setTopic(bufferName, newTopic);
+    }
 };
 
 inputCommands.kick = function inputCommandKick(event, command, line) {

@@ -1287,27 +1287,49 @@ function clientMiddleware(state, network) {
         }
 
         if (command === 'topic') {
-            let buffer = state.getOrAddBufferByName(networkid, event.channel);
-            buffer.topic = event.topic || '';
+            let buffer = state.getBufferByName(networkid, event.channel);
+            let activeBuffer = state.getActiveBuffer();
+            let targetBuffer = buffer || activeBuffer;
 
             let typeExtra = '';
             let messageBody = '';
 
             if (event.nick) {
+                // Topic change
+                if (buffer) {
+                    buffer.topic = event.topic || '';
+                    buffer.topic_by = event.nick;
+                    buffer.topic_when = event.time || Date.now();
+                }
+
                 typeExtra = 'topic_change';
                 messageBody = TextFormatting.formatAndT(
                     'channel_topic',
                     null,
                     'changed_topic_to',
-                    { nick: event.nick, topic: buffer.topic },
+                    { nick: event.nick, topic: event.topic },
                 );
-            } else if (buffer.topic.trim()) {
-                typeExtra = 'topic_join';
-                messageBody = TextFormatting.formatText('channel_topic', buffer.topic);
+            } else {
+                // Topic received on join or request
+                if (buffer) {
+                    buffer.topic = event.topic || '';
+                    typeExtra = 'topic_join';
+                } else {
+                    typeExtra = 'topic_other';
+                }
+
+                messageBody = (event.topic.trim())
+                    ? TextFormatting.formatText('channel_topic', event.topic)
+                    : `\x1d${TextFormatting.t('no_topic_set')}\x1d`;
             }
 
-            if (messageBody) {
-                state.addMessage(buffer, {
+            if (messageBody && ((buffer && buffer.joined) || activeBuffer === targetBuffer)) {
+                if (!buffer) {
+                    // Topic is not going to its own buffer, prefix the channel it is for
+                    messageBody = `\x02${event.channel}\x02\n` + messageBody;
+                }
+
+                state.addMessage(targetBuffer, {
                     time: eventTime,
                     server_time: serverTime,
                     nick: '',

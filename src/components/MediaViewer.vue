@@ -1,5 +1,8 @@
 <template>
-    <div class="kiwi-mediaviewer">
+    <div
+        :class="{'kiwi-mediaviewer--embedded': showPin}"
+        class="kiwi-mediaviewer"
+    >
         <div class="kiwi-mediaviewer-controls">
             <a
                 v-if="showPin"
@@ -12,7 +15,7 @@
                 class="u-button u-button-warning kiwi-mediaviewer-controls-close"
                 @click="$emit('close');"
             >
-                <i class="fa fa-window-close" aria-hidden="true" />
+                <i class="fa fa-times" aria-hidden="true" />
             </a>
         </div>
         <div class="kiwi-mediaviewer-content">
@@ -165,12 +168,19 @@ export default {
     box-shadow: 0 1px var(--brand-input-border);
 }
 
+.kiwi-mediaviewer-controls-pin {
+    padding: 4px 8px;
+    margin-right: 2px;
+    font-size: 14px;
+}
+
 .kiwi-mediaviewer:hover .kiwi-mediaviewer-controls {
     opacity: 1;
 }
 
 .kiwi-mediaviewer-controls-close {
-    padding: 3px 15px;
+    padding: 3px 8px 5px 8px;
+    font-size: 20px;
 }
 
 .kiwi-mediaviewer-content {
@@ -188,12 +198,18 @@ export default {
 
 @media screen and (max-width: 769px) {
     .kiwi-mediaviewer-controls {
-        right: 6px;
+        right: 0;
         opacity: 1;
     }
 
+    .kiwi-mediaviewer-controls-pin {
+        padding: 1px 6px;
+        font-size: 12px;
+    }
+
     .kiwi-mediaviewer-controls-close {
-        padding: 3px 7px;
+        padding: 1px 4px;
+        font-size: 16px;
     }
 }
 </style>

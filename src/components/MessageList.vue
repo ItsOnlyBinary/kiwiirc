@@ -391,6 +391,16 @@ export default {
             this.toggleMessageInfo();
         },
         onMessageDblClick(event, message) {
+            const eventObj = {
+                handled: false,
+                buffer: this.buffer,
+                message,
+            };
+            this.$state.$emit('message.dblclick', eventObj, event);
+            if (eventObj.handled) {
+                return;
+            }
+
             clearTimeout(this.messageClickTmr);
 
             let dataNick = event.target.getAttribute('data-nick');
@@ -407,6 +417,17 @@ export default {
             this.$state.$emit('input.insertnick', nick);
         },
         onMessageClick(event, message, delay) {
+            const eventObj = {
+                handled: false,
+                buffer: this.buffer,
+                message,
+                delay,
+            };
+            this.$state.$emit('message.click', eventObj, event);
+            if (eventObj.handled) {
+                return;
+            }
+
             // Delaying the click for 200ms allows us to check for a second click. ie. double click
             // Quick hack as we only need double click for nicks, nothing else
             if (delay && event.target.getAttribute('data-nick')) {

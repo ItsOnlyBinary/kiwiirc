@@ -50,6 +50,8 @@ export default class NetworkState {
         this.password = '';
         this.away = '';
 
+        this.quitTimeout = 0;
+
         Vue.observable(this);
 
         // Some non-enumerable properties (vues $watch won't cover these properties)
@@ -163,5 +165,21 @@ export default class NetworkState {
 
     userByName(nick) {
         return this.appState.getUser(this.id, nick);
+    }
+
+    quit(message) {
+        this.ircClient.raw('QUIT', message);
+        this.ircClient.connection.requested_disconnect = true;
+
+        const quitHandler = (event) => {
+            console.log('quit', event);
+        };
+
+        this.$state.on('irc.quit', quitHandler);
+
+        this.quitTimeout = setTimeout(() => {
+            // Server did not terminate the connection. Kill it.
+            this.ircClient.connection.end();
+        }, 3000);
     }
 }

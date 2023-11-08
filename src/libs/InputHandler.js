@@ -336,7 +336,11 @@ inputCommands.quit = function inputCommandQuit(event, command, line) {
     event.handled = true;
 
     let network = this.state.getActiveNetwork();
-    network.ircClient.quit(line);
+    network.quit(line);
+    // network.ircClient.quit(line);
+    // network.ircClient.raw('QUIT', line);
+    // network.ircClient.connection.requested_disconnect = true;
+    // network.ircClient.connection.end();
 };
 
 inputCommands.topic = function inputCommandTopic(event, command, line) {

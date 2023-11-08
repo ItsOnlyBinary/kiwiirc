@@ -67,7 +67,8 @@ function createNewConnection(wsAddr, sessionId) {
     connection.connected = false;
 
     connection.reconnect =
-    connection.connect = function connect() {
+    connection.connect = function connect(...args) {
+        console.log('connection.connect');
         if (connection.ws) {
             try {
                 connection.ws.close();
@@ -90,7 +91,16 @@ function createNewConnection(wsAddr, sessionId) {
         connection.ws.onclose = (err) => {
             connection.connected = false;
             connection.ws = null;
-            connection.emit('close', err);
+            Object.values(createdChannels).forEach((channel) => {
+                channel.isOffline = true;
+            });
+
+            if (err && err.code && err.code !== 1000) {
+                connection.emit('close', 'err_proxy');
+                return;
+            }
+
+            connection.emit('close');
         };
         connection.ws.onmessage = (event) => {
             connection.emit('message', event);
@@ -135,7 +145,7 @@ function createChannelOnConnection(connection, channelId) {
     return function ConnectionChannelWrapper(options) {
         if (!createdChannels[channelId]) {
             createdChannels[channelId] = new ConnectionChannel(options);
-        } else if (connection.connected) {
+        } else if (connection.connected && !createdChannels[channelId].isOpen) {
             createdChannels[channelId].initChannel();
         }
 
@@ -148,17 +158,34 @@ function createChannelOnConnection(connection, channelId) {
         let channel = new EventEmitter();
         channel.id = channelId;
         channel.isOpen = false;
+        channel.isOffline = false;
+        channel.isClosing = false;
         channel.state = 0; // TODO: Is this used anywhere?
         // 0 = disconnected, 1 = connected
         channel.remoteState = 0;
 
+        const listeners = Object.create(null);
+
+        function listen(eventName, callback) {
+            listeners[eventName] = callback;
+            connection.on(eventName, callback);
+        }
+
         // When the websocket opens, open this channel on it
-        connection.on('open', () => {
+        listen('open', () => {
+            if (channel.isOffline) {
+                return;
+            }
+            console.log('open', channelId);
             connection.ws.send(':' + channelId);
         });
         // When we get confirmation of this channel being opened, send any control
         // messages that were buffered
-        connection.on('open.' + channelId, () => {
+        listen('open.' + channelId, () => {
+            if (channel.isClosing) {
+                return;
+            }
+            console.log('open channel', channelId, channel.isClosing);
             channel.isOpen = true;
             // channel.emit('open');
             if (sendControlBuffer.length) {
@@ -174,13 +201,14 @@ function createChannelOnConnection(connection, channelId) {
             channel.remoteState = 1;
             channel.emit('open');
         });
-        connection.on('close', (err) => {
+        listen('close', (err) => {
+            console.log('close', channelId);
             channel.state = 3;
             channel.remoteState = 0;
             channel.isOpen = false;
             channel.emit('close', err);
         });
-        connection.on('message.' + channelId, (event) => {
+        listen('message.' + channelId, (event) => {
             if (event.data.indexOf('control ') === 0) {
                 // When we get the signal that the connection to the IRC server
                 // has connected, start proxying all data
@@ -189,8 +217,15 @@ function createChannelOnConnection(connection, channelId) {
                 }
 
                 if (event.data.indexOf('control closed') === 0) {
+                    console.log('control closed');
                     let err = event.data.split(' ')[2];
                     channel.remoteState = 0;
+
+                    Object.entries(listeners).forEach(([eventName, callback]) => {
+                        connection.removeListener(eventName, callback);
+                        delete listeners[eventName];
+                    });
+                    delete createdChannels[channelId];
                     channel.emit('close', err);
                 }
             }
@@ -224,11 +259,15 @@ function createChannelOnConnection(connection, channelId) {
 
         // Tell the server to connect to an IRC network
         channel.connect = function connect() {
+            console.log('channel.connect', channelId);
+            channel.isOffline = false;
+
             // Clear any buffered control messages so we have a clean slate
             sendControlBuffer = [];
 
             // If the websocket is not connected, try to reconnect it
             if (!connection.ws) {
+                console.log('reconnect');
                 connection.reconnect();
             }
 
@@ -240,6 +279,8 @@ function createChannelOnConnection(connection, channelId) {
 
         channel.close = function close() {
             if (channel.remoteState >= 1) {
+                console.log('closing channel', channelId);
+                channel.isClosing = true;
                 connection.ws.send(':' + channelId);
             }
         };
@@ -247,7 +288,8 @@ function createChannelOnConnection(connection, channelId) {
         // This is not supported but irc-framework transports need it, so just noop it
         channel.setEncoding = function setEncoding(newEncoding) {
             encoding = newEncoding;
-            if (connection.connected) {
+            if (channel.isOpen) {
+                console.log('setEncoding', channelId);
                 connection.ws.send(':' + channelId + ' ENCODING ' + newEncoding);
             }
             return true;
@@ -258,6 +300,7 @@ function createChannelOnConnection(connection, channelId) {
         };
 
         channel.initChannel = function initChannel() {
+            console.log('initChannel', channelId);
             connection.ws.send(':' + channelId);
         };
         // Let the server know of this new channel if we're already connected

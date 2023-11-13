@@ -4,7 +4,11 @@
         ref="scroller"
         v-resizeobserver="onListResize"
         class="kiwi-messagelist"
-        :class="{'kiwi-messagelist--smoothscroll': smooth_scroll}"
+        :class="[
+            `kiwi-messagelist-layout--${listType}`,
+            { 'kiwi-messagelist--timefirst': buffer.setting('time_first')},
+            { 'kiwi-messagelist--smoothscroll': smooth_scroll }
+        ]"
         @click.self="onListClick"
     >
         <div v-resizeobserver="onListResize">
@@ -22,7 +26,7 @@
                 <a v-else>{{ $t('messages_loading') }}</a>
             </div>
 
-            <transition-group tag="div">
+            <transition-group tag="div" class="kiwi-messagelist-content">
                 <template v-for="day in filteredMessagesGroupedDay">
                     <div
                         v-if="filteredMessagesGroupedDay.length > 1 && day.messages.length > 0"
@@ -31,12 +35,12 @@
                     >
                         <span>{{ (new Date(day.messages[0].time)).toDateString() }}</span>
                     </div>
-                    <transition-group :key="day.dayNum" tag="div">
+                    <transition-group :key="day.dayNum" tag="div" class="kiwi-messagelist-day">
                         <template v-for="message in day.messages">
                             <div
                                 v-if="shouldShowUnreadMarker(message)"
                                 :key="'msgunreadmarker' + message.id"
-                                class="kiwi-messagelist-seperator"
+                                class="kiwi-messagelist-seperator kiwi-messagelist-unreadmarker"
                             >
                                 <span>{{ $t('unread_messages') }}</span>
                             </div>
@@ -449,7 +453,7 @@ export default {
                 return;
             }
 
-            if (this.$state.ui.is_touch && this.$state.setting('buffers.show_message_info')) {
+            if (this.$state.ui.is_narrow && this.$state.setting('buffers.show_message_info')) {
                 if (this.canShowInfoForMessage(message) && event.target.nodeName === 'A') {
                     // We show message info boxes on touch screen devices so that the user has an
                     // option to preview the links or do other stuff.
@@ -877,11 +881,37 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 
 .kiwi-messagelist-seperator {
     text-align: center;
-    display: block;
+    align-items: center;
+    display: flex;
     margin: 1em auto;
     position: sticky;
     top: -1px;
     z-index: 1;
+    user-select: none;
+
+    &::before,
+    &::after {
+        flex: 1;
+        content: '';
+        border-bottom: 1px solid var(--comp-border);
+    }
+
+    &:not(:empty)::before {
+        margin-right: 0.25em;
+    }
+
+    &:not(:empty)::after {
+        margin-left: 0.25em;
+    }
+}
+
+.kiwi-messagelist-unreadmarker {
+    font-weight: 700;
+
+    &::before,
+    &::after {
+        border-bottom: 2px solid var(--brand-error);
+    }
 }
 
 .kiwi-messagelist-seperator > span {

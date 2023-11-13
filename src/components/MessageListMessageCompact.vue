@@ -44,29 +44,31 @@
         >
             {{ props.ml.formatTime(props.message.time) }}
         </div>
-        <a
-            :style="{ 'color': props.ml.userColour(props.message.user) }"
+        <div
+            class="kiwi-messagelist-nick"
             :class="[
-                'kiwi-messagelist-nick',
                 (props.message.user && props.m().userMode(props.message.user)) ?
                     'kiwi-messagelist-nick--mode-'+props.m().userMode(props.message.user) :
                     ''
             ]"
-            :data-nick="(props.message.nick||'').toLowerCase()"
-            @mouseover="props.ml.hover_nick=props.message.nick.toLowerCase();"
-            @mouseout="props.ml.hover_nick='';"
         >
-            <component
-                :is="injections.components.AwayStatusIndicator"
-                v-if="props.message.user"
-                :network="props.m().getNetwork()" :user="props.message.user"
-                :toggle="false"
-            />
-            <span class="kiwi-messagelist-nick--prefix">
-                {{ props.message.user ? props.m().userModePrefix(props.message.user) : '' }}
-            </span>
-            {{ props.message.nick }}
-        </a>
+            <a
+                :style="{ 'color': props.ml.userColour(props.message.user) }"
+                :data-nick="(props.message.nick||'').toLowerCase()"
+                @mouseover="props.ml.hover_nick=props.message.nick.toLowerCase();"
+                @mouseout="props.ml.hover_nick='';"
+            >
+                <component
+                    :is="injections.components.AwayStatusIndicator"
+                    v-if="props.message.user"
+                    :network="props.m().getNetwork()" :user="props.message.user"
+                    :toggle="false"
+                />
+                <span class="kiwi-messagelist-nick--prefix">{{
+                    props.message.user ? props.m().userModePrefix(props.message.user) : ''
+                }}</span>{{ props.message.nick }}
+            </a>
+        </div>
         <div
             v-if="props.message.bodyTemplate &&
                 props.message.bodyTemplate.$el &&
@@ -94,7 +96,10 @@
             @close="props.ml.toggleMessageInfo()"
         />
 
-        <div v-if="props.message.embed.payload && props.ml.shouldAutoEmbed">
+        <div
+            v-if="props.message.embed.payload && props.ml.shouldAutoEmbed"
+            class="kiwi-messagelist-embed"
+        >
             <component
                 :is="injections.components.MediaViewer"
                 :url="props.message.embed.payload"
@@ -181,8 +186,7 @@ export default {
 };
 </script>
 
-<style lang="less" scoped>
-
+<style lang="less">
 .kiwi-messagelist-message--compact {
     position: relative;
 }
@@ -212,7 +216,6 @@ export default {
 }
 
 .kiwi-messagelist-message--compact .kiwi-messagelist-time {
-    display: inline-block;
     float: right;
     font-size: 12px;
     opacity: 0.8;
@@ -227,6 +230,11 @@ export default {
 
 .kiwi-messagelist-message--compact .kiwi-messagelist-body a {
     word-break: break-all;
+
+    @supports (overflow-wrap: anywhere) {
+        word-break: unset;
+        overflow-wrap: anywhere;
+    }
 }
 
 .kiwi-messagelist-message--compact .kiwi-messageinfo {
@@ -236,11 +244,15 @@ export default {
 //Channel traffic messages
 .kiwi-messagelist-message--compact.kiwi-messagelist-message-traffic {
     margin: 0;
-    padding: 1px 0;
+    padding: 0;
 }
 
 .kiwi-messagelist-message--compact.kiwi-messagelist-message-traffic .kiwi-messagelist-body {
     margin-left: 131px;
+}
+
+.kiwi-messagelist-message--compact.kiwi-messagelist-message-error .kiwi-messagelist-nick {
+    display: none;
 }
 
 //Channel topic
@@ -269,6 +281,106 @@ export default {
 // messages are opacity: 1, rather than just specifying one.
 .kiwi-messagelist-message--compact.kiwi-messagelist-message--unread {
     opacity: 1;
+}
+
+@supports (grid-template-rows: subgrid) {
+    .kiwi-messagelist-layout--compact {
+        .kiwi-messagelist-content {
+            display: grid;
+            grid-template-columns: minmax(6em, min-content) minmax(auto, 100%) minmax(0, min-content);
+            column-gap: 8px;
+
+            > div,
+            .kiwi-messagelist-seperator {
+                grid-column: span 3;
+            }
+
+            .kiwi-messagelist-day {
+                display: grid;
+                grid-template-columns: subgrid;
+            }
+
+            .kiwi-messagelist-item {
+                grid-column: span 3;
+                display: grid;
+                grid-template-columns: subgrid;
+            }
+        }
+
+        .kiwi-messagelist-seperator {
+            margin: unset;
+
+            span {
+                grid-column: span 3;
+            }
+        }
+
+        .kiwi-messagelist-message {
+            grid-column: span 3;
+            display: grid;
+            grid-template-columns: subgrid;
+            grid-auto-flow: dense;
+            text-align: unset;
+            padding: 0 10px;
+            border-left: 3px solid transparent;
+
+            div.kiwi-messagelist-time {
+                float: unset;
+                position: unset;
+                top: unset;
+                right: unset;
+                grid-column: 3;
+                text-align: left;
+            }
+
+            div.kiwi-messagelist-nick {
+                position: unset;
+                width: unset;
+                min-width: 6em;
+                max-width: min(14vw, 14em);
+                padding: unset;
+                overflow-x: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            div.kiwi-messagelist-body {
+                margin-left: unset;
+                grid-column: 2;
+            }
+
+            div.kiwi-messagelist-embed {
+                grid-column: 2;
+            }
+
+            div.kiwi-messageinfo {
+                grid-column: 1 / span 3;
+                min-width: 0;
+            }
+        }
+
+        &.kiwi-messagelist--timefirst {
+            @media screen and (min-width: 770px) {
+                .kiwi-messagelist-content {
+                    grid-template-columns: minmax(0, min-content) minmax(6em, min-content) minmax(auto, 100%);
+                }
+
+                .kiwi-messagelist-message {
+                    div.kiwi-messagelist-time {
+                        grid-column: 1;
+                    }
+
+                    div.kiwi-messagelist-nick {
+                        grid-column: 2;
+                    }
+
+                    div.kiwi-messagelist-body {
+                        grid-column: 3;
+                    }
+                }
+            }
+        }
+    }
 }
 
 // Mobile layout (matches this.$state.ui.is_narrow)
@@ -321,13 +433,46 @@ export default {
         margin-left: 0;
         padding-left: 10px;
     }
+
+    @supports (grid-template-rows: subgrid) {
+        .kiwi-messagelist-layout--compact {
+            .kiwi-messagelist-message {
+                div.kiwi-messagelist-nick {
+                    grid-column: 1 / span 2;
+                    max-width: unset;
+                    text-align: left;
+                }
+
+                div.kiwi-messagelist-body {
+                    grid-column: 1 / span 3;
+                }
+
+                div.kiwi-messagelist-embed {
+                    grid-column: 1 / span 3;
+                }
+            }
+
+            .kiwi-messagelist-message-traffic,
+            .kiwi-messagelist-message-error {
+                div.kiwi-messagelist-body {
+                    grid-column: 1 / span 2;
+                }
+            }
+
+            .kiwi-messagelist-message-topic {
+                div.kiwi-messagelist-body {
+                    margin: 0 auto;
+                }
+            }
+        }
+    }
 }
 
 .kiwi-messagelist-message--compact .kiwi-messagelist-message-traffic .kiwi-messagelist-nick {
     display: none;
 }
 
-.kiwi-messagelist-item:last-of-type {
+.kiwi-messagelist-message--compact .kiwi-messagelist-item:last-of-type {
     margin-bottom: 5px;
 }
 

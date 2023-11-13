@@ -87,7 +87,8 @@ function linkifyUrl(block, _opts) {
 }
 
 function linkifyUser(block) {
-    let escaped = escape(block.meta.user);
+    // &#8209;  none-breaking-hyphen
+    let escaped = escape(block.meta.user).replace(/-/g, '&#8209;');
     let colour = block.meta.colour;
 
     return `<a class="kiwi-nick" data-nick="${escaped}"` +

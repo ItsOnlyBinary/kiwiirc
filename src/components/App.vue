@@ -214,8 +214,10 @@ export default {
             this.$nextTick(() => cssVarsPonyfill());
             this.listen(this.$state, 'theme.change', () => {
                 this.themeUrl = ThemeManager.themeUrl(themes.currentTheme());
-                this.$nextTick(() => cssVarsPonyfill());
-                this.$state.clearNickColours();
+                this.$nextTick(() => {
+                    cssVarsPonyfill();
+                    this.$state.clearNickColours();
+                });
             });
         },
         initStateBrowser() {

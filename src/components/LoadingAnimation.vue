@@ -15,39 +15,56 @@
 'kiwi public';
 
 export default {
+    props: {
+        speed: {
+            type: Number,
+            default: 100,
+        },
+        text: {
+            type: String,
+            default: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eu arcu ipsum.',
+            validate: (str) => str.length,
+        },
+    },
     data() {
         return {
-            logo: '',
-            c: '',
-            x: '',
-            Y: [],
-            t: 0,
+            logo: null,
+            canvas: null,
+            context: null,
+            y: [],
+            time: 0,
+            lines: [],
             fontSize: 72,
             font: 'bold ' + 72 + 'px verdana',
-            text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eu arcu ipsum. ',
             animationFrame: null,
             destroying: false,
         };
     },
     mounted() {
+        this.canvas = this.$refs['kiwi-loading-canvas'];
+        this.canvas.width = 1256;
+        this.canvas.height = 1080;
+
+        this.context = this.canvas.getContext('2d');
+
         this.logo = this.$refs['kiwi-loading-logo'];
-        this.c = this.$refs['kiwi-loading-canvas'];
-        this.x = this.c.getContext('2d');
-        let tmpText = '';
-        for (let i = 0; i < 9; i += 1) tmpText += this.text;
-        this.text = String(tmpText).match(/.{1,43}/g);
-        this.c.width = 1256;
-        this.c.height = 1080;
-        for (let i = 0; i < this.text.length; i += 1) {
-            this.Y.push(i * this.fontSize - 1600);
-        }
         this.logo.onload = () => {
             if (this.destroying) {
-                // the component has already been destroyed, we nolonger need the animation
+                // the component has already been destroyed,
+                // we no longer need the animation
                 return;
             }
             this.draw();
         };
+
+        let tmpText = '';
+        while (tmpText.length < 688) {
+            tmpText += this.text + ' ';
+        }
+        this.lines = String(tmpText).match(/.{1,43}/g);
+        for (let i = 0; i < this.lines.length; i += 1) {
+            this.y.push(i * this.fontSize - 1600);
+        }
     },
     beforeDestroy() {
         this.destroying = true;
@@ -55,38 +72,41 @@ export default {
     },
     methods: {
         draw() {
-            this.x.clearRect(0, 0, this.c.width, this.c.height);
-            this.x.globalCompositeOperation = 'source-over';
-            this.x.drawImage(this.logo, 0, 0, this.c.width, this.c.height);
-            this.x.globalCompositeOperation = 'xor';
-            this.x.fillStyle = '#000';
-            this.x.font = this.font;
-            for (let i = 0; i < this.text.length; i += 1) {
-                if (this.t % 4.5 < 2) {
-                    this.Y[i] += (250 + ((10 + i) / this.text.length) * 4000) / 120;
-                    if (this.Y[i] > i * this.fontSize) {
-                        this.Y[i] = i * this.fontSize;
+            const speed = 100 / (this.speed || 1);
+            const textLen = this.lines.length;
+
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.globalCompositeOperation = 'source-over';
+            this.context.drawImage(this.logo, 0, 0, this.canvas.width, this.canvas.height);
+            this.context.globalCompositeOperation = 'xor';
+            this.context.fillStyle = '#000';
+            this.context.font = this.font;
+            for (let i = 0; i < textLen; i += 1) {
+                if (this.time % 4.5 < 2) {
+                    this.y[i] += (250 + ((10 + i) / textLen) * 4000) / Math.round(120 * speed);
+                    if (this.y[i] > i * this.fontSize) {
+                        this.y[i] = i * this.fontSize;
                     }
                 } else {
-                    if (this.text.length - (this.t % 4.5 - 2) / 2.5 * this.text.length * 1.75 < i) {
-                        this.Y[i] += 10 + this.Y[i] / 20;
+                    if (textLen - (this.time % 4.5 - 2) / 2.5 * textLen * 1.75 < i) {
+                        this.y[i] += 10 + this.y[i] / Math.round(20 * speed);
                     }
-                    if (this.Y[i] > 1080 || this.Y[i] < 0) {
-                        this.Y[i] = -1500 + i * this.fontSize;
+                    if (this.y[i] > 1080 || this.y[i] < 0) {
+                        this.y[i] = -1500 + i * this.fontSize;
                     }
                 }
-                if (this.Y[i] > -100) {
-                    this.x.fillText(this.text[i], 0, this.fontSize + this.Y[i]);
+                if (this.y[i] > -100) {
+                    this.context.fillText(this.lines[i], 0, this.fontSize + this.y[i]);
                 }
             }
-            this.x.globalCompositeOperation = 'source-out';
-            this.x.drawImage(this.logo, 0, 0, this.c.width, this.c.height);
-            this.x.globalCompositeOperation = 'source-over';
-            this.x.globalAlpha = 0.1;
-            this.x.drawImage(this.logo, 0, 0, this.c.width, this.c.height);
-            this.x.globalAlpha = 1;
+            this.context.globalCompositeOperation = 'source-out';
+            this.context.drawImage(this.logo, 0, 0, this.canvas.width, this.canvas.height);
+            this.context.globalCompositeOperation = 'source-over';
+            this.context.globalAlpha = 0.1;
+            this.context.drawImage(this.logo, 0, 0, this.canvas.width, this.canvas.height);
+            this.context.globalAlpha = 1;
             this.animationFrame = requestAnimationFrame(this.draw);
-            this.t += 1 / 40;
+            this.time += 1 / Math.round(40 * speed);
         },
     },
 };

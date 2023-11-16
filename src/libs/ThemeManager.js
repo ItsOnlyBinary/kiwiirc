@@ -4,6 +4,7 @@ import _ from 'lodash';
 import Vue from 'vue';
 
 import Logger from '@/libs/Logger';
+import * as Colours from '@/helpers/Colours';
 
 const log = Logger.namespace('ThemeManager');
 
@@ -13,10 +14,12 @@ export default class ThemeManager {
     constructor(state, argTheme) {
         this.state = state;
 
+        this.cachedDark = null;
+        this.cachedElement = null;
+
         this.activeTheme = null;
         this.previousTheme = null;
 
-        this.varsElement = null;
         this.currentElement = null;
         this.loadingElement = null;
 
@@ -35,6 +38,32 @@ export default class ThemeManager {
             url += '/';
         }
         return url + 'theme.css' + (qs ? '?' + qs : '');
+    }
+
+    get isDark() {
+        if (this.cachedDark !== null) {
+            return this.cachedDark;
+        }
+
+        const styles = window.getComputedStyle(this.varsElement);
+        const value = styles.getPropertyValue('background-color');
+        const rgb = Colours.normaliseColour(value);
+        if (!rgb) {
+            this.cachedDark = false;
+            return this.cachedDark;
+        }
+        const hsl = Colours.rgb2hsl(rgb);
+        this.cachedDark = hsl.l <= 30;
+        return this.cachedDark;
+    }
+
+    get varsElement() {
+        if (this.cachedElement) {
+            return this.cachedElement;
+        }
+
+        this.cachedElement = document.querySelector('.kiwi-wrap');
+        return this.cachedElement;
     }
 
     availableThemes() {
@@ -94,6 +123,7 @@ export default class ThemeManager {
                 // New theme loaded successfully
                 this.previousTheme = this.activeTheme;
                 this.activeTheme = nextTheme;
+                this.cachedDark = null;
 
                 if (this.currentElement) {
                     // Remove the old theme from the DOM
@@ -172,10 +202,6 @@ export default class ThemeManager {
     }
 
     themeVar(varName) {
-        if (!this.varsElement) {
-            this.varsElement = document.querySelector('.kiwi-wrap');
-        }
-
         const styles = window.getComputedStyle(this.varsElement);
         const value = styles.getPropertyValue('--kiwi-' + varName);
         return (value || '').trim();

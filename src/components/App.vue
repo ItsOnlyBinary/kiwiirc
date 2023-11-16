@@ -65,11 +65,6 @@
 import '@/res/globalStyle.css';
 import Tinycon from 'tinycon';
 
-import startupWelcome from '@/components/startups/Welcome';
-import startupZncLogin from '@/components/startups/ZncLogin';
-import startupCustomServer from '@/components/startups/CustomServer';
-import startupKiwiBnc from '@/components/startups/KiwiBnc';
-import startupPersonal from '@/components/startups/Personal';
 import StateBrowser from '@/components/StateBrowser';
 import AppSettings from '@/components/AppSettings';
 import Container from '@/components/Container';
@@ -89,9 +84,10 @@ export default {
         ControlInput,
         MediaViewer,
     },
+    props: ['startupComponent'],
     data() {
         return {
-            startupComponent: null,
+            // startupComponent: null,
             hasStarted: false,
             // When on mobile screens, the statebrowser turns into a drawer
             stateBrowserDrawOpen: false,
@@ -135,24 +131,6 @@ export default {
         this.listen(window, 'touchstart', (event) => this.onTouchStart(event));
     },
     mounted() {
-        // Decide which startup screen to use depending on the config
-        let startupScreens = {
-            welcome: startupWelcome,
-            customServer: startupCustomServer,
-            kiwiBnc: startupKiwiBnc,
-            znc: startupZncLogin,
-            personal: startupPersonal,
-        };
-        let extraStartupScreens = this.$state.getStartups();
-
-        let startupName = this.$state.settings.startupScreen || 'personal';
-        let startup = extraStartupScreens[startupName] || startupScreens[startupName];
-
-        if (!startup) {
-            Logger.error(`Startup screen "${startupName}" does not exist`);
-        } else {
-            this.startupComponent = startup;
-        }
         this.trackWindowDimensions();
     },
     methods: {

@@ -14,11 +14,7 @@ export default class ThemeManager {
         this.state = state;
 
         this.activeTheme = null;
-        this.previousTheme = null;
-
         this.varsElement = null;
-        this.currentElement = null;
-        this.loadingElement = null;
 
         Vue.observable(this);
 
@@ -71,11 +67,11 @@ export default class ThemeManager {
             return;
         }
 
-        if (this.loadingElement) {
+        const loadingElement = document.head.querySelector('#kiwi-theme-loading');
+        if (loadingElement) {
             // There is already a loading theme
             // remove it as we are about to load another
-            document.head.removeChild(this.loadingElement);
-            this.loadingElement = null;
+            document.head.removeChild(loadingElement);
         }
 
         if (this.activeTheme && this.activeTheme.url === nextTheme.url) {
@@ -86,36 +82,38 @@ export default class ThemeManager {
         const nextNameLower = nextTheme.name.toLowerCase();
         const themeElement = document.createElement('link');
 
-        if (this.previousTheme) {
-            // If previousTheme is not set then this is the initial theme
+        if (this.activeTheme) {
+            // If activeTheme is not set then this is the initial theme
             // do not check its loading/error state so there is always an
-            // active and previous theme set
-            themeElement.onload = () => {
+            // active theme set
+
+            themeElement.id = 'kiwi-theme-loading';
+
+            themeElement.onload = (event) => {
                 // New theme loaded successfully
-                this.previousTheme = this.activeTheme;
+                const previousTheme = this.activeTheme;
                 this.activeTheme = nextTheme;
 
-                if (this.currentElement) {
+                const currentElement = document.head.querySelector('#kiwi-theme-current');
+                if (currentElement) {
                     // Remove the old theme from the DOM
-                    document.head.removeChild(this.currentElement);
+                    document.head.removeChild(currentElement);
                 }
 
                 // Move our loaded element into current position
-                this.currentElement = this.loadingElement;
-                this.loadingElement = null;
+                event.target.id = 'kiwi-theme-current';
 
                 if (nextTheme.name !== this.state.setting('theme')) {
                     // Reset the theme setting name to current if its not valid
                     this.state.setting('theme', nextTheme.name);
                 }
 
-                this.state.$emit('theme.change', nextTheme, this.previousTheme);
+                this.state.$emit('theme.change', nextTheme, previousTheme);
             };
 
-            themeElement.onerror = () => {
+            themeElement.onerror = (event) => {
                 // New theme failed to load, remove its loading element
-                document.head.removeChild(this.loadingElement);
-                this.loadingElement = null;
+                document.head.removeChild(event.target);
 
                 if (nextNameLower === 'custom' && !/\/theme\.css(\?|$)/.test(nextTheme.url)) {
                     // For custom themes try appending /theme.css
@@ -125,13 +123,10 @@ export default class ThemeManager {
 
                 this.state.$emit('theme.failed', nextTheme, this.activeTheme);
             };
-
-            this.loadingElement = themeElement;
         } else {
             // This is our initial theme set by url param or config
+            themeElement.id = 'kiwi-theme-current';
             this.activeTheme = nextTheme;
-            this.previousTheme = nextTheme;
-            this.currentElement = themeElement;
         }
 
         themeElement.rel = 'stylesheet';

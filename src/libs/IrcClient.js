@@ -430,7 +430,12 @@ function clientMiddleware(state, network) {
                 // If we don't have a buffer for this notice sender, either show it in our active
                 // buffer or the server buffer
                 if (!existingBuffer) {
-                    if (noticeActiveBuffer && hasActiveBuffer && !activeBuffer.isSpecial()) {
+                    if (
+                        noticeActiveBuffer
+                            && hasActiveBuffer
+                            && !activeBuffer.isSpecial()
+                            && (activeBuffer.joined || event.nick.toLowerCase() === 'nickserv')
+                    ) {
                         bufferName = activeBuffer.name;
                     } else {
                         bufferName = '*';

@@ -90,6 +90,9 @@ export const configTemplates = {
             // auto_request_history: all/channels/queries/none
             auto_request_history: 'channels',
         },
+        persistence: {
+            storage_prefix: 'kiwi',
+        },
         // Startup screen default
         startupOptions: {
             server: '',

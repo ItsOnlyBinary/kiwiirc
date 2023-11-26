@@ -25,7 +25,9 @@ import getState from '@/libs/state';
 import ThemeManager from '@/libs/ThemeManager';
 import InputHandler from '@/libs/InputHandler';
 import StatePersistence from '@/libs/StatePersistence';
+import StatePersistenceNew from '@/libs/StatePersistenceNew';
 import * as Storage from '@/libs/storage/Local';
+import * as StorageNew from '@/libs/storage/LocalNew';
 import * as Misc from '@/helpers/Misc';
 import GlobalApi from '@/libs/GlobalApi';
 import { AudioManager } from '@/libs/AudioManager';
@@ -46,14 +48,14 @@ import '@/components/utils/TransitionExpand';
 
 Vue.use(VueVirtualScroller);
 
+const log = Logger.namespace('main');
+
 let logLevelMatch = window.location.href.match(/kiwi-loglevel=(\d)/);
 if (logLevelMatch && logLevelMatch[1]) {
     let newLevel = parseInt(logLevelMatch[1], 10);
     Logger.setLevel(newLevel);
     Logger('Logging level set to', newLevel);
 }
-
-let log = Logger.namespace('main');
 
 // Add the global API as soon as possible so that things can start listening to it
 let api = window.kiwi = GlobalApi.singleton();
@@ -507,6 +509,9 @@ async function initState() {
     let persistLog = Logger.namespace('StatePersistence');
     let persist = new StatePersistence(stateKey || '', getState(), Storage, persistLog);
     persist.includeBuffers = !!getState().settings.startupOptions.remember_buffers;
+
+    // eslint-disable-next-line no-unused-vars
+    let persistNew = new StatePersistenceNew(getState(), StorageNew);
 
     if (stateKey) {
         await persist.loadStateIfExists();

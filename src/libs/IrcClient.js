@@ -1011,25 +1011,29 @@ function clientMiddleware(state, network) {
         if (command === 'user updated') {
             const user = network.userByName(event.nick);
             if (user) {
+                let newProps = {
+                    nick: event.nick,
+                };
                 Object.entries(event).forEach(([key, val]) => {
                     if (key.indexOf('new_') !== 0) {
                         return;
                     }
 
-                    const paramName = key.substr(4);
+                    const paramName = key.substring(4);
                     switch (paramName) {
                     case 'gecos':
-                        user.realname = val;
+                        newProps.realname = val;
                         break;
                     case 'ident':
-                        user.username = val;
+                        newProps.username = val;
                         break;
                     case 'hostname':
-                        user.host = val;
+                        newProps.host = val;
                         break;
                     default:
                     }
                 });
+                state.addUser(networkid, newProps);
             }
         }
 

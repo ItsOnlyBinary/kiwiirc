@@ -84,6 +84,15 @@ function createNewState() {
         }, */
     ];
 
+    // const persistenceSettings = {
+    //     network_state,
+    //     network_settings,
+    //     network_credentials,
+    //     buffer_state,
+    //     buffer_settings,
+    //     user_settings,
+    // };
+
     const availableStartups = Object.create(null);
 
     const state = new Vue({
@@ -786,14 +795,21 @@ function createNewState() {
 
                 if (!usersArr[user.nick.toUpperCase()]) {
                     userObj = usersArr[user.nick.toUpperCase()] = new UserState(user);
+                    state.$emit('user.new', { user: userObj });
                 } else {
                     // Update the existing user object with any new info we have
                     userObj = state.getUser(network.id, user.nick, usersArr);
+                    let isHost = (user.host && user.host !== userObj.host);
                     _.each(user, (val, prop) => {
                         if (typeof val !== 'undefined') {
                             userObj[prop] = val;
                         }
                     });
+
+                    if (isHost) {
+                        state.$emit('user.host', { user: userObj });
+                    }
+                    state.$emit('user.updated', { user: userObj });
                 }
 
                 return userObj;

@@ -222,7 +222,7 @@
 }
 
 .kiwi-avatar-inner {
-    background-color: var(--brand-default-bg);
+    background-color: var(--brand-primary);
     color: var(--brand-default-fg);
 }
 

@@ -918,6 +918,7 @@
 .kiwi-avatar-inner {
     color: var(--brand-default-bg);
     border-color: var(--brand-primary);
+    background-color: var(--comp-sidebar-fg);
 }
 
 .kiwi-avatar--default {

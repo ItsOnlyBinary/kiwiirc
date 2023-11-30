@@ -21,6 +21,7 @@ export default class UserState {
         this.typingState = Object.create(null);
         this.avatar = user.avatar || { small: '', large: '' };
         this.ignore = false;
+        this.monitoring = false;
 
         Vue.observable(this);
 
@@ -54,6 +55,19 @@ export default class UserState {
         }, true);
     }
 
+    scrub() {
+        // This clears out things that could lead to false information when a user goes offline
+        this.host = '';
+        this.username = '';
+        this.realname = '';
+        this.modes = [];
+        this.account = '';
+        this.hasWhois = false;
+        this.hasWhoFlags = false;
+        Object.keys(this.whois).forEach((key) => (this.whois[key] = ''));
+        Object.keys(this.whoFlags).forEach((key) => (this.whoFlags[key] = null));
+    }
+
     getColour() {
         if (!this.colour) {
             this.colour = TextFormatting.createNickColour(this.nick);
@@ -63,7 +77,11 @@ export default class UserState {
     }
 
     isAway() {
-        return !!this.away;
+        return (this.away && this.away !== 'offline');
+    }
+
+    isOffline() {
+        return (this.away === 'offline');
     }
 
     typingStatus(_target, status) {

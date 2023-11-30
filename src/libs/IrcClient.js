@@ -19,6 +19,7 @@ export function create(state, network) {
         message_max_length: 350,
     });
     ircClient.requestCap('znc.in/self-message');
+    ircClient.requestCap('extended-monitor');
     ircClient.use(chathistoryMiddleware());
     ircClient.use(clientMiddleware(state, network));
     ircClient.use(typingMiddleware());
@@ -634,6 +635,42 @@ function clientMiddleware(state, network) {
                 });
             }
         }
+        if (command === 'users online') {
+            console.log('users online', event);
+            event.nicks.forEach((nick) => {
+                let user = state.getUser(networkid, nick);
+                if (!user) {
+                    return;
+                }
+                user.monitored = true;
+                if (user.away === 'offline') {
+                    user.away = '';
+
+                    const buffer = state.getBufferByName(networkid, nick);
+                    if (buffer) {
+                        state.addMessageNoRepeat(buffer, {
+                            time: eventTime,
+                            server_time: serverTime,
+                            nick: '',
+                            message: 'Warning! This user has been offline so may no longer be the same person, proceed with caution.',
+                            type: 'error',
+                        });
+                    }
+                }
+            });
+        }
+        if (command === 'users offline') {
+            console.log('users offline', event);
+            event.nicks.forEach((nick) => {
+                let user = state.getUser(networkid, nick);
+                if (!user) {
+                    return;
+                }
+                user.monitored = true;
+                user.away = 'offline';
+                user.scrub();
+            });
+        }
         if (command === 'part') {
             let buffer = state.getBufferByName(networkid, event.channel);
             if (!buffer) {
@@ -653,6 +690,13 @@ function clientMiddleware(state, network) {
                 state.removeUser(networkid, {
                     nick: event.nick,
                 });
+            } else if (remainingBuffers.length === 1) {
+                const user = state.getUser(networkid, event.nick);
+                const isQuery = remainingBuffers[0].isQuery();
+                const supportsMonitor = client.network.supports('MONITOR');
+                if (isQuery && supportsMonitor && !user.monitored) {
+                    client.addMonitor(event.nick);
+                }
             }
 
             let ignoreEvent = state.setting('skipHiddenMessages') && !buffer.setting('show_joinparts');

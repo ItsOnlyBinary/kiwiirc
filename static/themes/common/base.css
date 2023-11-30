@@ -1078,7 +1078,12 @@
     border-color: var(--brand-default-bg);
     background-color: var(--brand-primary);
 }
+
 .kiwi-awaystatusindicator--away {
+    background-color: var(--brand-warning);
+}
+
+.kiwi-awaystatusindicator--offline {
     background-color: var(--brand-error);
 }
 

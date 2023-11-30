@@ -552,7 +552,12 @@ function createNewState() {
                 if (buffer.isQuery()) {
                     let remainingBuffers = state.getBuffersWithUser(network.id, buffer.name);
                     if (remainingBuffers.length === 0) {
-                        state.removeUser(network.d, {
+                        const user = state.getUser(network.id, buffer.name);
+                        if (user && user.monitored) {
+                            network.ircClient.removeMonitor(user.nick);
+                            user.monitored = false;
+                        }
+                        state.removeUser(network.id, {
                             nick: buffer.name,
                         });
                     }

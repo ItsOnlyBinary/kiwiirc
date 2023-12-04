@@ -40,17 +40,11 @@
         <div class="kiwi-messagelist-modern-left">
             <template v-if="props.m().displayAvatar(props.message)">
                 <component
-                    :is="injections.components.MessageAvatar"
-                    :message="props.message"
+                    :is="injections.components.UserAvatar"
+                    v-bind="avatarProps"
                     :data-nick="props.message.nick"
                     :user="props.message.user"
-                />
-                <component
-                    :is="injections.components.AwayStatusIndicator"
                     :network="props.m().getNetwork()"
-                    :user="props.message.user"
-                    :toggle="false"
-                    class="kiwi-messagelist-awaystatus"
                 />
             </template>
         </div>
@@ -146,8 +140,8 @@
 
 import { urlRegex } from '@/helpers/TextFormatting';
 import MessageInfo from './MessageInfo';
-import MessageListAvatar from './MessageListAvatar';
 import AwayStatusIndicator from './AwayStatusIndicator';
+import UserAvatar from './UserAvatar';
 import MediaViewer from './MediaViewer';
 
 const methods = {
@@ -234,6 +228,17 @@ const methods = {
 
         return true;
     },
+    avatarProps() {
+        let network = this.getNetwork();
+        return {
+            showBackground: this.$state.setting('avatars.show_image_background'),
+            showStatus: (
+                network.appState.setting('avatars.show_away_status')
+                && network.state === 'connected'
+                && network.ircClient.network.cap.isEnabled('away-notify')
+            ),
+        };
+    },
     userMode(user) {
         let props = this.props;
         return props.ml.buffer.userMode(user);
@@ -248,7 +253,7 @@ export default {
     inject: {
         components: {
             default: {
-                MessageAvatar: MessageListAvatar,
+                UserAvatar,
                 MessageInfo,
                 AwayStatusIndicator,
                 MediaViewer,

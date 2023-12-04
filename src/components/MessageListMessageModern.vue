@@ -45,6 +45,7 @@
                     :data-nick="props.message.nick"
                     :user="props.message.user"
                     :network="props.m().getNetwork()"
+                    :message="props.message"
                 />
             </template>
         </div>

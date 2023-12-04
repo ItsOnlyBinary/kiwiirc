@@ -274,6 +274,28 @@ export default {
             }
         });
     },
+    created() {
+        this.perf = [];
+        this.measure = true;
+        window.perfTest = this.perf;
+        setTimeout(() => {
+            this.measure = false;
+            const avg = this.perf.reduce((acc, val) => acc + val, 0) / this.perf.length;
+            const med = this.perf.sort()[Math.floor(this.perf.length / 2)];
+            const min = Math.min(...this.perf);
+            const max = Math.max(...this.perf);
+
+            console.log('performance:', 'samples', this.perf.length, ', avg', avg, ', med', med, ', min', min, ', max', max);
+        }, 600000);
+    },
+    beforeUpdate() {
+        this.utime = performance.now();
+    },
+    updated() {
+        if (this.measure) {
+            this.perf.push(performance.now() - this.utime);
+        }
+    },
     methods: {
         isTemplateVue(template) {
             const isVue = template instanceof Vue;

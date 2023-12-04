@@ -79,6 +79,10 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    message: {
+        type: Object,
+        default: null,
+    },
     network: {
         type: Object,
         default: null,
@@ -151,7 +155,7 @@ const avatar = computed(() => {
     if (initialsLength > 2) {
         initialsLength = 2;
     }
-    const nick = props.user.nick;
+    const nick = props.message?.nick || props.user.nick;
     const initials = nick.substring(0, initialsLength).toUpperCase();
     const avatars = {
         hasImage: (props.user.avatar.small || props.user.avatar.large),

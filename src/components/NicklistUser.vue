@@ -3,6 +3,7 @@
         :class="{
             'kiwi-nicklist-user--away': props.user.isAway() || props.user.isOffline(),
             'kiwi-nicklist-user--ignore': props.user.ignore,
+            [data.staticClass]: !!data.staticClass,
         }"
         v-bind="$options.dataAttributes(props)"
         class="kiwi-nicklist-user"

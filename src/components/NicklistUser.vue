@@ -7,7 +7,7 @@
         }"
         v-bind="$options.dataAttributes(props)"
         class="kiwi-nicklist-user"
-        @click.stop="nicklist.openUserbox(props.user)"
+        @click.stop="props.nicklist.openUserbox(props.user)"
     >
         <div v-if="props.nicklist.shouldShowAvatars" class="kiwi-nicklist-avatar">
             <component :is="$options.components.Avatar" :user="props.user" size="small" />

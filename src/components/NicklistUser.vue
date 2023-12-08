@@ -1,37 +1,45 @@
-<template>
+<template functional>
     <div
         :class="{
-            'kiwi-nicklist-user--away': user.isAway() || user.isOffline(),
-            'kiwi-nicklist-user--ignore': user.ignore,
+            'kiwi-nicklist-user--away': props.user.isAway() || props.user.isOffline(),
+            'kiwi-nicklist-user--ignore': props.user.ignore,
         }"
-        v-bind="dataAttributes"
+        v-bind="$options.dataAttributes(props)"
         class="kiwi-nicklist-user"
-        @click.stop="nicklist.openUserbox(user)"
+        @click.stop="nicklist.openUserbox(props.user)"
     >
-        <div v-if="nicklist.shouldShowAvatars" class="kiwi-nicklist-avatar">
-            <Avatar :user="user" size="small" />
-            <AwayStatusIndicator :network="network" :user="user" :toggle="false" />
+        <div v-if="props.nicklist.shouldShowAvatars" class="kiwi-nicklist-avatar">
+            <component :is="$options.components.Avatar" :user="props.user" size="small" />
+            <component
+                :is="$options.components.AwayStatusIndicator"
+                :network="props.network"
+                :user="props.user"
+                :toggle="false"
+            />
         </div>
-        <AwayStatusIndicator
+        <component
+            :is="$options.components.AwayStatusIndicator"
             v-else
-            :network="network"
-            :user="user"
+            :network="props.network"
+            :user="props.user"
             :toggle="false"
             class="kiwi-nicklist-awaystatus"
         />
-        <span class="kiwi-nicklist-user-prefix">{{ userModePrefix }}</span>
+        <span class="kiwi-nicklist-user-prefix">{{ $options.userModePrefix(props) }}</span>
         <span
             class="kiwi-nicklist-user-nick"
-            :style="{ color: userColour }"
-        >{{ user.nick }} </span>
+            :style="{ color: $options.userColour(props) }"
+        >{{ props.user.nick }} </span>
         <div class="kiwi-nicklist-user-buttons">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 class="kiwi-nicklist-user-typing"
                 :class="{
-                    'kiwi-nicklist-user-typing--active': userTypingState === 'active',
-                    'kiwi-nicklist-user-typing--paused': userTypingState === 'paused',
+                    'kiwi-nicklist-user-typing--active':
+                        $options.userTypingState(props) === 'active',
+                    'kiwi-nicklist-user-typing--paused':
+                        $options.userTypingState(props) === 'paused',
                 }"
             >
                 <circle cx="4" cy="12" r="3" />
@@ -43,7 +51,7 @@
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 36 36"
                 class="kiwi-nicklist-user-message"
-                @click.stop="nicklist.openQuery(user)"
+                @click.stop="props.nicklist.openQuery(props.user)"
             >
                 <path
                     d="M18 1C8.059 1 0 7.268 0 15c0 4.368 2.574 8.268 6.604 10.835C6.08 28.144
@@ -69,36 +77,33 @@ export default {
         Avatar,
     },
     props: ['network', 'user', 'nicklist'],
-    computed: {
-        dataAttributes() {
-            const attrs = Object.create(null);
-            attrs['data-nick'] = this.user.nick.toLowerCase();
+    dataAttributes(props) {
+        const attrs = Object.create(null);
+        attrs['data-nick'] = props.user.nick.toLowerCase();
 
-            if (this.user.account) {
-                attrs['data-account'] = this.user.account.toLowerCase();
-            }
+        if (props.user.account) {
+            attrs['data-account'] = props.user.account.toLowerCase();
+        }
 
-            const userMode = this.nicklist.buffer.userMode(this.user);
-            if (userMode) {
-                attrs['data-mode'] = userMode;
-            }
+        const userMode = props.nicklist.buffer.userMode(props.user);
+        if (userMode) {
+            attrs['data-mode'] = userMode;
+        }
 
-            return attrs;
-        },
-        userColour() {
-            if (this.nicklist.useColouredNicks) {
-                return this.user.getColour();
-            }
-            return '';
-        },
-        userModePrefix() {
-            return this.nicklist.buffer.userModePrefix(this.user);
-        },
-        userTypingState() {
-            const status = this.user.typingStatus(this.nicklist.buffer.name).status;
-            // console.log('userTypingState', this.user.nick, status);
-            return status;
-        },
+        return attrs;
+    },
+    userColour(props) {
+        if (props.nicklist.useColouredNicks) {
+            return props.user.getColour();
+        }
+        return '';
+    },
+    userModePrefix(props) {
+        return props.nicklist.buffer.userModePrefix(props.user);
+    },
+    userTypingState(props) {
+        const status = props.user.typingStatus(props.nicklist.buffer.name).status;
+        return status;
     },
 };
 </script>

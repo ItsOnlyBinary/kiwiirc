@@ -811,9 +811,10 @@ export default {
 <style lang="less">
 
 .kiwi-controlinput {
-    z-index: 999;
+    z-index: 2;
     position: relative;
     border-top: 1px solid;
+    max-height: 40%;
 }
 
 .kiwi-controlinput,

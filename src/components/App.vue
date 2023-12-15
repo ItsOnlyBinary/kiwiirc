@@ -462,10 +462,6 @@ body {
     border-bottom: 1px solid rgba(0, 0, 0, 0.3);
 }
 
-.kiwi-controlinput {
-    z-index: 2;
-}
-
 /* Small screen will cause the statebrowser to act as a drawer */
 @media screen and (max-width: 769px) {
     .kiwi-workspace {

@@ -72,7 +72,7 @@ export default Vue.component('transition-expand', {
 <style>
 .u-transition-expand-enter-active,
 .u-transition-expand-leave-active {
-    transition: height 0.2s, opacity 0.2s;
+    transition: height 2s, opacity 2s;
     overflow: hidden;
 }
 

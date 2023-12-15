@@ -1,10 +1,10 @@
 <template>
-    <div class="kiwi-selfuser kiwi-theme-bg">
+    <div class="kiwi-selfuser kiwi-theme-bg" @click.stop>
         <div v-if="!self_user_settings_open" class="kiwi-selfuser-mask">
-            <span class="kiwi-selfuser-nick">
-                <away-status-indicator :network="network" :user="user" />
-                {{ network.nick }}
-                <i class="fa fa-times" aria-hidden="true" @click="closeSelfUser()" />
+            <away-status-indicator :network="network" :user="user" />
+            <span class="kiwi-selfuser-nick">{{ network.nick }}</span>
+            <span class="kiwi-selfuser-buttons">
+                <i class="fa fa-times" aria-hidden="true" @click.stop="closeSelfUser()" />
                 <i class="fa fa-pencil" aria-hidden="true" @click="openSelfActions()" />
                 <i
                     class="fa fa-user"
@@ -172,7 +172,64 @@ export default {
 };
 </script>
 
-<style>
+<style lang="less">
+    .kiwi-selfuser {
+        overflow: hidden;
+        cursor: default;
+    }
+
+    .kiwi-selfuser-mask {
+        display: grid;
+        grid-template-columns: minmax(0, max-content) auto minmax(0, max-content);
+        grid-gap: 4px;
+        margin: 8px;
+        text-align: left;
+        align-items: center;
+
+        > .kiwi-awaystatusindicator {
+            margin: 0;
+            width: 9px;
+            height: 9px;
+        }
+    }
+
+    .kiwi-selfuser-top {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .kiwi-selfuser-nick {
+        flex-grow: 1;
+        text-align: left;
+    }
+
+    .kiwi-selfuser-buttons {
+        align-self: flex-start;
+        display: flex;
+        flex-direction: row;
+        gap: 2px;
+
+        > i {
+            cursor: pointer;
+            padding: 2px;
+        }
+    }
+
+    .kiwi-selfuser-host {
+        grid-column: 2 / span 2;
+        font-size: 80%;
+    }
+
+    .kiwi-away-checkbox-form {
+        grid-column: 2 / span 2;
+
+        > .kiwi-selfuser-away-label {
+            margin: 0;
+        }
+    }
+</style>
+<!-- <style>
 .kiwi-selfuser-nick,
 .kiwi-selfuser-host,
 .kiwi-selfuser-status {
@@ -273,4 +330,4 @@ export default {
     z-index: 1;
 }
 
-</style>
+</style> -->

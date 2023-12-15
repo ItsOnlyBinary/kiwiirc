@@ -9,30 +9,30 @@
         }"
         class="kiwi-controlinput kiwi-theme-bg"
     >
-        <div class="kiwi-controlinput-selfuser">
-            <transition name="kiwi-selfuser-trans">
-                <self-user
-                    v-if="networkState==='connected'
-                        && selfuser_open === true"
-                    :network="network"
-                    @close="selfuser_open=false"
-                />
-            </transition>
-        </div>
-
         <div class="kiwi-controlinput-inner">
-            <away-status-indicator
-                v-if="network && network.state === 'connected'"
-                :network="network"
-                :user="network.currentUser()"
-            />
             <div v-if="currentNick" class="kiwi-controlinput-user" @click="toggleSelfUser">
-                <span class="kiwi-controlinput-user-nick">{{ currentNick }}</span>
-                <i
-                    :class="[selfuser_open ? 'fa-caret-down' : 'fa-caret-up']"
-                    class="fa"
-                    aria-hidden="true"
-                />
+                <div>
+                    <away-status-indicator
+                        v-if="network && network.state === 'connected'"
+                        :network="network"
+                        :user="network.currentUser()"
+                        class="kiwi-controlinput-user-status"
+                    />
+                    <span class="kiwi-controlinput-user-nick">{{ currentNick }}</span>
+                    <i
+                        :class="[selfuser_open ? 'fa-caret-down' : 'fa-caret-up']"
+                        class="fa"
+                        aria-hidden="true"
+                    />
+                </div>
+                <transition name="kiwi-selfuser-trans">
+                    <self-user
+                        v-if="networkState==='connected'
+                            && selfuser_open === true"
+                        :network="network"
+                        @close="selfuser_open=false"
+                    />
+                </transition>
             </div>
             <form
                 class="kiwi-controlinput-form"
@@ -829,42 +829,63 @@ export default {
     display: flex;
     position: relative;
     height: 100%;
-
-    .kiwi-awaystatusindicator {
-        margin-top: 16px;
-        margin-left: 10px;
-        margin-right: -2px;
-    }
 }
 
 .kiwi-controlinput-user {
-    height: 100%;
-    padding-left: 10px;
+    align-self: flex-start;
+    position: relative;
+    min-height: 40px;
+    white-space: nowrap;
+    max-width: 20%;
+    text-overflow: ellipsis;
     font-weight: bold;
     text-align: center;
     cursor: pointer;
-    line-height: 40px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    transition-delay: 0.2s;
     transition: width 0.2s;
-    transition-delay: 0.1s;
+
+    > .kiwi-awaystatusindicator {
+        margin: 0;
+        width: 9px;
+        height: 9px;
+        flex-shrink: 0;
+    }
 
     > i {
         font-size: 120%;
-        margin-left: 8px;
+        flex-shrink: 0;
     }
 }
 
 .kiwi-controlinput--selfuser-open {
     .kiwi-controlinput-user {
-        width: 296px;
-        transition: width 0.2s;
-        transition-delay: 0.1s;
+        width: 324px;
     }
 
-    .kiwi-controlinput-selfuser {
+    .kiwi-selfuser {
         width: 324px;
         max-height: 300px;
         opacity: 1;
+        border-top: 1px solid;
+        border-right: 1px solid;
     }
+}
+
+.kiwi-selfuser {
+    position: absolute;
+    bottom: 0;
+    z-index: 10;
+    left: 0;
+    max-height: 0;
+    width: 324px;
+    box-sizing: border-box;
+    border-radius: 0 6px 0 0;
+    opacity: 0;
+    overflow: hidden;
 }
 
 .kiwi-controlinput-form {
@@ -872,6 +893,7 @@ export default {
     overflow: hidden;
     display: flex;
     box-sizing: border-box;
+    border-left: 1px solid red;
 }
 
 .kiwi-controlinput-command-warn {
@@ -924,21 +946,6 @@ export default {
     z-index: 1;
 }
 
-.kiwi-controlinput-selfuser {
-    position: absolute;
-    bottom: 0;
-    z-index: 10;
-    left: 0;
-    max-height: 0;
-    width: 324px;
-    box-sizing: border-box;
-    border-radius: 0 6px 0 0;
-    opacity: 0;
-    border-top: 1px solid;
-    border-right: 1px solid;
-    overflow: hidden;
-}
-
 .kiwi-selfuser-trans-enter,
 .kiwi-selfuser-trans-leave-to {
     opacity: 0;
@@ -952,7 +959,7 @@ export default {
 
 .kiwi-selfuser-trans-enter-active,
 .kiwi-selfuser-trans-leave-active {
-    transition: all 0.4s;
+    transition: all 2;
 }
 
 .kiwi-controlinput-tools {

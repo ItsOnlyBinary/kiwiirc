@@ -397,7 +397,7 @@ body {
     top: 4px;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100% - 4px);
     transition: left 0.2s, margin-left 0.2s;
 }
 

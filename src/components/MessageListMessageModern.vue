@@ -346,7 +346,8 @@ export default {
     margin-left: 5px;
     padding-top: 0;
     width: 100%;
-    overflow: hidden;
+    word-break: break-word;
+    position: relative;
 }
 
 .kiwi-messagelist-message--modern .kiwi-messagelist-top > div {

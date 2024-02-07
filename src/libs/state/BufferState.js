@@ -1,5 +1,7 @@
 /** @module */
 
+'kiwi public';
+
 import Vue from 'vue';
 import _ from 'lodash';
 import { def } from './common';

@@ -108,7 +108,7 @@ export default class GlobalApi extends EventEmitter {
      */
     require(modPath) {
         let path = modPath.replace(/\//g, '.');
-        let mod = _.get(this.exports, path);
+        let mod = _.get(this.exports, path + '.##root');
         if (typeof mod === 'undefined') {
             Logger.error('Module does not exist: ' + modPath);
         }
@@ -284,7 +284,7 @@ export default class GlobalApi extends EventEmitter {
      * @param {Object} source The new module to insert in place
      */
     replaceModule(dest, source) {
-        let mod = this.require(dest);
+        let mod = this.require(dest + '##root');
         if (!mod) {
             throw new Error(`The module ${dest} does not exist`);
         }

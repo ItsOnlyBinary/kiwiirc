@@ -1,5 +1,7 @@
 /** @module */
 
+'kiwi public';
+
 import Vue from 'vue';
 import getState from '@/libs/state';
 import * as TextFormatting from '@/helpers/TextFormatting';

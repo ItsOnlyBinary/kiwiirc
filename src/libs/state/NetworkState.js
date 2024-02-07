@@ -1,5 +1,7 @@
 /** @module */
 
+'kiwi public';
+
 import Vue from 'vue';
 import { def } from './common';
 import * as IrcClient from '../IrcClient';

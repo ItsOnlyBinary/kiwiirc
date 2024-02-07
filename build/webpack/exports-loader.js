@@ -7,9 +7,13 @@ function accesorString(value) {
     let propertyString = entry;
     let result = '';
 
-    for (let i = 0; i < childProperties.length; i++) {
+    for (let i = 0; i <= childProperties.length; i++) {
         if (i > 0) result += `if(!${propertyString}) ${propertyString} = {};\n`;
-        propertyString += `[${JSON.stringify(childProperties[i])}]`;
+        if (i === childProperties.length) {
+            propertyString += '["##root"]';
+        } else {
+            propertyString += `[${JSON.stringify(childProperties[i])}]`;
+        }
     }
 
     result += `${propertyString}`;
@@ -27,8 +31,7 @@ module.exports = function(source) {
         let a = '\r\n';
         a += `${entry} = ${entry} || {};\r\n`;
         a += accesorString(resource);
-        a += `\r\n${entry}.${resource} = exports.default ? exports.default : exports;\r\n`;
-
+        a += ' = exports.default ? exports.default : exports;\r\n';
         source += a;
     }
 

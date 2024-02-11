@@ -197,7 +197,7 @@ const toggleAway = () => {
         return;
     }
     const isAway = props.user.isAway();
-    props.network.ircClient.raw('AWAY', isAway ? '' : 'Currently away');
+    props.network.ircClient.raw('AWAY', isAway ? '' : getState().setting('awayDefaultMessage'));
 };
 </script>
 

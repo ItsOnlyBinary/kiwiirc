@@ -23,7 +23,7 @@ const methods = {
         // let props = this.props;
         if (props.isUserSelf) {
             let val = props.user.isAway();
-            props.network.ircClient.raw('AWAY', val ? '' : 'Currently away');
+            props.network.ircClient.raw('AWAY', val ? '' : getState().setting('awayDefaultMessage'));
         }
     },
     isUserSelf(props) {

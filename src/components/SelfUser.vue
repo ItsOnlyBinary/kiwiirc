@@ -78,7 +78,7 @@ export default {
                 return this.user.away;
             },
             set(val) {
-                this.network.ircClient.raw('AWAY', val ? 'Currently away' : '');
+                this.network.ircClient.raw('AWAY', val ? this.$state.setting('awayDefaultMessage') : '');
             },
         },
     },

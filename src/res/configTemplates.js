@@ -122,6 +122,7 @@ export const configTemplates = {
         showSendButton: false,
         showAwayStatusIndicators: true,
         sidebarDefault: 'nicklist',
+        awayDefaultMessage: 'Currently Away',
         showRaw: false,
         useBufferHistory: true,
         changeNickOnCollision: true,

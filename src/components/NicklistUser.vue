@@ -28,6 +28,7 @@
             class="kiwi-nicklist-user-nick"
             :style="{ color: userColour }"
         >{{ user.nick }} </span>
+        <span class="kiwi-nicklist-user-padding" />
         <div class="kiwi-nicklist-user-buttons">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -152,11 +153,15 @@ export default {
 
 .kiwi-nicklist-user-nick {
     display: block;
-    flex: 1;
-    margin-right: 10px;
     overflow: hidden;
     font-weight: 700;
     text-overflow: ellipsis;
+}
+
+.kiwi-nicklist-user-padding {
+    display: block;
+    flex: 1;
+    min-width: 10px;
 }
 
 .kiwi-nicklist-user-buttons {

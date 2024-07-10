@@ -255,7 +255,7 @@ export default {
                 }
                 servers.push(conn);
             });
-            this.$set(this, 'presetNetworks', servers);
+            this.presetNetworks = servers;
         },
     },
 };

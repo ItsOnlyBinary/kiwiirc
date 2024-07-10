@@ -1,6 +1,6 @@
 /** @module */
 
-import Vue from 'vue';
+import { nextTick, shallowReactive } from 'vue';
 import { def } from './common';
 import * as IrcClient from '../IrcClient';
 
@@ -20,11 +20,11 @@ export default class NetworkState {
         this.is_znc = false;
         this.is_bnc = false;
         this.hidden = false;
-        this.channel_list = [];
+        this.channel_list = shallowReactive([]);
         this.channel_list_state = '';
         // The IRCd type as mentioned in the 002 numeric
         this.ircd = '';
-        this.connection = {
+        this.connection = shallowReactive({
             server: '',
             port: 6667,
             tls: false,
@@ -35,22 +35,22 @@ export default class NetworkState {
             encoding: 'utf8',
             bncnetid: '',
             nick: '',
-        };
-        this.settings = {
+        });
+        this.settings = shallowReactive({
             show_raw_caps: false,
-        };
+        });
         this.nick = '';
         this.username = '';
         this.gecos = '';
         // SASL password
-        this.account = {
+        this.account = shallowReactive({
             account: '',
             password: '',
-        };
+        });
         this.password = '';
         this.away = '';
 
-        Vue.observable(this);
+        const thisReactive = shallowReactive(this);
 
         // Some non-enumerable properties (vues $watch won't cover these properties)
         def(this, 'appState', appState, false);
@@ -59,13 +59,16 @@ export default class NetworkState {
         def(this, 'frameworkClient', null, true);
 
         def(this, 'users', Object.create(null), (newVal) => {
-            appState.$set(userDict.networks, this.id, newVal);
+            userDict.networks[this.id] = newVal;
         });
 
         // Pending prviate messages awaiting whois operator check
         def(this, 'pendingPms', [], false);
 
-        bufferDict.$set(bufferDict.networks, this.id, []);
+        bufferDict.networks[this.id] = shallowReactive([]);
+
+        // eslint-disable-next-line no-constructor-return
+        return thisReactive;
     }
 
     get ircClient() {
@@ -94,7 +97,7 @@ export default class NetworkState {
 
     setting(name, val) {
         if (typeof val !== 'undefined') {
-            this.appState.$set(this.settings, name, val);
+            this.settings[name] = val;
             return val;
         }
 
@@ -124,7 +127,7 @@ export default class NetworkState {
         this.appState.setActiveBuffer(this.id, this.serverBuffer().name);
         // Hacky, but the server buffer component listens for events to switch
         // between tabs
-        setImmediate(() => {
+        nextTick(() => {
             this.appState.$emit('server.tab.show', tabName || 'settings');
         });
     }

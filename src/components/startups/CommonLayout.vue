@@ -113,7 +113,7 @@ export default {
 }
 
 .kiwi-startup-common-section-info-content {
-    background: rgba(255, 255, 255, 0.74);
+    background: rgb(255, 255, 255, 0.74);
     margin: 2em;
     color: #1b1b1b;
     font-size: 1.5em;

@@ -3,7 +3,7 @@
 /** @module */
 
 import _ from 'lodash';
-import Vue from 'vue';
+import { defineComponent, markRaw } from 'vue';
 import strftime from 'strftime';
 import PluginWrapper from '@/components/utils/PluginWrapper';
 import * as TextFormatting from '@/helpers/TextFormatting';
@@ -382,7 +382,7 @@ export function dedotObject(confObj) {
  */
 export function replaceObjectProps(target, source) {
     Object.keys(target).forEach((prop) => delete target[prop]);
-    Object.keys(source).forEach((prop) => { target[prop] = source[prop]; });
+    Object.keys(source).forEach((prop) => target[prop] = source[prop]);
 }
 
 /**
@@ -411,7 +411,7 @@ export function parseIntZero(inp) {
  * @param {Component} componentOrElement The vue.js component object or html element
  * @param {Object} args Optional arguments for this plugin { title: '', props: {} }
  */
-export function makePluginObject(pluginId, componentOrElement, args = {}) {
+export function makePluginObject(app, pluginId, componentOrElement, args = {}) {
     const plugin = {
         id: pluginId,
         component: null,
@@ -433,13 +433,13 @@ export function makePluginObject(pluginId, componentOrElement, args = {}) {
             // eslint-disable-next-line no-console
             console.warn('deprecated component.$el added to plugin api, please switch to just passing the vue.js component object');
         }
-        plugin.component = PluginWrapper;
+        plugin.component = markRaw(PluginWrapper);
         plugin.props = Object.assign(plugin.props, {
             pluginElement: componentOrElement,
         });
     } else if (componentOrElement instanceof Object) {
         // componentOrElement is an object, attempt to make a vue component from it
-        plugin.component = Vue.extend(componentOrElement);
+        plugin.component = markRaw(defineComponent(componentOrElement));
     } else {
         plugin.component = componentOrElement;
     }
@@ -483,7 +483,7 @@ export function hasUnmatchedTrailingBracket(str) {
 
 // This provides a better sort for numbered nicks but does not work on ios9
 let intlCollator;
-if (global.Intl) {
+if (Intl && typeof Intl.Collator === 'function') {
     intlCollator = new Intl.Collator({}, { numeric: true });
 }
 

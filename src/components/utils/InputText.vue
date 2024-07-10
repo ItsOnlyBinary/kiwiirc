@@ -71,11 +71,10 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-text', {
-    props: ['value', 'label', 'type', 'showPlainText', 'disabled'],
-    data: function data() {
+export default {
+    props: ['modelValue', 'label', 'type', 'showPlainText', 'disabled'],
+    emits: ['keypress', 'update:modelValue'],
+    data() {
         return {
             plainTextEnabled: false,
             inputIdCache: '',
@@ -91,23 +90,23 @@ export default Vue.component('input-text', {
             return this.inputIdCache;
         },
         currentValue: {
-            get: function getCurrentValue() {
-                return this.value;
+            get() {
+                return this.modelValue;
             },
-            set: function setCurrentValue(newVal) {
-                this.$emit('input', newVal);
+            set(newValue) {
+                this.$emit('update:modelValue', newValue);
             },
         },
     },
     methods: {
         updateValue(newValue) {
-            this.$emit('input', newValue);
+            this.$emit('update:modelValue', newValue);
         },
         isEdgeBrowser() {
             return navigator.appVersion.indexOf('Edge') > -1;
         },
     },
-});
+};
 </script>
 
 <style>
@@ -121,6 +120,7 @@ export default Vue.component('input-text', {
 .u-input-text-inputs {
     display: flex;
     position: relative;
+    align-items: center;
 }
 
 .u-input-text input,
@@ -164,12 +164,11 @@ input[type='password'].u-form-input-plaintext {
     transition: opacity 0.2s;
     position: absolute;
     right: 7px;
-    top: 9px;
 }
 
 .u-form--big .u-input-text-plaintext {
     line-height: 40px;
-    top: 6px;
+    top: 16px;
 }
 
 .u-input-text-plaintext--active,

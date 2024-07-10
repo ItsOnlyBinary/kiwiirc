@@ -23,6 +23,7 @@ let embedlyTagIncluded = false;
 
 export default {
     props: ['url', 'showPin', 'iframeSandboxOptions'],
+    emits: ['close', 'setHeight', 'setMaxHeight'],
     data() {
         return {
             embedlyObject: null,
@@ -51,7 +52,7 @@ export default {
     created() {
         this.updateEmbed();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.cleanEmbed();
     },
     methods: {

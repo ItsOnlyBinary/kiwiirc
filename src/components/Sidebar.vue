@@ -79,12 +79,9 @@
 'kiwi public';
 
 import UserBox from '@/components/UserBox';
-import SidebarState from './SidebarState';
 import SidebarAboutBuffer from './SidebarAboutBuffer';
 import SidebarSectionSettings from './SidebarSectionSettings';
 import Nicklist from './Nicklist';
-
-export { SidebarState as State };
 
 export default {
     components: {

@@ -36,6 +36,7 @@ import * as Misc from '@/helpers/Misc';
 
 export default {
     props: ['filter', 'buffer', 'items', 'itemsPerPage'],
+    emits: ['cancel', 'selected', 'temp'],
     data() {
         return {
             // items: [

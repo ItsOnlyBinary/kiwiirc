@@ -1,8 +1,8 @@
 /** @module */
 
-import Vue from 'vue';
+import { reactive } from 'vue';
 import getState from '@/libs/state';
-import * as ipRegex from 'ip-regex';
+import ipRegex from 'ip-regex';
 import * as IrcdDiffs from '@/helpers/IrcdDiffs';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import { def } from './common';
@@ -30,7 +30,7 @@ export default class UserState {
 
         this.avatarCache = null;
 
-        Vue.observable(this);
+        const thisReactive = reactive(this);
 
         def(this, 'state', state, false);
 
@@ -62,6 +62,9 @@ export default class UserState {
             registered: null,
             secure: null,
         }, true);
+
+        // eslint-disable-next-line no-constructor-return
+        return thisReactive;
     }
 
     get avatar() {
@@ -147,7 +150,7 @@ export default class UserState {
 
         let typing = this.typingState[target];
         if (!typing) {
-            Vue.set(this.typingState, target, { started: 0, status: '' });
+            this.typingState[target] = { started: 0, status: '' };
             typing = this.typingState[target];
         }
 
@@ -157,7 +160,7 @@ export default class UserState {
         }
 
         if (status === 'done') {
-            Vue.delete(this.typingState, target);
+            delete this.typingState[target];
             return null;
         }
 

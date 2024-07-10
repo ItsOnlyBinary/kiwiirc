@@ -71,11 +71,10 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-text', {
-    props: ['value', 'label', 'type', 'showPlainText', 'disabled'],
-    data: function data() {
+export default {
+    props: ['modelValue', 'label', 'type', 'showPlainText', 'disabled'],
+    emits: ['keypress', 'update:modelValue'],
+    data() {
         return {
             plainTextEnabled: false,
             inputIdCache: '',
@@ -91,23 +90,23 @@ export default Vue.component('input-text', {
             return this.inputIdCache;
         },
         currentValue: {
-            get: function getCurrentValue() {
-                return this.value;
+            get() {
+                return this.modelValue;
             },
-            set: function setCurrentValue(newVal) {
-                this.$emit('input', newVal);
+            set(newValue) {
+                this.$emit('update:modelValue', newValue);
             },
         },
     },
     methods: {
         updateValue(newValue) {
-            this.$emit('input', newValue);
+            this.$emit('update:modelValue', newValue);
         },
         isEdgeBrowser() {
             return navigator.appVersion.indexOf('Edge') > -1;
         },
     },
-});
+};
 </script>
 
 <style>

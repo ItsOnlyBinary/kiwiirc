@@ -31,21 +31,14 @@
             <div class="kiwi-sidebar-settings-access-table-header" />
             <div v-if="areWeAnOp" class="kiwi-sidebar-settings-access-table-header" />
 
-            <template v-for="ban in sortedBanList">
-                <div
-                    :key="'mask' + ban.banned"
-                    class="kiwi-sidebar-settings-access-mask"
-                >
+            <template v-for="ban in sortedBanList" :key="'ban' + ban.banned">
+                <div class="kiwi-sidebar-settings-access-mask">
                     {{ displayMask(ban.banned) }}
                 </div>
-                <div
-                    :key="'who' + ban.banned"
-                    class="kiwi-sidebar-settings-access-who"
-                >
+                <div class="kiwi-sidebar-settings-access-who">
                     {{ ban.banned_by }}
                 </div>
                 <div
-                    :key="'when' + ban.banned"
                     class="kiwi-sidebar-settings-access-when"
                     :title="(new Date(ban.banned_at * 1000)).toLocaleString({
                         year: 'numeric', month: '2-digit', day: '2-digit'
@@ -57,11 +50,7 @@
                         })
                     }}
                 </div>
-                <div
-                    v-if="areWeAnOp"
-                    :key="'actions' + ban.banned"
-                    class="kiwi-sidebar-settings-access-actions"
-                >
+                <div v-if="areWeAnOp" class="kiwi-sidebar-settings-access-actions">
                     <i class="fa fa-trash" aria-hidden="true" @click="removeBan(ban.banned)" />
                 </div>
             </template>

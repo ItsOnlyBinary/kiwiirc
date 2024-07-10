@@ -1,6 +1,6 @@
 'kiwi public';
 
-import Vue from 'vue';
+import { reactive } from 'vue';
 import parseMessage from '@/libs/MessageParser';
 import toHtml from '@/libs/renderers/Html';
 import GlobalApi from '@/libs/GlobalApi';
@@ -56,7 +56,8 @@ export default class Message {
         // We don't want the user object to be enumerable
         def(this, 'user', user || null);
 
-        Vue.observable(this);
+        // eslint-disable-next-line no-constructor-return
+        return reactive(this);
     }
 
     get time() {

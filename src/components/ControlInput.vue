@@ -150,6 +150,7 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { markRaw } from 'vue';
 
 import * as Misc from '@/helpers/Misc';
 import * as TextFormatting from '@/helpers/TextFormatting';
@@ -401,7 +402,7 @@ export default {
                     buffer: this.buffer,
                     ircinput: this.$refs.input,
                 };
-                this.active_tool = tool;
+                this.active_tool = markRaw(tool);
             }
         },
         toggleBold() {

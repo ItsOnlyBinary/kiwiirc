@@ -17,11 +17,10 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-confirm', {
+export default {
     props: ['label', 'flipConnotation'],
-    data: function data() {
+    emits: ['submit'],
+    data() {
         return {
             state: 'pre',
         };
@@ -35,6 +34,7 @@ export default Vue.component('input-confirm', {
         },
     },
     created() {
+        // TODO this wont work
         if (!this.$slots.default) {
             this.state = 'prompt';
         }
@@ -49,7 +49,7 @@ export default Vue.component('input-confirm', {
             this.state = 'pre';
         },
     },
-});
+};
 </script>
 
 <style>

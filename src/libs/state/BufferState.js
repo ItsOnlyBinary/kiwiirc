@@ -1,7 +1,7 @@
 /** @module */
 
-import Vue from 'vue';
 import _ from 'lodash';
+import { shallowReactive } from 'vue';
 import { def } from './common';
 import batchedAdd from '../batchedAdd';
 import * as bufferTools from '../bufferTools';
@@ -15,16 +15,16 @@ export default class BufferState {
         this.id = nextBufferId++;
         this.networkid = networkid;
         this.name = name;
-        this.topics = [];
+        this.topics = shallowReactive([]);
         this.topic_by = '';
         this.topic_when = 0;
         this.key = '';
         this.joined = false;
         this.enabled = true;
         this.created_at = null;
-        this.users = Object.create(null);
-        this.modes = Object.create(null);
-        this.flags = {
+        this.users = shallowReactive(Object.create(null));
+        this.modes = shallowReactive(Object.create(null));
+        this.flags = shallowReactive({
             unread: 0,
             highlight: false,
             has_opened: false,
@@ -35,8 +35,8 @@ export default class BufferState {
             requested_invitelist: false,
             is_visible: false,
             is_requesting_chathistory: false,
-        };
-        this.settings = { };
+        });
+        this.settings = shallowReactive({});
         this.last_read = 0;
         this.active_tab = null;
         this.active_timeout = null;
@@ -51,7 +51,7 @@ export default class BufferState {
         // still loading messages
         this.chathistory_request_count = 0;
 
-        Vue.observable(this);
+        const thisReactive = shallowReactive(this);
 
         // Some non-enumerable properties (vues $watch won't cover these properties)
         def(this, 'state', state, false);
@@ -60,15 +60,15 @@ export default class BufferState {
         let messagesObj = {
             networkid: this.networkid,
             buffer: this.name,
-            messages: [],
+            messages: shallowReactive([]),
             messageIds: Object.create(null),
         };
         this.messageDict.push(messagesObj);
         def(this, 'messagesObj', messagesObj, false);
 
         def(this, 'isMessageTrimming', true, true);
-        def(this, 'addMessageBatch', createMessageBatch(this), false);
-        def(this, 'addUserBatch', createUserBatch(this), false);
+        def(this, 'addMessageBatch', createMessageBatch(thisReactive), false);
+        def(this, 'addUserBatch', createUserBatch(thisReactive), false);
 
         // poll who to update away status if away-notify is not enabled
         if (this.isChannel()) {
@@ -100,20 +100,23 @@ export default class BufferState {
 
         // Clean up the previous event and itself when the buffer is closed.
         function onBufferClose(event) {
-            if (event.buffer === this) {
+            if (event.buffer === thisReactive) {
                 this.state.$off('network.connecting', onNetworkConnectingBound);
                 this.state.$off('buffer.close', onBufferCloseBound);
                 this.state.$off('irc.motd', onNetworkMotdBound);
             }
         }
 
-        const onNetworkConnectingBound = onNetworkConnecting.bind(this);
-        const onBufferCloseBound = onBufferClose.bind(this);
-        const onNetworkMotdBound = onNetworkMotd.bind(this);
+        const onNetworkConnectingBound = onNetworkConnecting.bind(thisReactive);
+        const onBufferCloseBound = onBufferClose.bind(thisReactive);
+        const onNetworkMotdBound = onNetworkMotd.bind(thisReactive);
 
         state.$on('network.connecting', onNetworkConnectingBound);
         state.$on('buffer.close', onBufferCloseBound);
         state.$on('irc.motd', onNetworkMotdBound);
+
+        // eslint-disable-next-line no-constructor-return
+        return thisReactive;
     }
 
     get topic() {
@@ -313,7 +316,7 @@ export default class BufferState {
 
     setting(name, val) {
         if (typeof val !== 'undefined') {
-            this.state.$set(this.settings, name, val);
+            this.settings[name] = val;
             return val;
         }
 
@@ -342,7 +345,7 @@ export default class BufferState {
 
     flag(name, val) {
         if (typeof val !== 'undefined') {
-            this.state.$set(this.flags, name, val);
+            this.flags[name] = val;
             return val;
         }
 
@@ -488,7 +491,7 @@ export default class BufferState {
         // would just be added again. Eg. user joins/parts during a flood
         _.pull(this.addUserBatch.queue(), userObj);
 
-        this.state.$delete(this.users, nick.toUpperCase());
+        delete this.users[nick.toUpperCase()];
 
         if (userObj) {
             delete userObj.buffers[this.id];
@@ -504,7 +507,7 @@ export default class BufferState {
             delete userObj.buffers[this.id];
         });
 
-        this.state.$set(this, 'users', {});
+        Object.keys(this.users).forEach((key) => delete this.users[key]);
     }
 
     addMessage(message) {
@@ -621,14 +624,14 @@ export default class BufferState {
  */
 function createUserBatch(bufferState) {
     let addSingleUser = (u) => {
-        bufferState.state.$set(bufferState.users, u.nick.toUpperCase(), u);
+        bufferState.users[u.nick.toUpperCase()] = u;
     };
     let addMultipleUsers = (users) => {
-        let o = Object.assign(Object.create(null), bufferState.users);
+        let o = Object.create(null);
         users.forEach((u) => {
             o[u.nick.toUpperCase()] = u;
         });
-        bufferState.users = o;
+        Object.assign(bufferState.users, o);
     };
 
     return batchedAdd(addSingleUser, addMultipleUsers, 2);
@@ -654,7 +657,7 @@ function createMessageBatch(bufferState) {
     let addMultipleMessages = (newMessages) => {
         let toAdd = newMessages.filter((msg) => !bufferState.messagesObj.messageIds[msg.id]);
         if (toAdd.length > 0) {
-            bufferState.messagesObj.messages = bufferState.messagesObj.messages.concat(toAdd);
+            bufferState.messagesObj.messages.push(...toAdd);
             toAdd.forEach((msg) => {
                 bufferState.updateLatestMessages(msg);
                 bufferState.messagesObj.messageIds[msg.id] = msg;

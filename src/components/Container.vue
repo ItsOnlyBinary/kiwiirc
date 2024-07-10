@@ -40,7 +40,7 @@
                     <server-view :network="network" />
                 </template>
                 <template v-else>
-                    <message-list :buffer="buffer" />
+                    <message-list :key="buffer.id" :buffer="buffer" />
                     <sidebar
                         v-if="!buffer.isSpecial()"
                         :network="network"
@@ -350,7 +350,7 @@ export default {
     position: absolute;
     left: auto;
     height: 120%;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgb(0, 0, 0, 0.4);
     top: 0;
     opacity: 0;
     z-index: 99;

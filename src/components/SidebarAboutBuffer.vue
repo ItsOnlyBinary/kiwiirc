@@ -147,7 +147,8 @@ export default {
             // Tap into buffer.message_count to force vuejs to update this function when
             // it changes
             /* eslint-disable no-unused-vars */
-            let tmp = this.buffer.message_count;
+            let unusedVar = this.buffer.message_count;
+
             return this.buffer.getMessages()
                 .filter((m) => m.isHighlight)
                 .filter((m) => m.type !== 'traffic')
@@ -168,7 +169,7 @@ export default {
     },
     methods: {
         toggleSection(section) {
-            this.$set(this.closedSections, section, !this.closedSections[section]);
+            this.closedSections[section] = !this.closedSections[section];
         },
         inviteUser() {
             if (!this.inviteNick) {

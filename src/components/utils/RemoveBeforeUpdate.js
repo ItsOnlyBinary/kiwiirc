@@ -18,7 +18,7 @@ export default {
         /* eslint-enable no-underscore-dangle */
     },
     render(h) {
-        const tag = this.tag || this.$vnode.data.tag || 'div';
+        const tag = this.tag || 'div';
         const map = Object.create(null);
         const prevChildren = (this.prevChildren = this.children);
         const rawChildren = this.$slots.default || [];

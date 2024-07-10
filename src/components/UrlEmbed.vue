@@ -23,6 +23,7 @@ let embedlyTagIncluded = false;
 
 export default {
     props: ['url', 'showPin', 'iframeSandboxOptions'],
+    emits: ['close', 'setHeight', 'setMaxHeight'],
     data() {
         return {
             embedlyObject: null,
@@ -51,7 +52,7 @@ export default {
     created() {
         this.updateEmbed();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.cleanEmbed();
     },
     methods: {
@@ -140,7 +141,7 @@ export default {
     }
 
     .embedly-card-hug {
-        border: 1px solid rgba(0, 0, 0, 0.2);
+        border: 1px solid rgb(0, 0, 0, 0.2);
         border-radius: 5px;
         background: #fff;
     }

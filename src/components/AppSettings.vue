@@ -219,6 +219,8 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { toRef, watch } from 'vue';
+
 import ThemeManager from '@/libs/ThemeManager';
 import GlobalApi from '@/libs/GlobalApi';
 import localesList from '@/res/localesList';
@@ -250,6 +252,7 @@ export default {
             theme: '',
             customThemeUrl: '',
             pluginUiElements: GlobalApi.singleton().appSettingsPlugins,
+            teardownFn: null,
             localesList,
         };
     },
@@ -343,6 +346,11 @@ export default {
             this.showTab(tabName);
         });
     },
+    beforeUnmount() {
+        if (this.teardownFn) {
+            this.teardownFn();
+        }
+    },
     methods: {
         closeSettings() {
             this.$state.$emit('active.component');
@@ -386,11 +394,10 @@ export default {
             }, 800, { leading: false, trailing: true });
 
             // Remove all our attached events to cleanup
-            let teardownFn = () => {
+            this.teardownFn = () => {
                 this.$state.$off('theme.change', updateFn);
                 this.$state.$off('theme.failed', failedFn);
                 watches.forEach((unwatchFn) => unwatchFn());
-                this.$off('hook:destroy', teardownFn);
             };
 
             // Update our info with the latest theme settings before we start
@@ -399,14 +406,13 @@ export default {
 
             this.$state.$on('theme.change', updateFn);
             this.$state.$on('theme.failed', failedFn);
-            this.$once('hook:destroyed', teardownFn);
 
-            // $watch returns a function to stop watching the data field. Add them into
+            // watch returns a function to stop watching the data field. Add them into
             // an array to make it easier to iterate over them all and unwatch them all
             // when needed.
             watches = [
-                this.$watch('theme', watchTheme),
-                this.$watch('customThemeUrl', watchCustomThemeUrl),
+                watch(toRef(this, 'theme'), watchTheme),
+                watch(toRef(this, 'customThemeUrl'), watchCustomThemeUrl),
             ];
         },
         enableAdvancedTab() {

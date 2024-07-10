@@ -453,7 +453,7 @@ export default {
     .kiwi-customserver-form {
         background: var(--brand-default-bg);
         border-radius: 5px;
-        box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 10px 0 rgb(0, 0, 0, 0.2);
     }
 }
 

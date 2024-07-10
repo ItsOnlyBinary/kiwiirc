@@ -454,7 +454,7 @@ export default {
 .kiwi-dangerzone {
     text-align: center;
     padding: 10px 0 20px 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgb(0, 0, 0, 0.2);
 }
 
 .kiwi-dangerzone i {

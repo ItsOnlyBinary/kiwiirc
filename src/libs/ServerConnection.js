@@ -66,8 +66,7 @@ function createNewConnection(wsAddr, sessionId) {
     connection.nextChannelId = 1;
     connection.connected = false;
 
-    connection.reconnect =
-    connection.connect = function connect() {
+    connection.reconnect = connection.connect = function connect() {
         if (connection.ws) {
             try {
                 connection.ws.close();

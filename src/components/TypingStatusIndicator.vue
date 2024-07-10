@@ -1,9 +1,9 @@
-<template functional>
+<template>
     <span
-        v-if="props.user && $options.m.status(props) !== ''"
+        v-if="$props.user && $options.m.status($props) !== ''"
         :class="{
-            'kiwi-typingstatusindicator--paused': $options.m.status(props) === 'paused',
-            [data.staticClass]: true,
+            'kiwi-typingstatusindicator--paused': $options.m.status($props) === 'paused',
+            [$data.staticClass]: !!$data.staticClass,
         }"
         class="kiwi-typingstatusindicator kiwi-typing"
     />

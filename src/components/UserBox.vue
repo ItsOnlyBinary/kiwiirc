@@ -410,7 +410,7 @@ export default {
     width: 100%;
     padding: 1em;
     text-align: center;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgb(0, 0, 0, 0.2);
     box-sizing: border-box;
 }
 

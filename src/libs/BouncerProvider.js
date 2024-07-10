@@ -1,6 +1,7 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { watch } from 'vue';
 import Logger from '@/libs/Logger';
 import bouncerMiddleware from '@/libs/BouncerMiddleware';
 
@@ -415,7 +416,7 @@ export default class BouncerProvider {
         this.snapshotCurrentNetworks();
 
         let debouncedSaveState = _.debounce(this.saveState.bind(this), 2000);
-        this.state.$watch('networks', debouncedSaveState, { deep: true });
+        watch(this.state.networks, debouncedSaveState, { deep: true });
     }
 
     listenToState() {

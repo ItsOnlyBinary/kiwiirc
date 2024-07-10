@@ -1,3 +1,5 @@
+import { toRef, watch } from 'vue';
+
 export default class WindowTitle {
     constructor(state) {
         this.state = state;
@@ -9,11 +11,11 @@ export default class WindowTitle {
             this.updateTitle();
         }
 
-        state.$watch('settings.windowTitle', (newVal) => {
+        watch(toRef(state, 'settings.windowTitle'), (newVal) => {
             this.updateTitle(newVal);
         });
 
-        state.$watch('ui.app_has_focus', (newVal) => {
+        watch(toRef(state, 'ui.app_has_focus'), (newVal) => {
             if (newVal && this.alertTmr) {
                 this.stopAlert();
             }

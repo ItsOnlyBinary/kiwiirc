@@ -15,13 +15,13 @@
                 "{{ filterString }}" {{ $t('not_found') }}
             </div>
             <div v-else class="kiwi-settings-advanced-table">
-                <template v-for="setting in filteredSettings">
-                    <div :key="'label-' + setting.key" class="kiwi-settings-advanced-key">
+                <template v-for="setting in filteredSettings" :key="setting.key">
+                    <div class="kiwi-settings-advanced-key">
                         <label
                             :for="'setting-' + setting.key"
                         >{{ setting.key }}</label>
                     </div>
-                    <div :key="'reset-' + setting.key" class="kiwi-settings-advanced-modified">
+                    <div class="kiwi-settings-advanced-modified">
                         <a
                             class="u-link"
                             :class="{'kiwi-settings-advanced--modified': setting.modified}"
@@ -31,7 +31,7 @@
                             <i class="fa fa-undo" style="margin-left: 10px;" />
                         </a>
                     </div>
-                    <div :key="'value-' + setting.key" class="kiwi-settings-advanced-value">
+                    <div class="kiwi-settings-advanced-value">
                         <input
                             v-if="setting.type === 'boolean'"
                             :id="'setting-' + setting.key"
@@ -45,7 +45,7 @@
                             :value="setting.val"
                             class="u-input"
                             type="number"
-                            @keydown.13="$event.target.blur()"
+                            @keydown.enter="$event.target.blur()"
                             @change="updateSetting($event, setting.key)"
                             @blur="updateSetting($event, setting.key)"
                         >
@@ -54,7 +54,7 @@
                             :id="'setting-' + setting.key"
                             :value="setting.val"
                             class="u-input"
-                            @keydown.13="$event.target.blur()"
+                            @keydown.enter="$event.target.blur()"
                             @blur="updateSetting($event, setting.key)"
                         >
                     </div>

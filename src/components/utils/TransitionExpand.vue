@@ -5,18 +5,16 @@
         @after-enter="afterEnter"
         @leave="leave"
     >
-        <div v-if="$slots.default"><slot /></div>
+        <slot />
     </transition>
 </template>
 
 <script>
 'kiwi public';
 
-const Vue = require('vue');
-
 // Code created from https://markus.oberlehner.net/blog/transition-to-height-auto-with-vue/
 
-export default Vue.component('transition-expand', {
+export default {
     name: 'TransitionExpand',
     methods: {
         enter(element) {
@@ -66,20 +64,24 @@ export default Vue.component('transition-expand', {
             });
         },
     },
-});
+};
 </script>
 
-<style>
-.u-transition-expand-enter-active,
-.u-transition-expand-leave-active {
-    transition: height 0.2s, opacity 0.2s;
-    overflow: hidden;
-}
+<style lang="scss">
+@use '/src/res/styles/uiFunctions.scss' as ui;
 
-.u-transition-expand-enter,
-.u-transition-expand-leave-to {
-    opacity: 0;
-    height: 0;
+.u-transition-expand {
+    &-enter-active,
+    &-leave-active {
+        transition: ui.transition(height, opacity);
+        overflow: hidden;
+    }
+
+    &-enter-from,
+    &-leave-to {
+        opacity: 0;
+        height: 0;
+    }
 }
 </style>
 

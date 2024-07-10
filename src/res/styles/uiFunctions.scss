@@ -1,0 +1,19 @@
+@use 'sass:list';
+
+@function transition($properties...) {
+    $result: ();
+
+    @each $property in $properties {
+        $result: list.append($result, #{$property} var(--transition-time) ease, comma);
+    }
+
+    @return $result;
+}
+
+@function color($var, $opacity: null) {
+    @if $opacity {
+        @return rgba(var($var), $opacity);
+    }
+
+    @return rgb(var($var));
+}

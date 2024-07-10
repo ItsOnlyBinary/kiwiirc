@@ -25,27 +25,26 @@
                 <a v-else>{{ $t('messages_loading') }}</a>
             </div>
 
-            <remove-before-update>
-                <template v-for="day in filteredMessagesGroupedDay">
+            <!-- <remove-before-update> -->
+            <div>
+                <template v-for="day in filteredMessagesGroupedDay" :key="`day-${day.dayNum}`">
                     <div
                         v-if="filteredMessagesGroupedDay.length > 1 && day.messages.length > 0"
-                        :key="`msgdatemarker${day.dayNum}`"
                         class="kiwi-messagelist-seperator"
                     >
                         <span>{{ (new Date(day.messages[0].time)).toDateString() }}</span>
                     </div>
-                    <remove-before-update :key="day.dayNum">
-                        <template v-for="message in day.messages">
+                    <!-- <remove-before-update> -->
+                    <div>
+                        <template v-for="message in day.messages" :key="`msg-${message.id}`">
                             <div
                                 v-if="shouldShowUnreadMarker(message)"
-                                :key="`msgunreadmarker${message.id}`"
                                 class="kiwi-messagelist-seperator"
                             >
                                 <span>{{ $t('unread_messages') }}</span>
                             </div>
 
                             <div
-                                :key="`msg${message.id}`"
                                 :class="[
                                     'kiwi-messagelist-item',
                                     selectedMessages[message.id]
@@ -53,20 +52,9 @@
                                         : '',
                                 ]"
                             >
-                                <!-- message.template is checked first for a custom component,
-                                    then each message layout checks for a message.bodyTemplate
-                                    custom component to apply only to the body area
-                                -->
-                                <div
-                                    v-if="message.render()
-                                        && message.template
-                                        && message.template.$el
-                                        && isTemplateVue(message.template)"
-                                    v-rawElement="message.template.$el"
-                                />
                                 <component
                                     :is="message.template"
-                                    v-else-if="message.render() && message.template"
+                                    v-if="message.render() && message.template"
                                     v-bind="message.templateProps"
                                     :buffer="buffer"
                                     :message="message"
@@ -93,9 +81,11 @@
                                 />
                             </div>
                         </template>
-                    </remove-before-update>
+                    <!-- </remove-before-update> -->
+                    </div>
                 </template>
-            </remove-before-update>
+            <!-- </remove-before-update> -->
+            </div>
 
             <transition name="kiwi-messagelist-joinloadertrans">
                 <div v-if="shouldShowJoiningLoader" class="kiwi-messagelist-joinloader">
@@ -110,23 +100,21 @@
             />
         </div>
     </div>
+    <div v-if="showOverlay" class="kiwi-messagelist-overlay" />
 </template>
 
 <script>
 'kiwi public';
 
-import Vue from 'vue';
+import { watch } from 'vue';
 import strftime from 'strftime';
 import Logger from '@/libs/Logger';
 import * as bufferTools from '@/libs/bufferTools';
-import RemoveBeforeUpdate from './utils/RemoveBeforeUpdate';
 import MessageListMessageCompact from './MessageListMessageCompact';
 import MessageListMessageModern from './MessageListMessageModern';
 import MessageListMessageInline from './MessageListMessageInline';
 import LoadingAnimation from './LoadingAnimation';
 import BufferKey from './BufferKey';
-
-require('@/libs/polyfill/Element.closest');
 
 let log = Logger.namespace('MessageList.vue');
 
@@ -136,7 +124,6 @@ const BOTTOM_SCROLL_MARGIN = 60;
 
 export default {
     components: {
-        RemoveBeforeUpdate,
         MessageListMessageModern,
         MessageListMessageCompact,
         MessageListMessageInline,
@@ -155,9 +142,17 @@ export default {
             timeToClose: false,
             startClosing: false,
             selectedMessages: Object.create(null),
+            showMessages: false,
+            showOverlay: true,
         };
     },
     computed: {
+        showRealNames() {
+            return this.buffer.setting('show_realnames');
+        },
+        showTimestamps() {
+            return this.buffer.setting('show_timestamps');
+        },
         thisMl() {
             return this;
         },
@@ -217,6 +212,14 @@ export default {
             return days;
         },
         filteredMessages() {
+            // Hack; We need to make vue aware that we depend on buffer.message_count in order to
+            // get the messagelist to update its DOM, as the change of message_count alerts
+            // us that the messages have changed. This is done so that vue does not have to make
+            // every emssage reactive which gets very expensive.
+
+            /* eslint-disable no-unused-vars */
+            let ignoredVar = this.buffer.message_count;
+
             return bufferTools.orderedMessages(this.buffer);
         },
         shouldShowJoiningLoader() {
@@ -227,18 +230,6 @@ export default {
         },
     },
     watch: {
-        filteredMessages() {
-            // Data has changed and now preparing to update the DOM.
-            // Check our scrolling state before the DOM updates so that we know if we're scrolled
-            // at the bottom before new messages are added
-            this.checkScrollingState();
-
-            // Wait until after the DOM has updated before possibly scrolling down based on the
-            // previous check
-            this.$nextTick(() => {
-                this.maybeScrollToBottom();
-            });
-        },
         buffer(newBuffer, oldBuffer) {
             if (oldBuffer) {
                 oldBuffer.isMessageTrimming = true;
@@ -269,6 +260,20 @@ export default {
             // this.smooth_scroll = true;
         });
 
+        // this watcher was moved here due to it firing before mounted() could scroll
+        // to the bottom, this resulted in auto_scroll being set to false
+        watch(() => this.buffer.message_count, () => {
+            // Data has changed and now preparing to update the DOM.
+            // Check our scrolling state before the DOM updates so that we know
+            // if we're scrolled at the bottom before new messages are added
+            this.checkScrollingState();
+            // Wait until after the DOM has updated before possibly scrolling down based on the
+            // previous check
+            this.$nextTick(() => {
+                this.maybeScrollToBottom();
+            });
+        }, { deep: true });
+
         this.listen(this.$state, 'mediaviewer.opened', () => {
             this.$nextTick(this.maybeScrollToBottom.apply(this));
         });
@@ -280,15 +285,6 @@ export default {
         });
     },
     methods: {
-        isTemplateVue(template) {
-            const isVue = template instanceof Vue;
-            if (isVue && !window.kiwi_deprecations_messageTemplate) {
-                window.kiwi_deprecations_messageTemplate = true;
-                // eslint-disable-next-line no-console
-                console.warn('deprecated message.template or message.bodyTemplate, please use `message.template = kiwi.Vue.extend(component object)`');
-            }
-            return isVue;
-        },
         isHoveringOverMessage(message) {
             return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();
         },
@@ -437,8 +433,9 @@ export default {
                 return;
             }
 
-            let url = event.target.getAttribute('data-url');
-            if (url && isLink) {
+            let linkElement = event.target.closest('a[data-url]');
+            if (linkElement) {
+                let url = linkElement.getAttribute('data-url');
                 if (this.$state.setting('buffers.inline_link_auto_previews')) {
                     message.embed.type = 'url';
                     message.embed.payload = url;
@@ -472,7 +469,7 @@ export default {
             }
         },
         checkScrollingState() {
-            let el = this.$el;
+            let el = this.$refs.scroller;
             let scrolledUpByPx = el.scrollHeight - (el.offsetHeight + el.scrollTop);
 
             // We need to know at this point (before the DOM has updated with new messages) if we
@@ -505,7 +502,11 @@ export default {
             this.maybeScrollToBottom();
         },
         scrollToBottom() {
-            this.$el.scrollTop = this.$el.scrollHeight;
+            // This is triggered from a $nextTick, ensure scroller still exists
+            if (!this.$refs.scroller) {
+                return;
+            }
+            this.$refs.scroller.scrollTop = this.$refs.scroller.scrollHeight;
         },
         maybeScrollToBottom() {
             if (this.auto_scroll) {
@@ -513,7 +514,11 @@ export default {
             }
         },
         maybeScrollToId(id, position = 'middle') {
-            let msgEl = this.$el.querySelector('.kiwi-messagelist-message[data-message-id="' + id + '"]');
+            // This is triggered from a $nextTick, ensure scroller still exists
+            if (!this.$refs.scroller) {
+                return;
+            }
+            let msgEl = this.$refs.scroller.querySelector('.kiwi-messagelist-message[data-message-id="' + id + '"]');
             if (!msgEl) {
                 return;
             }
@@ -538,17 +543,17 @@ export default {
         getSelectedMessages() {
             let sel = document.getSelection();
             let r = sel.getRangeAt(0);
-            let messageEls = [...this.$el.querySelectorAll('.kiwi-messagelist-message')];
+            let messageEls = [...this.$refs.scroller.querySelectorAll('.kiwi-messagelist-message')];
             let selectedMessageEls = messageEls.filter((el) => r.intersectsNode(el));
             return selectedMessageEls;
         },
         restrictTextSelection() { // Prevents the selection cursor escaping the message list.
             document.querySelector('body').classList.add('kiwi-unselectable');
-            this.$el.style.userSelect = 'text';
+            this.$refs.scroller.style.userSelect = 'text';
         },
         unrestrictTextSelection() { // Allows all page elements to be selected again.
             document.querySelector('body').classList.remove('kiwi-unselectable');
-            this.$el.style.userSelect = 'auto';
+            this.$refs.scroller.style.userSelect = 'auto';
         },
         removeSelections(removeNative = false) {
             this.selectedMessages = Object.create(null);
@@ -587,7 +592,7 @@ export default {
             let selectionChangeOff = null;
 
             this.listen(document, 'selectstart', (e) => {
-                if (!this.$el.contains(e.target)) {
+                if (!this.$refs.scroller.contains(e.target)) {
                     // Selected elsewhere on the page
                     copyData = '';
                     this.removeSelections();
@@ -608,7 +613,7 @@ export default {
             });
 
             let onSelectionChange = (e) => {
-                if (!this.$el) {
+                if (!this.$refs.scroller) {
                     return true;
                 }
 
@@ -618,7 +623,7 @@ export default {
 
                 if (!selection
                 || !selection.anchorNode
-                || !selection.anchorNode.parentNode.closest('.' + this.$el.className)) {
+                || !selection.anchorNode.parentNode.closest('.' + this.$refs.scroller.className)) {
                     this.unrestrictTextSelection();
                     this.removeSelections();
                     return true;
@@ -805,10 +810,18 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 .kiwi-messagelist-body {
     min-height: 0;
     text-align: left;
-    line-height: 1.5em;
     font-size: 1.05em;
     margin: 0;
     padding: 0;
+}
+
+@supports (font-size: round(up, 1.05em, 1px)) and (line-height: round(up, 1.5em, 1px)) {
+    .kiwi-messagelist-message {
+        line-height: ~'round(up, 1.5em, 1px)';
+    }
+    .kiwi-messagelist-body {
+        font-size: ~'round(up, 1.05em, 1px)';
+    }
 }
 
 /* Channel messages - e.g 'server on #testing22 ' message and such */
@@ -912,9 +925,14 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 
 /** Displaying an emoji in a message */
 .kiwi-messagelist-emoji {
-    width: 1.3em;
+    height: 1.05em;
     display: inline-block;
     vertical-align: middle;
+}
+
+.kiwi-messagelist-emoji--single {
+    animation: 0.1s ease-in-out 0s 1 emoji-in;
+    height: 2em;
 }
 
 @keyframes emoji-in {
@@ -927,9 +945,13 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     }
 }
 
-.kiwi-messagelist-emoji--single {
-    animation: 0.1s ease-in-out 0s 1 emoji-in;
-    font-size: 2em;
+@supports (width: round(up, 1.3em, 1px)) {
+    .kiwi-messagelist-emoji {
+        height: ~'round(up, 1.05em, 1px)';
+    }
+    .kiwi-messagelist-emoji--single {
+        height: ~'round(up, 2em, 1px)';
+    }
 }
 
 /** Message structure */
@@ -1034,6 +1056,14 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 .kiwi-messagelist-joinloadertrans-enter-active,
 .kiwi-messagelist-joinloadertrans-leave-active {
     transition: height 0.5s, opacity 0.5s;
+}
+
+.kiwi-messagelist-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 @media screen and (max-width: 700px) {

@@ -25,10 +25,9 @@
 <script>
 'kiwi public';
 
-let Vue = require('vue');
-
-export default Vue.component('input-prompt', {
+export default {
     props: ['label', 'hideCancel', 'block'],
+    emits: ['cancel', 'submit'],
     data() {
         return {
             value: '',
@@ -78,7 +77,7 @@ export default Vue.component('input-prompt', {
             this.$emit('cancel');
         },
     },
-});
+};
 </script>
 
 <style>

@@ -139,7 +139,7 @@ export default {
         importUris(serverList) {
             // [ 'freenode|irc.freenode.net:+6697', 'irc.snoonet.org:6667' ]
             let servers = serverList.map((s) => Misc.parsePresetServer(s));
-            this.$set(this, 'presetNetworks', servers);
+            this.presetNetworks = servers;
         },
     },
 };

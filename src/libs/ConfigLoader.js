@@ -1,6 +1,5 @@
 'kiwi public';
 
-import xhr from 'xhr';
 import _ from 'lodash';
 import JSON5 from 'json5';
 import Logger from './Logger';
@@ -18,53 +17,39 @@ export default class ConfigLoader {
         return this;
     }
 
-    loadFromUrl(configUrl) {
-        return new Promise((resolve, reject) => {
-            xhr({ url: configUrl }, (err, response) => {
-                if (err) {
-                    reject();
-                    return;
-                }
+    async loadFromUrl(configUrl) {
+        const response = await fetch(configUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to load ${configUrl}: ${response.statusText}`);
+        }
+        const text = await response.text();
 
-                let configObj = null;
-                try {
-                    configObj = JSON5.parse(response.body);
-                } catch (parseErr) {
-                    log.error('Config ' + parseErr.message);
-                    let errMsg = 'Config file error: ' + parseErr.message.replace('JSON5: ', '');
-                    // Convert "at 22:16" to "at line 22, position 16"
-                    /* eslint-disable arrow-body-style */
-                    errMsg = errMsg.replace(/at (\d+):(\d+)/g, (m, m1, m2) => {
-                        return `line ${m1}, position ${m2}`;
-                    });
-                    reject(errMsg);
-                    return;
-                }
-
-                this.setConfig(configObj);
-                resolve(this.config);
-            });
-        });
+        try {
+            const configObj = JSON5.parse(text);
+            this.setConfig(configObj);
+            return this.config;
+        } catch (error) {
+            log.error('Config ' + error.message);
+            let errMsg = 'Config file error: ' + error.message.replace('JSON5: ', '');
+            errMsg = errMsg.replace(/at (\d+):(\d+)/g, (m, m1, m2) => `line ${m1}, position ${m2}`);
+            throw new Error(errMsg);
+        }
     }
 
-    loadFromObj(configObj) {
-        return new Promise((resolve, reject) => {
-            this.setConfig(configObj);
-            resolve(this.config);
-        });
+    async loadFromObj(configObj) {
+        this.setConfig(configObj);
+        return this.config;
     }
 
     setConfig(confObj) {
-        let walkObject = (obj, target) => {
+        const walkObject = (obj, target) => {
             _.each(obj, (_val, key) => {
                 let val = _val;
                 if (typeof val === 'string') {
                     val = this.insertReplacements(val);
                     target[key] = val;
                 } else if (typeof val === 'object') {
-                    target[key] = _.isArray(val) ?
-                        [] :
-                        {};
+                    target[key] = _.isArray(val) ? [] : {};
                     walkObject(val, target[key]);
                 } else {
                     target[key] = val;
@@ -78,16 +63,12 @@ export default class ConfigLoader {
 
     insertReplacements(input) {
         let out = input;
-        let keys = Object.keys(this.valReplacements);
-        for (let i = 0; i < keys.length; i++) {
-            let k = keys[i];
-            if (input === '{{' + k + '}}') {
-                // If we have an exact match, return the exact replacement value we have as
-                // it may not be a string
+        const keys = Object.keys(this.valReplacements);
+        for (let k of keys) {
+            if (input === `{{${k}}}`) {
                 return this.valReplacements[k];
             }
-
-            out = out.replace('{{' + k + '}}', this.valReplacements[k]);
+            out = out.replace(`{{${k}}}`, this.valReplacements[k]);
         }
         return out;
     }

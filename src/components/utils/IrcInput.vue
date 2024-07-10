@@ -30,10 +30,9 @@ import * as Colours from '@/helpers/Colours';
 import * as Misc from '@/helpers/Misc';
 import * as EmojiProvider from '@/libs/EmojiProvider';
 
-let Vue = require('vue');
-
-export default Vue.component('irc-input', {
+export default {
     props: ['placeholder'],
+    emits: ['blur', 'click', 'focus', 'input', 'keydown', 'keypress', 'keyup', 'textInput'],
     data() {
         return {
             last_known_value: '',
@@ -369,6 +368,8 @@ export default Vue.component('irc-input', {
             this.default_colour = null;
         },
         setColour(code, colour) {
+            this.focus();
+
             // If no current text selection, set this colour as the default colour for
             // future messages too
             let range = window.getSelection().getRangeAt(0);
@@ -379,7 +380,6 @@ export default Vue.component('irc-input', {
                 };
             }
 
-            this.focus();
             document.execCommand('styleWithCSS', false, true);
             document.execCommand('foreColor', false, colour);
 
@@ -545,7 +545,7 @@ export default Vue.component('irc-input', {
             selection.addRange(range);
         },
     },
-});
+};
 </script>
 
 <style>

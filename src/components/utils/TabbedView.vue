@@ -1,107 +1,104 @@
 <template>
     <div class="u-tabbed-view">
-        <div v-if="showTabs" :key="prefixID + a" class="u-tabbed-view-tabs">
+        <div v-if="props.showTabs" class="u-tabbed-view-tabs">
             <a
-                v-for="c in tabs"
-                :key="c.name || c.header"
-                :class="{
-                    'u-tabbed-view-tab': true,
-                    'u-tabbed-view-tab--active': c.active,
-                }"
-                @click="setActive(c)"
-            >{{ c.header }}</a>
+                v-for="tab in filteredTabs"
+                :key="'tab' + tab.name.value"
+                class="u-tabbed-view-tab"
+                :class="{ 'u-tabbed-view-tab--active': tab.isActive.value }"
+                @click="setActive(tab.name, $event)"
+            >{{ tab.header.value }}</a>
         </div>
         <slot />
     </div>
 </template>
 
 <script>
-'kiwi public';
+import { computed, onMounted, provide, shallowReactive, shallowRef, watch } from 'vue';
+import Logger from '@/libs/Logger';
 
-let Vue = require('vue');
+import TabbedTab from './TabbedTab.vue';
 
-Vue.component('tabbed-tab', {
-    props: {
-        header: { status: String },
-        focus: { status: Boolean },
-        name: { status: String },
+const log = Logger.namespace('TabbedView');
+
+export default {
+    Tab: TabbedTab,
+};
+</script>
+
+<script setup>
+const emit = defineEmits(['changed']);
+const props = defineProps({
+    showTabs: {
+        type: Boolean,
+        default: true,
     },
-    data() {
-        return { active: false };
-    },
-    template: '<div v-if="active" class="u-tabbed-content"><slot></slot></div>',
 });
 
-export default Vue.component('tabbed-view', {
-    props: {
-        value: String,
-        showTabs: {
-            type: Boolean,
-            default: true,
-        },
-    },
-    data() {
-        return {
-            // We increment this when we need to re-render the tabs.
-            // Vue doesn't pick up on the $children changes all the time so we handle
-            // it ourselves.
-            a: 1,
-            prefixID: Math.floor(Math.random() * 100000).toString(36),
-        };
-    },
-    computed: {
-        tabs: function computedtabs() {
-            return this.$children;
-        },
-    },
-    watch: {
-        value(newValue) {
-            this.setActiveByName(newValue);
-        },
-    },
-    mounted() {
-        this.setActiveCheck();
-    },
-    methods: {
-        getActive: function getActive() {
-            let foundChild = null;
-            this.$children.forEach((child) => {
-                if (child.active) {
-                    foundChild = child;
-                }
-            });
+const activeTabName = defineModel();
+const activeTab = shallowRef(null);
+const tabs = shallowReactive(new Map());
+const filteredTabs = computed(() => [...tabs.values()].filter((tab) => !tab.hidden.value));
 
-            return foundChild;
-        },
-        setActive: function setActive(c) {
-            this.$children.forEach((child) => {
-                if (child !== c) {
-                    child.active = false;
-                }
-            });
-            c.active = true;
-
-            // Without this, vue doesnt update itself with the new $children :(
-            this.a++;
-            this.$emit('changed', c.name);
-            this.$emit('input', c.name);
-        },
-        setActiveByName: function setActiveByName(name) {
-            this.$children.forEach((child) => {
-                if (child.name === name) {
-                    this.setActive(child);
-                }
-            });
-        },
-        setActiveCheck: function setActiveCheck() {
-            this.$children.forEach((t) => {
-                if (t.focus || t.name === this.value) {
-                    this.setActive(t);
-                }
-            });
-        },
-    },
+watch(activeTabName, (newValue) => {
+    setActive(newValue);
 });
+
+const setActive = (tabName) => {
+    log.debug('activeTab changed:', tabName);
+    const ucTabName = tabName.toUpperCase();
+    const newTab = tabs.get(ucTabName);
+    if (!newTab) {
+        log.error('could not find tab named:', ucTabName);
+        return;
+    }
+    activeTab.value = newTab;
+    emit('changed', activeTab.value.name);
+};
+provide('set-active', setActive);
+
+const registerTab = (tab) => {
+    const ucTabName = tab.name.toUpperCase();
+
+    tab.isActive = computed(() => activeTab.value === tab);
+    tabs.set(ucTabName, tab);
+
+    if (tab.startActive.value) {
+        setActive(tab.name);
+    }
+
+    return {
+        isActive: tab.isActive,
+    };
+};
+provide('register-tab', registerTab);
+
+const setHidden = (tabName, newValue) => {
+    log('setHidden', tabName);
+    // TODO this needs work
+    const ucTabName = tabName.toUpperCase();
+    const tab = tabs.get(ucTabName);
+    tab.hidden.value = newValue;
+};
+provide('setHidden', setHidden);
+
+onMounted(() => {
+    if (activeTabName.value) {
+        setActive(activeTabName.value);
+        return;
+    }
+
+    if (activeTab.value) {
+        return;
+    }
+
+    const firstTab = filteredTabs.value.values().next().value;
+    if (firstTab) {
+        activeTab.value = firstTab;
+    }
+});
+
+defineExpose({ setActiveByName: setActive });
 </script>
 
 <style>
@@ -130,7 +127,7 @@ export default Vue.component('tabbed-view', {
     text-align: left;
     box-sizing: border-box;
     padding: 0.5em 1em;
-    border-bottom: 3px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 3px solid rgb(0, 0, 0, 0.1);
     transition: border 0.3s;
 }
 

@@ -1,14 +1,14 @@
-<template functional>
+<template>
     <div
         v-rawElement="{
-            el: props.pluginElement,
+            el: $props.pluginElement,
             props: {
                 kiwi: {
-                    ...props.pluginProps,
+                    ...$props.pluginProps,
                 }
             }
         }"
-        :class="{ [data.staticClass]: data.staticClass }"
+        :class="{ [$data.staticClass]: $data.staticClass }"
     />
 </template>
 

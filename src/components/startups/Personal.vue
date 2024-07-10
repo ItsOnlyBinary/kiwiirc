@@ -60,6 +60,8 @@
 <script>
 'kiwi public';
 
+import StartupPersonal from '@/components/startups/Personal';
+
 import * as TextFormatting from '@/helpers/TextFormatting';
 import * as Misc from '@/helpers/Misc';
 import BouncerProvider from '@/libs/BouncerProvider';
@@ -202,7 +204,7 @@ export default {
             network.showServerBuffer('settings');
 
             this.$emit('start', {
-                fallbackComponent: this.constructor,
+                fallbackComponent: StartupPersonal,
             });
         },
         parseFragment() {
@@ -266,7 +268,7 @@ export default {
             }
 
             this.$emit('start', {
-                fallbackComponent: this.constructor,
+                fallbackComponent: StartupPersonal,
             });
         },
     },

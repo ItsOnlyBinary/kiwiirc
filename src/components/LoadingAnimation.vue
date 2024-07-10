@@ -49,7 +49,7 @@ export default {
             this.draw();
         };
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.destroying = true;
         cancelAnimationFrame(this.animationFrame);
     },

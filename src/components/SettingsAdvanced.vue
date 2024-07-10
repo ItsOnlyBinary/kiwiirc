@@ -48,7 +48,7 @@
                                 :value="setting.val"
                                 class="u-input"
                                 type="number"
-                                @keydown.13="$event.target.blur()"
+                                @keydown.enter="$event.target.blur()"
                                 @change="updateSetting($event, setting.key)"
                                 @blur="updateSetting($event, setting.key)"
                             >
@@ -57,7 +57,7 @@
                                 :id="'setting-' + setting.key"
                                 :value="setting.val"
                                 class="u-input"
-                                @keydown.13="$event.target.blur()"
+                                @keydown.enter="$event.target.blur()"
                                 @blur="updateSetting($event, setting.key)"
                             >
                         </td>

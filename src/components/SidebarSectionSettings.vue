@@ -13,7 +13,7 @@
                             class="kiwi-channelsettings-disabled"
                         >
                             {{ $t('mods_only') }}
-                            <i class="fa fa-lock" aria-hidden="true" />
+                            <svg-icon icon="fa-solid fa-lock" />
                         </span>
                     </h3>
                     <hr>
@@ -183,7 +183,7 @@ export default {
     font-size: 0.8em;
     padding: 0 16px;
 
-    > i {
+    > svg {
         margin-left: 5px;
     }
 }
@@ -251,7 +251,7 @@ export default {
         transition: all 0.3s;
         z-index: 1;
 
-        > i {
+        > svg {
             padding: 0 5px;
             cursor: pointer;
         }

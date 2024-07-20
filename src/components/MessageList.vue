@@ -27,7 +27,7 @@
 
             <!-- <remove-before-update> -->
             <div>
-                <template v-for="day in filteredMessagesGroupedDay" :key="day.dayNum">
+                <template v-for="(day, gIdx) in filteredMessagesGroupedDay" :key="day.dayNum">
                     <div
                         v-if="filteredMessagesGroupedDay.length > 1 && day.messages.length > 0"
                         class="kiwi-messagelist-seperator"
@@ -36,7 +36,7 @@
                     </div>
                     <!-- <remove-before-update> -->
                     <div>
-                        <template v-for="message in day.messages" :key="'msg' + message.id">
+                        <template v-for="(message, mIdx) in day.messages" :key="'msg' + message.id">
                             <div
                                 v-if="shouldShowUnreadMarker(message)"
                                 class="kiwi-messagelist-seperator"
@@ -58,26 +58,38 @@
                                     v-bind="message.templateProps"
                                     :buffer="buffer"
                                     :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
+                                    :is-unread="isUnread(message)"
+                                    :is-repeat="isRepeat(gIdx, mIdx, message)"
+                                    :is-hover="isHoveringOverMessage(message)"
+                                    @hover-nick="setHoverNick"
                                 />
                                 <message-list-message-modern
                                     v-else-if="listType === 'modern'"
                                     :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
+                                    :is-unread="isUnread(message)"
+                                    :is-repeat="isRepeat(gIdx, mIdx, message)"
+                                    :is-hover="isHoveringOverMessage(message)"
+                                    @hover-nick="setHoverNick"
                                 />
                                 <message-list-message-inline
                                     v-else-if="listType === 'inline'"
                                     :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
+                                    :is-unread="isUnread(message)"
+                                    :is-repeat="isRepeat(gIdx, mIdx, message)"
+                                    :is-hover="isHoveringOverMessage(message)"
+                                    @hover-nick="setHoverNick"
                                 />
                                 <message-list-message-compact
                                     v-else-if="listType === 'compact'"
                                     :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
+                                    :is-unread="isUnread(message)"
+                                    :is-repeat="isRepeat(gIdx, mIdx, message)"
+                                    :is-hover="isHoveringOverMessage(message)"
+                                    @hover-nick="setHoverNick"
                                 />
                             </div>
                         </template>
@@ -106,6 +118,7 @@
 <script>
 'kiwi public';
 
+import { debounce } from 'lodash';
 import { watch } from 'vue';
 import strftime from 'strftime';
 import Logger from '@/libs/Logger';
@@ -218,7 +231,7 @@ export default {
             // every emssage reactive which gets very expensive.
 
             /* eslint-disable no-unused-vars */
-            let ignoredVar = this.buffer.message_count;
+            // let ignoredVar = this.buffer.message_count;
 
             return bufferTools.orderedMessages(this.buffer);
         },
@@ -251,6 +264,19 @@ export default {
                 this.scrollToBottom();
             });
         },
+    },
+    created() {
+        this.setHoverNick = debounce(
+            (nick) => {
+                this.hover_nick = nick;
+            },
+            600,
+            {
+                maxWait: 600,
+                leading: true,
+                trailing: true,
+            }
+        );
     },
     mounted() {
         this.addCopyListeners();
@@ -285,8 +311,24 @@ export default {
         });
     },
     methods: {
+        isUnread(message) {
+            return this.buffer.last_read && message.time > this.buffer.last_read;
+        },
+        isRepeat(gIdx, mIdx, message) {
+            if (!mIdx) {
+                return false;
+            }
+            let prevMessage = this.filteredMessagesGroupedDay[gIdx].messages[mIdx - 1];
+
+            return !!prevMessage &&
+                prevMessage.nick === message.nick &&
+                message.time - prevMessage.time < 60000 &&
+                prevMessage.type !== 'traffic' &&
+                message.type !== 'traffic' &&
+                message.type === prevMessage.type;
+        },
         isHoveringOverMessage(message) {
-            return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();
+            return message.nick && message.nick.toLowerCase() === this.hover_nick;
         },
         toggleMessageInfo(message) {
             if (!message) {
@@ -408,6 +450,13 @@ export default {
             this.$state.$emit('input.insertnick', nick);
         },
         onMessageClick(event, message, delay) {
+            if (this.message_info_open && this.message_info_open !== message) {
+                // Clicking on another message while another info is open, just close the info
+                this.toggleMessageInfo();
+                event.preventDefault();
+                return;
+            }
+
             // Delaying the click for 200ms allows us to check for a second click. ie. double click
             // Quick hack as we only need double click for nicks, nothing else
             if (delay && event.target.getAttribute('data-nick')) {
@@ -448,13 +497,6 @@ export default {
             let avatarElement = event.target.closest('.kiwi-avatar');
             if (avatarElement && avatarElement.dataset.nick) {
                 this.openUserBox(avatarElement.dataset.nick);
-                return;
-            }
-
-            if (this.message_info_open && this.message_info_open !== message) {
-                // Clicking on another message while another info is open, just close the info
-                this.toggleMessageInfo();
-                event.preventDefault();
                 return;
             }
 

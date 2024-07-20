@@ -1,162 +1,141 @@
-<template>
-    <div
-        :class="[
-            'kiwi-messagelist-message-' + $props.message.type,
-            $props.message.type_extra ?
-                'kiwi-messagelist-message-' + $props.message.type + '-' + $props.message.type_extra :
-                '',
-            $props.ml.isMessageHighlight($props.message) ?
-                'kiwi-messagelist-message--highlight' :
-                '',
-            $props.ml.isHoveringOverMessage($props.message) ?
-                'kiwi-messagelist-message--hover' :
-                '',
-            $props.ml.buffer.last_read && $props.message.time > $props.ml.buffer.last_read ?
-                'kiwi-messagelist-message--unread' :
-                '',
-            $props.message.nick.toLowerCase() === $props.ml.ourNick.toLowerCase() ?
-                'kiwi-messagelist-message--own' :
-                '',
-            $props.ml.message_info_open === $props.message ?
-                'kiwi-messagelist-message--info-open' :
-                '',
-            $props.ml.message_info_open && $props.ml.message_info_open !== $props.message ?
-                'kiwi-messagelist-message--blur' :
-                '',
-            ($props.message.user && $props.m().userMode($props.message.user)) ?
-                'kiwi-messagelist-message--user-mode-'+$props.m().userMode($props.message.user) :
-                '',
-            $data.staticClass ? $data.staticClass : '',
-        ]"
-        :data-message-id="$props.message.id"
-        :data-nick="($props.message.nick||'').toLowerCase()"
-        class="kiwi-messagelist-message kiwi-messagelist-message--text"
-        @click="$props.ml.onMessageClick($event, $props.message, true)"
-        @dblclick="$props.ml.onMessageDblClick($event, $props.message)"
-    >
-        <div>
-            <span
-                v-if="$props.ml.bufferSetting('show_timestamps')"
-                class="kiwi-messagelist-time"
-            >
-                {{ $props.ml.formatTime($props.message.time) }}
-            </span>
-            <span
-                :style="{ 'color': $props.ml.userColour($props.message.user) }"
-                :class="[
-                    'kiwi-messagelist-nick',
-                    ($props.message.user && $props.m().userMode($props.message.user)) ?
-                        'kiwi-messagelist-nick--mode-'+$props.m().userMode($props.message.user) :
-                        ''
-                ]"
-                :data-nick="($props.message.nick||'').toLowerCase()"
-                @mouseover="$props.ml.hover_nick=$props.message.nick.toLowerCase();"
-                @mouseout="$props.ml.hover_nick='';"
-            >
-                <span class="kiwi-messagelist-nick--prefix">
-                    {{ $props.message.user ? $props.m().userModePrefix($props.message.user) : '' }}
-                </span>
-                <a :data-nick="($props.message.nick||'').toLowerCase()">
-                    {{ $props.m().displayNick() }}
-                </a>
-            </span>
-            <div
-                v-if="$props.message.bodyTemplate &&
-                    $props.message.bodyTemplate.$el &&
-                    $props.ml.isTemplateVue($props.message.bodyTemplate)"
-                v-rawElement="$props.message.bodyTemplate.$el"
-                class="kiwi-messagelist-body"
-            />
-            <component
-                :is="$props.message.bodyTemplate"
-                v-else-if="$props.message.bodyTemplate"
-                v-bind="$props.message.bodyTemplate$props"
-                :buffer="$props.ml.buffer"
-                :message="$props.message"
-                :idx="$props.idx"
-                :ml="$props.ml"
-                class="kiwi-messagelist-body"
-            />
-            <div
-                v-else
-                class="kiwi-messagelist-body"
-                v-html="$props.ml.formatMessage($props.message)"
-            />
-        </div>
-
-        <component
-            :is="$options.components.MessageInfo"
-            v-if="$props.ml.message_info_open===$props.message"
-            :message="$props.message"
-            :buffer="$props.ml.buffer"
-            @close="$props.ml.toggleMessageInfo()"
-        />
-
-        <div v-if="$props.message.embed.payload && $props.ml.shouldAutoEmbed">
-            <component
-                :is="$options.components.MediaViewer"
-                :url="$props.message.embed.payload"
-                :show-pin="true"
-                @close="$props.message.embed.payload = ''"
-                @pin="$props.ml.openEmbedInPreview($props.message)"
-            />
-        </div>
-    </div>
-</template>
-
 <script>
+import { h, createTextVNode } from 'vue';
 
-import MediaViewer from './MediaViewer';
 import MessageInfo from './MessageInfo';
+import MediaViewer from './MediaViewer';
 
-const methods = {
-    props: {},
-    displayNick() {
-        let props = this.props;
-        let suffix = props.message.nick ?
-            ':' :
-            '';
+const buildInline = (props, context, cache) => {
+    const inline = [];
 
-        return props.message.nick + suffix;
-    },
-    userMode(user) {
-        let props = this.props;
-        return props.ml.buffer.userMode(user);
-    },
-    userModePrefix(user) {
-        let props = this.props;
-        return props.ml.buffer.userModePrefix(user);
-    },
-};
+    const style = {};
 
-export default {
-    components: {
-        MessageInfo,
-        MediaViewer,
-    },
-    props: {
-        ml: Object,
-        message: Object,
-        idx: Number,
-        m: {
-            default: function m() {
-                // vue uses this function to generate the prop. `this`==null Return our own function
-                return function n() {
-                    // Give our methods some props context before its function is called.
-                    // This is only safe because the function on the methods object is called on
-                    // the same js tick
-                    methods.props = this;
-                    return methods;
-                };
-            },
+    if (props.message.user) {
+        style.color = props.ml.userColour(props.message.user);
+    }
+
+    if (props.ml.showTimestamps) {
+        inline.push(h('span', {
+            class: ['kiwi-messagelist-time'],
+        }, [
+            createTextVNode(props.ml.formatTime(props.message.time)),
+        ]));
+    }
+
+    inline.push(h('span', {
+        'class': {
+            'kiwi-messagelist-nick': true,
+            [`kiwi-messagelist-nick--mode-${cache.userMode}`]: cache.userMode,
         },
-    },
+        'data-nick': cache.lcNick,
+        'onMouseover': () => (props.ml.hover_nick = cache.lcNick),
+        'onMouseout': () => (props.ml.hover_nick = ''),
+        style,
+    }, [
+        h('span', {
+            class: ['kiwi-messagelist-nick--prefix'],
+        }, [
+            createTextVNode(cache.userModePrefix),
+        ]),
+
+        h('a', [
+            createTextVNode(props.message.nick ? `${props.message.nick}:` : ''),
+        ]),
+    ]));
+
+    inline.push(buildMessageBody(props, context, cache));
+
+    return inline;
 };
+
+const buildMessageBody = (props, context, cache) => {
+    if (props.message.bodyTemplate) {
+        return h(props.message.bodyTemplate, {
+            class: ['kiwi-messagelist-body'],
+            buffer: props.ml.buffer,
+            message: props.message,
+            idx: props.idx,
+            ml: props.ml,
+        });
+    }
+
+    return h('div', {
+        class: ['kiwi-messagelist-body'],
+        innerHTML: props.ml.formatMessage(props.message),
+    });
+};
+
+const buildMessageFooter = (props, context, cache) => {
+    const footer = [];
+
+    if (props.ml.message_info_open === props.message) {
+        footer.push(h(MessageInfo, {
+            message: props.message,
+            buffer: props.ml.buffer,
+            onClose: () => props.ml.toggleMessageInfo(),
+        }));
+    }
+
+    if (props.ml.shouldAutoEmbed && props.message.embed.payload) {
+        footer.push(h(MediaViewer, {
+            'url': props.message.embed.payload,
+            'show-pin': true,
+            'onClose': () => (props.message.embed.payload = ''),
+            'onPin': () => props.ml.openEmbedInPreview(props.message),
+        }));
+    }
+
+    return footer;
+};
+
+const messageInline = (props, context) => {
+    const cache = {
+        lcNick: (props.message.nick || '').toLowerCase(),
+        userMode: '',
+        userModePrefix: '',
+    };
+
+    if (props.message.user) {
+        cache.userMode = props.ml.buffer.userMode(props.message.user);
+        cache.userModePrefix = props.ml.buffer.userModePrefix(props.message.user);
+    }
+
+    return h('div', {
+        'class': {
+            [`kiwi-messagelist-message-${props.message.type}`]: true,
+
+            [`kiwi-messagelist-message-${props.message.type}-${props.message.type_extra}`]: props.message.type_extra,
+
+            'kiwi-messagelist-message--highlight': props.ml.isMessageHighlight(props.message),
+            'kiwi-messagelist-message--hover': props.ml.isHoveringOverMessage(props.message),
+            'kiwi-messagelist-message--unread': props.ml.buffer.last_read && props.message.time > props.ml.buffer.last_read,
+            'kiwi-messagelist-message--own': cache.lcNick === props.ml.ourNick.toLowerCase(),
+            'kiwi-messagelist-message--info-open': props.ml.message_info_open === props.message,
+            'kiwi-messagelist-message--blur': props.ml.message_info_open && props.ml.message_info_open !== props.message,
+            [`kiwi-messagelist-message--user-mode-${cache.userMode}`]: cache.userMode,
+
+            'kiwi-messagelist-message': true,
+            'kiwi-messagelist-message--text': true,
+        },
+        'data-message-id': props.message.id,
+        'data-nick': cache.lcNick,
+        'onClick': (event) => props.ml.onMessageClick(event, props.message, true),
+        'onDblclick': (event) => props.ml.onMessageDblClick(event, props.message),
+    }, [
+        h('div', [
+            ...buildInline(props, context, cache),
+        ]),
+
+        ...buildMessageFooter(props, context, cache),
+    ]);
+};
+messageInline.props = ['ml', 'idx', 'message'];
+
+export default messageInline;
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 
-.kiwi-messagelist-message--text {
+.kiwi-messagelist-message.kiwi-messagelist-message--text {
     position: relative;
     padding: 4px 10px;
     margin: 0;
@@ -169,13 +148,13 @@ export default {
     top: 0;
     right: 0;
     padding: 0 10px;
-    display: none;
+    visibility: hidden;
     opacity: 0.8;
 }
 
 //display timestamp when hovering over the message
 .kiwi-messagelist-message--text:hover .kiwi-messagelist-time {
-    display: block;
+    visibility: visible;
     border-radius: 5px 0 0 5px;
 }
 

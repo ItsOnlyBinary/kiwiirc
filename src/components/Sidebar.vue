@@ -5,7 +5,7 @@
     >
         <span v-if="!sidebarState.isOpen" class="kiwi-sidebar-options">
             <div class="kiwi-sidebar-close" @click="sidebarState.close()">
-                {{ $t('close') }}<i class="fa fa-times" aria-hidden="true" />
+                {{ $t('close') }}<svg-icon icon="fa-solid fa-xmark" />
             </div>
         </span>
 
@@ -168,12 +168,11 @@ export default {
         transition: background 0.3s;
     }
 
-    .kiwi-sidebar-options .kiwi-sidebar-close i {
+    .kiwi-sidebar-options .kiwi-sidebar-close svg {
         margin-left: 5px;
-        font-size: 1.5em;
-        line-height: 47px;
+        font-size: 1.4em;
         position: relative;
-        top: 2px;
+        top: 3px;
     }
 
     .kiwi-sidebar .u-tabbed-view-tab {

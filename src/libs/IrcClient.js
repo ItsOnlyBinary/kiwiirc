@@ -347,7 +347,7 @@ function clientMiddleware(state, network) {
                 state.addMessageNoRepeat(buffer, {
                     time: eventTime,
                     server_time: serverTime,
-                    nick: '*',
+                    nick: '',
                     message: message,
                     type: 'error',
                 });
@@ -807,7 +807,7 @@ function clientMiddleware(state, network) {
                 state.addMessage(buffer, {
                     time: eventTime,
                     server_time: serverTime,
-                    nick: '*',
+                    nick: '',
                     type: 'presence',
                     message: event.message,
                 });
@@ -825,7 +825,7 @@ function clientMiddleware(state, network) {
                 state.addMessage(buffer, {
                     time: eventTime,
                     server_time: serverTime,
-                    nick: '*',
+                    nick: '',
                     type: 'presence',
                     message: event.message,
                 });
@@ -1068,7 +1068,7 @@ function clientMiddleware(state, network) {
                     state.addMessage(buffer, {
                         time: eventTime,
                         server_time: serverTime,
-                        nick: '*',
+                        nick: '',
                         message: buffer.name + ' ' + modeStrs.join(', '),
                     });
                 }
@@ -1087,7 +1087,7 @@ function clientMiddleware(state, network) {
                 state.addMessage(buffer, {
                     time: eventTime,
                     server_time: serverTime,
-                    nick: '*',
+                    nick: '',
                     message: buffer.name + ' ' + timeCreated,
                 });
             }

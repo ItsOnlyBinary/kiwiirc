@@ -11,6 +11,7 @@ const { DefinePlugin } = require('webpack');
 const FriendlyErrorsWebpackPlugin = require('@soda/friendly-errors-webpack-plugin');
 
 const ConvertLocalesPlugin = require('../plugins/webpack/convert-locales');
+const ImportIconsPlugin = require('../plugins/webpack/import-icons');
 
 const utils = require('../utils');
 const pkg = require('../../package.json');
@@ -81,6 +82,7 @@ module.exports = (env, argv, config) => {
             new VueLoaderPlugin(),
             new CaseSensitivePathsPlugin(),
             new ConvertLocalesPlugin(),
+            new ImportIconsPlugin(),
             new HTMLPlugin({
                 template: utils.pathResolve('static/index.html'),
                 templateParameters: {

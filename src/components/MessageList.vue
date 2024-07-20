@@ -146,6 +146,12 @@ export default {
         };
     },
     computed: {
+        showRealNames() {
+            return this.buffer.setting('show_realnames');
+        },
+        showTimestamps() {
+            return this.buffer.setting('show_timestamps');
+        },
         thisMl() {
             return this;
         },

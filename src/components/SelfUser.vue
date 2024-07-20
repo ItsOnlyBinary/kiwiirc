@@ -4,13 +4,9 @@
             <span class="kiwi-selfuser-nick">
                 <away-status-indicator :network="network" :user="user" />
                 {{ network.nick }}
-                <i class="fa fa-times" aria-hidden="true" @click="closeSelfUser()" />
-                <i class="fa fa-pencil" aria-hidden="true" @click="openSelfActions()" />
-                <i
-                    class="fa fa-user"
-                    aria-hidden="true"
-                    @click="openProfile()"
-                />
+                <svg-icon icon="fa-solid fa-times" @click="closeSelfUser()" />
+                <svg-icon icon="fa-solid fa-pencil" @click="openSelfActions()" />
+                <svg-icon icon="fa-solid fa-user" @click="openProfile()" />
             </span>
             <span class="kiwi-selfuser-host">
                 {{ user.username }}@{{ user.host }}
@@ -211,7 +207,7 @@ export default {
 
 /* Style the icons in the SelfUser */
 
-.kiwi-selfuser-nick i {
+.kiwi-selfuser-nick svg {
     font-weight: 400;
     float: right;
     opacity: 0.6;
@@ -221,12 +217,12 @@ export default {
     margin-right: 15px;
 }
 
-.kiwi-selfuser-nick i:hover {
+.kiwi-selfuser-nick svg:hover {
     opacity: 1;
     transition: all 0.2s;
 }
 
-.kiwi-selfuser-nick i:first-of-type {
+.kiwi-selfuser-nick svg:first-of-type {
     margin-right: 0;
 }
 

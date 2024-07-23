@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const i18nextConv = require('i18next-conv');
 
-class ConvertLocalesPlugin {
+module.exports = class ConvertLocalesPlugin {
     apply(compiler) {
         const pluginName = this.constructor.name;
         const fileDependencies = new Set();
@@ -26,9 +25,11 @@ class ConvertLocalesPlugin {
             callback();
         });
     }
-}
+};
 
 async function convertLocales(fileDependencies, callback) {
+    const i18nextConv = await import('i18next-conv');
+
     fileDependencies.clear();
     const sourceDir = path.resolve('src/res/locales/');
     const outputDir = path.resolve('static/locales/');
@@ -88,5 +89,3 @@ function writeIfChanged(file, _data) {
 
     fs.writeFileSync(file, data);
 }
-
-module.exports = ConvertLocalesPlugin;

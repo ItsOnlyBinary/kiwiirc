@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-class ConvertLocalesPlugin {
+module.exports = class ConvertLocalesPlugin {
     apply(compiler) {
         const pluginName = this.constructor.name;
         const fileDependencies = new Set();
@@ -25,7 +25,7 @@ class ConvertLocalesPlugin {
             callback();
         });
     }
-}
+};
 
 async function convertLocales(fileDependencies, callback) {
     const i18nextConv = await import('i18next-conv');
@@ -89,5 +89,3 @@ function writeIfChanged(file, _data) {
 
     fs.writeFileSync(file, data);
 }
-
-module.exports = ConvertLocalesPlugin;

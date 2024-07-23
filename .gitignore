@@ -1,4 +1,5 @@
 .DS_Store
+.yarn/
 srcdocs/
 dist/
 node_modules/

@@ -9,7 +9,7 @@
                 <a class="u-button u-button-primary" @click="complete">
                     <span :class="{'u-input-prompt-hidden': waiting}">{{ $t('ok') }}</span>
                     <div v-if="waiting" class="u-input-prompt-waiting">
-                        <i class="fa fa-spin fa-spinner" aria-hidden="true" />
+                        <svg-spinner />
                     </div>
                 </a>
                 <a

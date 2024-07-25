@@ -51,7 +51,7 @@
                     }}
                 </div>
                 <div v-if="areWeAnOp" class="kiwi-sidebar-settings-access-actions">
-                    <i class="fa fa-trash" aria-hidden="true" @click="removeBan(ban.banned)" />
+                    <svg-icon icon="fa-solid fa-trash-can" @click="removeBan(ban.banned)" />
                 </div>
             </template>
         </div>

@@ -68,7 +68,7 @@
             <div
                 class="kiwi-inputtools-colours-colour kiwi-inputtools-colours-reset"
                 @click="onResetClick"
-            ><i class="fa fa-ban" aria-hidden="true" /></div>
+            ><svg-icon icon="fa-solid fa-ban" /></div>
         </div>
     </div>
 </template>

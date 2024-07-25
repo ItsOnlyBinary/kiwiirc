@@ -28,11 +28,8 @@
             />
             <div v-if="currentNick" class="kiwi-controlinput-user" @click="toggleSelfUser">
                 <span class="kiwi-controlinput-user-nick">{{ currentNick }}</span>
-                <i
-                    :class="[selfuser_open ? 'fa-caret-down' : 'fa-caret-up']"
-                    class="fa"
-                    aria-hidden="true"
-                />
+                <!-- svg-icons: fas-caret-down, fas-caret-up -->
+                <svg-icon :icon="['fa-solid', selfuser_open ? 'fa-caret-down' : 'fa-caret-up']" />
             </div>
             <form
                 class="kiwi-controlinput-form"
@@ -51,7 +48,7 @@
                 />
                 <div v-if="showCommandWarning" class="kiwi-controlinput-command-warn">
                     <div>
-                        <i class="fa fa-exclamation-triangle" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-triangle-exclamation" />
                         {{ $t('input_not_command') }}
                     </div>
                     <div class="kiwi-controlinput-command-text">
@@ -85,8 +82,8 @@
                     <button
                         ref="sendButton"
                         type="submit"
-                        class="kiwi-controlinput-button kiwi-controlinput-send fa fa-paper-plane"
-                    />
+                        class="kiwi-controlinput-button kiwi-controlinput-send"
+                    ><svg-icon icon="fa-solid fa-paper-plane" /></button>
                 </div>
             </form>
 
@@ -101,7 +98,7 @@
                     :class="{'kiwi-controlinput-tools-expand--closed': !showPlugins}"
                     @click="showPlugins=!showPlugins"
                 >
-                    <i class="fa fa-bars" aria-hidden="true" />
+                    <svg-icon icon="fa-solid fa-bars" />
                 </div>
                 <transition name="kiwi-plugin-ui-trans">
                     <div
@@ -113,14 +110,14 @@
                             class="kiwi-controlinput-button"
                             @click.prevent="onToolClickTextStyle"
                         >
-                            <i class="fa fa-adjust" aria-hidden="true" />
+                            <svg-icon icon="fa-solid fa-circle-half-stroke" />
                         </div>
                         <div
                             v-if="shouldShowEmojiPicker"
                             class="kiwi-controlinput-button"
                             @click.prevent="onToolClickEmoji"
                         >
-                            <i class="fa fa-smile-o" aria-hidden="true" />
+                            <svg-icon icon="fa-regular fa-face-smile" />
                         </div>
                         <component
                             :is="plugin.component"
@@ -832,15 +829,17 @@ export default {
 }
 
 .kiwi-controlinput-user {
+    display: flex;
     height: 100%;
     padding-left: 10px;
     font-weight: bold;
     text-align: center;
     cursor: pointer;
-    line-height: 38px;
+    line-height: initial;
     transition: width 0.2s 0.1s;
+    align-items: center;
 
-    > i {
+    svg {
         font-size: 120%;
         margin-left: 8px;
     }
@@ -887,7 +886,7 @@ export default {
         font-weight: 700;
     }
 
-    .fa-exclamation-triangle {
+    .fa-triangle-exclamation {
         margin-right: 2px;
     }
 
@@ -957,11 +956,11 @@ export default {
     height: 36px;
 }
 
-.kiwi-controlinput-tools-expand > i {
+.kiwi-controlinput-tools-expand > svg {
     transition: transform 0.2s;
 }
 
-.kiwi-controlinput-tools-expand--closed > i {
+.kiwi-controlinput-tools-expand--closed > svg {
     transform: rotateZ(180deg);
 }
 
@@ -1010,7 +1009,7 @@ export default {
 }
 
 .kiwi-controlinput-button {
-    display: inline-block;
+    display: inline-flex;
     width: 34px;
     height: 34px;
     margin: 1px;
@@ -1018,10 +1017,11 @@ export default {
     border-radius: 8px;
     box-sizing: border-box;
     cursor: pointer;
+    justify-content: center;
+    align-items: center;
 
-    i {
+    svg {
         font-size: 20px;
-        line-height: 32px;
         margin: 0;
     }
 }
@@ -1046,7 +1046,7 @@ export default {
         display: none;
     }
 
-    .kiwi-controlinput-user > i {
+    .kiwi-controlinput-user > svg {
         margin-left: 0;
     }
 }

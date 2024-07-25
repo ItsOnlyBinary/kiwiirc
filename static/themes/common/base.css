@@ -209,7 +209,7 @@
     background-color: var(--brand-default-bg);
 }
 
-.kiwi-controlinput-command-warn .fa-exclamation-triangle {
+.kiwi-controlinput-command-warn .fa-triangle-exclamation {
     color: var(--brand-error);
 }
 
@@ -569,24 +569,6 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Icon before the network in network list */
-.kiwi-statebrowser-network-name::before {
-    content: '\f233';
-    font-family: fontAwesome, Helvetica, Arial, Verdana, Tahoma, sans-serif;
-    margin-right: 2px;
-    font-weight: 100;
-    text-decoration: none;
-}
-
-/* Icons in the Channel List */
-.kiwi-statebrowser-channel[data-name^="*"]::before {
-    content: '\f006';
-}
-
-.kiwi-statebrowser-channel[data-name="#help"]::before {
-    content: '\f059';
-}
-
 .kiwi-statebrowser-channel::before {
     font-family: fontAwesome, Helvetica, Arial, Verdana, Tahoma, sans-serif;
     margin-right: 8px;
@@ -758,11 +740,11 @@
     color: var(--brand-primary);
 }
 
-.kiwi-serverselector-connection-tls i {
+.kiwi-serverselector-connection-tls svg {
     color: var(--brand-primary);
 }
 
-.kiwi-serverselector-connection-tls i.fa-unlock {
+.kiwi-serverselector-connection-tls svg.fa-unlock {
     color: var(--brand-error);
 }
 

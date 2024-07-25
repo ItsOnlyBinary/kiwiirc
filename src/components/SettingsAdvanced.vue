@@ -8,8 +8,8 @@
                     :placeholder="$t('settings_advanced_filter')"
                     class="u-input"
                 >
-                <i v-if="!filterString" class="fa fa-search" aria-hidden="true" />
-                <i v-else class="fa fa-times" aria-hidden="true" @click="filterString = ''" />
+                <svg-icon v-if="!filterString" icon="fa-solid fa-search" />
+                <svg-icon v-else icon="fa-solid fa-xmark" @click="filterString = ''" />
             </div>
             <div v-if="filteredSettings.length === 0" class="kiwi-settings-advanced-empty">
                 "{{ filterString }}" {{ $t('not_found') }}
@@ -30,7 +30,7 @@
                             <span class="kiwi-settings-advanced-reset-text">
                                 {{ $t('settings_advanced_reset') }}
                             </span>
-                            <i class="fa fa-undo" />
+                            <svg-icon icon="fa-solid fa-rotate-left" />
                         </a>
                     </div>
                     <div class="kiwi-settings-advanced-value">
@@ -164,14 +164,14 @@ export default {
         display: none;
     }
 
-    .fa {
+    .svg-inline--fa {
         position: absolute;
         top: 8px;
         right: 10px;
         z-index: 10;
         cursor: default;
 
-        &.fa-times {
+        &.fa-xmark {
             cursor: pointer;
         }
     }

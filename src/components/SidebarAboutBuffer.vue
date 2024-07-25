@@ -7,7 +7,7 @@
             class="kiwi-aboutbuffer-section"
         >
             <h4 @click="toggleSection('about')">
-                <i class="fa fa-angle-right" /> {{ $t('about') }}
+                <svg-icon icon="fa-solid fa-angle-right" /> {{ $t('about') }}
             </h4>
             <div>
                 <p v-if="b.created_at">
@@ -40,7 +40,7 @@
             class="kiwi-aboutbuffer-section"
         >
             <h4 @click="toggleSection('highlights')">
-                <i class="fa fa-angle-right" /> {{ $t('highlights') }}
+                <svg-icon icon="fa-solid fa-angle-right" /> {{ $t('highlights') }}
             </h4>
             <div>
                 <ul v-if="highlights.length > 0">
@@ -63,7 +63,7 @@
             class="kiwi-aboutbuffer-section"
         >
             <h4 @click="toggleSection('invite')">
-                <i class="fa fa-angle-right" /> {{ $t('invite_user') }}
+                <svg-icon icon="fa-solid fa-angle-right" /> {{ $t('invite_user') }}
             </h4>
             <div>
                 <div class="kiwi-aboutbuffer-invite u-form">
@@ -96,7 +96,7 @@
             class="kiwi-aboutbuffer-section"
         >
             <h4 @click="toggleSection(plugin.id)">
-                <i class="fa fa-angle-right" /> {{ plugin.title() }}
+                <svg-icon icon="fa-solid fa-angle-right" /> {{ plugin.title() }}
             </h4>
             <component
                 :is="plugin.component"
@@ -255,12 +255,12 @@ export default {
     user-select: none;
 }
 
-.kiwi-aboutbuffer-section h4 i {
+.kiwi-aboutbuffer-section h4 svg {
     margin-right: 5px;
     transition: transform 0.2s;
 }
 
-.kiwi-aboutbuffer-section--closed h4 i {
+.kiwi-aboutbuffer-section--closed h4 svg {
     transform: rotate(90deg);
 }
 

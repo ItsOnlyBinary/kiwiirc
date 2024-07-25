@@ -218,9 +218,8 @@ const messageModern = (props, context) => {
             }, buildMessageTop(props, context, cache)),
 
             buildMessageBody(props, context, cache),
+            ...buildMessageFooter(props, context, cache),
         ]),
-
-        ...buildMessageFooter(props, context, cache),
     ])];
 };
 

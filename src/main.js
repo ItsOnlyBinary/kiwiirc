@@ -1,3 +1,4 @@
+/* eslint-disable import/no-import-module-exports */
 import _ from 'lodash';
 import { createApp, markRaw, watch } from 'vue';
 import JSON5 from 'json5';
@@ -6,6 +7,9 @@ import i18nextHTTP from 'i18next-http-backend';
 import VueI18Next from 'i18next-vue';
 import VueVirtualScroller from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
+
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
 
 import App from '@/components/App';
 import StartupError from '@/components/StartupError';
@@ -39,6 +43,23 @@ import TransitionExpand from '@/components/utils/TransitionExpand';
 import AvailableLocales from '@/res/locales/available.json';
 import FallbackLocale from '@/../static/locales/dev.json';
 
+import SvgSpinner from '@/res/icons/ring-resize.svg';
+
+Object.assign(faConfig, {
+    // Disable fontawesome's watching of the dom
+    observeMutations: false,
+});
+
+import('@/libs/iconLibrary');
+
+/* eslint-disable no-undef */
+if (module?.hot) {
+    module.hot.accept('./libs/iconLibrary.js', () => {
+        import('@/libs/iconLibrary');
+    });
+}
+/* eslint-enable no-undef */
+
 const log = Logger.namespace('main');
 
 let logLevelMatch = window.location.href.match(/kiwi-loglevel=(\d)/);
@@ -55,6 +76,8 @@ const app = createApp(
 
 app.use(VueVirtualScroller);
 
+app.component('SvgSpinner', SvgSpinner);
+app.component('SvgIcon', FontAwesomeIcon);
 app.component('InputConfirm', InputConfirm);
 app.component('InputPrompt', InputPrompt);
 app.component('InputText', InputText);

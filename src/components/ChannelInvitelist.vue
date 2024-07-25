@@ -80,9 +80,8 @@
                     }}
                 </div>
                 <div v-if="areWeAnOp" class="kiwi-sidebar-settings-access-actions">
-                    <i
-                        class="fa fa-trash"
-                        aria-hidden="true"
+                    <svg-icon
+                        icon="fa-solid fa-trash-can"
                         @click="removeInvite(invite.invited)"
                     />
                 </div>

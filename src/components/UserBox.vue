@@ -45,11 +45,11 @@
 
         <div class="kiwi-userbox-actions">
             <a v-if="!isSelf && !buffer.isQuery()" class="kiwi-userbox-action" @click="openQuery">
-                <i class="fa fa-comment-o" aria-hidden="true" />
+                <svg-icon icon="fa-regular fa-comment" />
                 {{ $t('send_a_message') }}
             </a>
             <a v-if="!whoisRequested" class="kiwi-userbox-action" @click="updateWhoisData">
-                <i class="fa fa-question-circle" aria-hidden="true" />
+                <svg-icon icon="fa-regular fa-circle-question" />
                 {{ $t('more_information') }}
             </a>
             <div class="kiwi-userbox-actions kiwi-userbox-plugin-actions">
@@ -83,7 +83,7 @@
             class="kiwi-userbox-whois"
         >
             <template v-if="whoisLoading">
-                <i class="fa fa-spin fa-spinner" aria-hidden="true" />
+                <svg-spinner />
             </template>
             <template v-else-if="pluginUiWhoisElements.length">
                 <component
@@ -162,7 +162,7 @@
                                kiwi-userbox-opaction-kick kiwi-userbox-opaction"
                         @click="kickUser"
                     >
-                        <i class="fa fa-sign-out" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-right-from-bracket" />
                         {{ $t('user_kick') }}
                     </button>
                 </label>
@@ -173,7 +173,7 @@
                                kiwi-userbox-opaction-ban kiwi-userbox-opaction"
                         @click="banUser"
                     >
-                        <i class="fa fa-ban" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-ban" />
                         {{ $t('user_ban') }}
                     </button>
                 </label>
@@ -184,7 +184,7 @@
                                kiwi-userbox-opaction-kickban kiwi-userbox-opaction"
                         @click="kickbanUser"
                     >
-                        <i class="fa fa-exclamation-triangle" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-triangle-exclamation" />
                         {{ $t('user_kickban') }}
                     </button>
                 </label>

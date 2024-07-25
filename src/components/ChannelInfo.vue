@@ -9,7 +9,8 @@
             <div v-if="buffer.topics.length > 1" class="kiwi-channelinfo-previoustopics">
                 <a class="u-link" @click="showPrevTopics = !showPrevTopics">
                     Previous topics
-                    <i :class="'fa fa-caret-' + (showPrevTopics ? 'up' : 'down')" />
+                    <!-- svg icons: fas-caret-up, fas-caret-down -->
+                    <svg-icon :icon="'fa-solid fa-caret-' + (showPrevTopics ? 'up' : 'down')" />
                 </a>
                 <ul v-if="showPrevTopics">
                     <li v-for="(topicText, idx) in prevTopics" :key="idx">

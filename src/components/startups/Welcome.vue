@@ -83,7 +83,7 @@
                     class="u-button u-button-primary u-submit kiwi-welcome-simple-start"
                     disabled
                 >
-                    <i class="fa fa-spin fa-spinner" aria-hidden="true" />
+                    <svg-spinner />
                 </button>
 
                 <div v-html="footerText" />
@@ -537,6 +537,11 @@ form.kiwi-welcome-simple-form h2 {
 .kiwi-welcome-simple-start {
     font-size: 1.1em;
     cursor: pointer;
+}
+
+.kiwi-welcome-simple-start svg {
+    width: initial;
+    height: 100%;
 }
 
 .kiwi-welcome-simple-start[disabled] {

@@ -21,7 +21,7 @@
                         {{ unreadMessages.count > 999 ? '999+' : unreadMessages.count }}
                     </span>
                     <span class="kiwi-container-statebrowser-messagecount-close">
-                        <i class="fa fa-times" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-xmark" />
                     </span>
                 </div>
             </div>

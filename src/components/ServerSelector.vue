@@ -32,20 +32,13 @@
                 type="number"
                 class="kiwi-networksettings-connection-port"
             >
-                <span
+                <!-- svg icons: fas-lock, fas-unlock -->
+                <svg-icon
+                    :icon="['fa-solid', connection.tls ? 'fa-lock' : 'fa-unlock']"
                     :class="{ 'kiwi-customserver-tls--enabled' : connection.tls }"
-                    class="fa-stack fa-lg kiwi-customserver-tls"
+                    class="kiwi-customserver-tls"
                     @click="toggleTls"
-                >
-                    <i
-                        v-if="connection.tls"
-                        class="fa fa-lock fa-stack-1x kiwi-customserver-tls-lock"
-                    />
-                    <i
-                        v-else
-                        class="fa fa-unlock fa-stack-1x kiwi-customserver-tls-minus"
-                    />
-                </span>
+                />
             </input-text>
         </template>
     </div>

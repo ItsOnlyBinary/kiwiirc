@@ -5,7 +5,7 @@
             <input v-model="buffer.key" v-focus type="password">
             <div class="kiwi-bufferkey-buttons">
                 <span class="kiwi-bufferkey-button" @click="joinChannel">
-                    <i class="fa fa-arrow-circle-o-right" aria-hidden="true" />
+                    <svg-icon icon="fa-solid fa-circle-arrow-right" />
                     {{ $t('bufferkey_rejoin', {channel: buffer.name}) }}
                 </span>
             </div>
@@ -83,13 +83,6 @@ export default {
     &:hover {
         transition: all 0.2s;
     }
-
-    i {
-        float: left;
-        font-size: 1.6em;
-        line-height: 40px;
-        margin-right: 0.4em;
-    }
 }
 
 @media screen and (max-width: 1024px) {
@@ -103,7 +96,7 @@ export default {
         box-sizing: border-box;
     }
 
-    .kiwi-bufferkey-button i {
+    .kiwi-bufferkey-button svg {
         display: none;
     }
 }

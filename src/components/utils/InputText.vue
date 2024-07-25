@@ -17,11 +17,11 @@
                     @keypress="$emit('keypress', $event)"
                 >
 
-                <i
+                <svg-icon
                     v-if="showPlainText && !isEdgeBrowser()"
+                    icon="fa-solid fa-eye"
                     :class="{'u-input-text-plaintext--active': plainTextEnabled}"
-                    class="u-input-text-plaintext fa fa-eye"
-                    aria-hidden="true"
+                    class="u-input-text-plaintext"
                     @click="plainTextEnabled = !plainTextEnabled"
                 />
             </template>

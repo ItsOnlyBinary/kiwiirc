@@ -5,6 +5,7 @@
         ]" class="kiwi-statebrowser-network"
     >
         <div class="kiwi-statebrowser-network-header">
+            <svg-icon icon="fa-solid fa-server" />
             <a
                 class="kiwi-statebrowser-network-name u-link"
                 @click="setActiveBuffer(serverBuffer)"
@@ -32,7 +33,8 @@
                     class="kiwi-network-name-option kiwi-network-name-option-collapse"
                     @click="collapsed=!collapsed"
                 >
-                    <i :class="[collapsed?'fa-plus-square-o':'fa-minus-square-o']" class="fa" />
+                    <!-- svg icons: far-square-plus, far-square-minus -->
+                    <svg-icon :icon="['fa-regular', collapsed ? 'fa-square-plus' : 'fa-square-minus']" />
                 </div>
             </div>
         </div>
@@ -97,7 +99,7 @@
             <transition-expand>
                 <div v-if="network.state !== 'connected'" class="kiwi-statebrowser-network-status">
                     <template v-if="network.state_error">
-                        <i class="fa fa-exclamation-triangle" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-triangle-exclamation" aria-hidden="true" />
                         <a class="u-link" @click="showNetworkSettings(network)">
                             {{ $t('state_configure') }}
                         </a>
@@ -126,14 +128,14 @@
                         class="kiwi-statebrowser-network-option"
                         @click="toggleAddChannel()"
                     >
-                        <i class="fa fa-plus" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-plus" />
                     </div>
                     <div
                         :class="{ active: !!channel_filter_display }"
                         class="kiwi-statebrowser-network-option"
                         @click="onSearchChannelClick()"
                     >
-                        <i class="fa fa-search" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-search" />
                     </div>
                 </div>
             </transition-expand>
@@ -148,14 +150,17 @@
                     class="kiwi-statebrowser-channels-header"
                 >
                     <div class="kiwi-statebrowser-buffertype" @click="toggleSection(type)">
-                        <i
-                            class="fa kiwi-statebrowser-channels-toggle"
-                            :class="[
+                        <!-- svg icons: fas-caret-down, fas-caret-right -->
+                        <svg-icon
+                            :icon="[
+                                'fa-solid',
                                 (show_channels && type === 'channels') ||
                                     (show_queries && type === 'queries') ?
                                         'fa-caret-down' :
                                         'fa-caret-right'
                             ]"
+                            class="kiwi-statebrowser-channels-toggle"
+                            fixed-width
                         />
                         {{ type === 'channels' ? $t('channels') : $t('messages') }}
                     </div>
@@ -166,14 +171,14 @@
                             class="kiwi-statebrowser-channels-option"
                             @click="toggleAddChannel()"
                         >
-                            <i class="fa fa-plus" aria-hidden="true" />
+                            <svg-icon icon="fa-solid fa-plus" />
                         </div>
                         <div
                             :class="{ active: !!channel_filter_display }"
                             class="kiwi-statebrowser-channels-option"
                             @click="onSearchChannelClick()"
                         >
-                            <i class="fa fa-search" aria-hidden="true" />
+                            <svg-icon icon="fa-solid fa-search" />
                         </div>
                     </div>
                     <div v-else-if="type === 'queries'" class="kiwi-statebrowser-channels-options">
@@ -183,7 +188,7 @@
                                 kiwi-statebrowser-queries-close"
                             @click.stop.prevent="promptClose()"
                         >
-                            <i class="fa fa-times" aria-hidden="true" />
+                            <svg-icon icon="fa-solid fa-xmark" aria-hidden="true" />
                         </div>
                     </div>
                     <div class="kiwi-statebrowser-buffer-actions">
@@ -598,12 +603,20 @@ export default {
 }
 
 .kiwi-statebrowser-network-header {
-    display: block;
-    padding-right: 0;
+    display: flex;
+    min-height: 45px;
     position: relative;
     overflow: hidden;
-    height: auto;
     box-sizing: border-box;
+    align-items: center;
+    column-gap: 8px;
+    padding-left: 10px;
+}
+
+.kiwi-statebrowser-network-header a {
+    text-align: left;
+    font-size: 1em;
+    font-weight: 600;
 }
 
 .kiwi-statebrowser-network-name {
@@ -719,6 +732,10 @@ export default {
     transition: padding 0.1s, border 0.1s;
 }
 
+.kiwi-statebrowser-channel-name svg {
+    margin-right: 4px;
+}
+
 /* Contains the labels and close icons */
 .kiwi-statebrowser-buffer-actions {
     flex: 0;
@@ -748,7 +765,7 @@ export default {
 }
 
 .kiwi-statebrowser-network-header .kiwi-statebrowser-channel-label {
-    margin: 10px 0 10px 10px;
+    padding: 6px;
 }
 
 .kiwi-statebrowser-channel-leave {

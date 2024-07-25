@@ -1,13 +1,16 @@
 <template>
     <div class="u-tabbed-view">
-        <div class="u-tabbed-view-tabs">
-            <a
-                v-for="tab in filteredTabs"
-                :key="'tab' + tab.name.value"
-                class="u-tabbed-view-tab"
-                :class="{ 'u-tabbed-view-tab--active': tab.isActive.value }"
-                @click="setActive(tab.name, $event)"
-            >{{ tab.header.value }}</a>
+        <div class="u-tabbed-view-top">
+            <div class="u-tabbed-view-tabs">
+                <a
+                    v-for="tab in filteredTabs"
+                    :key="'tab' + tab.name.value"
+                    class="u-tabbed-view-tab"
+                    :class="{ 'u-tabbed-view-tab--active': tab.isActive.value }"
+                    @click="setActive(tab.name, $event)"
+                >{{ tab.header.value }}</a>
+            </div>
+            <slot name="right" />
         </div>
         <slot />
     </div>
@@ -92,8 +95,13 @@ defineExpose({ setActiveByName: setActive });
     height: 100%;
 }
 
+.u-tabbed-view-top {
+    display: flex;
+}
+
 .u-tabbed-view-tabs {
     padding-top: 15px;
+    flex-grow: 1;
 }
 
 .u-tabbed-view-tab {

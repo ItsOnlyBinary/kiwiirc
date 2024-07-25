@@ -1,3 +1,4 @@
+/* eslint-disable import/no-import-module-exports */
 import _ from 'lodash';
 import { createApp, markRaw, watch } from 'vue';
 import JSON5 from 'json5';
@@ -6,6 +7,8 @@ import i18nextHTTP from 'i18next-http-backend';
 import VueI18Next from 'i18next-vue';
 import VueVirtualScroller from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
+
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // fetch polyfill
 import 'whatwg-fetch';
@@ -42,6 +45,22 @@ import TransitionExpand from '@/components/utils/TransitionExpand';
 import AvailableLocales from '@/res/locales/available.json';
 import FallbackLocale from '@/../static/locales/dev.json';
 
+import SvgSpinner from '@/res/icons/ring-resize.svg';
+
+import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
+
+Object.assign(faConfig, {
+    observeMutations: false,
+});
+
+import('@/libs/iconLibrary');
+
+if (module.hot) {
+    module.hot.accept('./libs/iconLibrary.js', () => {
+        import('@/libs/iconLibrary');
+    });
+}
+
 const log = Logger.namespace('main');
 
 let logLevelMatch = window.location.href.match(/kiwi-loglevel=(\d)/);
@@ -58,6 +77,8 @@ const app = createApp(
 
 app.use(VueVirtualScroller);
 
+app.component('SvgSpinner', SvgSpinner);
+app.component('SvgIcon', FontAwesomeIcon);
 app.component('InputConfirm', InputConfirm);
 app.component('InputPrompt', InputPrompt);
 app.component('InputText', InputText);

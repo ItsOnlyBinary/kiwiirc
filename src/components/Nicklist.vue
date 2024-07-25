@@ -21,7 +21,7 @@
                 @click.stop
                 @blur="onFilterBlur"
             >
-            <i class="fa fa-search" aria-hidden="true" />
+            <svg-icon icon="fa-solid fa-magnifying-glass" />
             <div class="kiwi-nicklist-usercount-width">
                 {{ allUsersCount }}
             </div>
@@ -258,7 +258,7 @@ export default {
         }
     }
 
-    .fa-search {
+    .fa-magnifying-glass {
         font-size: 1.2em;
         opacity: 0.3;
         transition: opacity 0.3s;

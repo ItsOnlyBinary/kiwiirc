@@ -40,16 +40,25 @@ module.exports = (env, argv, config) => {
             moduleIds: 'deterministic',
             splitChunks: {
                 cacheGroups: {
+                    icons: {
+                        name: 'chunk-icons',
+                        test: /([\\/]res[\\/]icons[\\/]|[\\/]node_modules[\\/]@fortawesome[\\/]free-(solid|regular)-svg-icons[\\/])/,
+                        minChunks: 1,
+                        minSize: 0,
+                        priority: -10,
+                        chunks: 'all',
+                        reuseExistingChunk: true,
+                    },
                     defaultVendors: {
                         name: 'chunk-vendors',
                         test: /[\\/]node_modules[\\/]/,
-                        priority: -10,
+                        priority: -20,
                         chunks: 'initial',
                     },
                     common: {
                         name: 'chunk-common',
                         minChunks: 2,
-                        priority: -20,
+                        priority: -30,
                         chunks: 'initial',
                         reuseExistingChunk: true,
                     },

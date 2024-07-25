@@ -56,10 +56,8 @@
                         class="kiwi-serverselector-connection-tls"
                         @click="toggleTls"
                     >
-                        <i
-                            class="fa fa-stack-1x fa-fw"
-                            :class="[connection.tls ? 'fa-lock' : 'fa-unlock' ]"
-                        />
+                        <!-- svg icons: fa-lock, fa-unlock -->
+                        <svg-icon :icon="['fa-solid', connection.tls ? 'fa-lock' : 'fa-unlock']" />
                     </span>
                 </input-text>
             </div>
@@ -335,9 +333,9 @@ export default {
     font-size: 1em;
 }
 
-.kiwi-serverselector-connection-tls i {
+.kiwi-serverselector-connection-tls svg {
     position: relative;
-    top: 1px;
+    right: 4px;
     font-size: 1.3em;
 }
 

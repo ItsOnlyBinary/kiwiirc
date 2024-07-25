@@ -3,6 +3,7 @@
 /** @module */
 
 import * as Vue from 'vue';
+import { findIconDefinition, icon, library } from '@fortawesome/fontawesome-svg-core';
 
 import EventEmitter from 'eventemitter3';
 import JSON5 from 'json5';
@@ -30,6 +31,8 @@ export default class GlobalApi extends EventEmitter {
         this.Vue = Vue;
         /** Expose JSON5 so that plugins can use the same config format */
         this.JSON5 = JSON5;
+        /** Expose font-awesome icon library functions */
+        this.svgIcons = { findIconDefinition, icon, library };
         /** The applications internal state */
         this.state = null;
         /** The applications ThemeManager */

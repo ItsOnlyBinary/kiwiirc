@@ -3,7 +3,7 @@
         <template v-if="!shouldShowLoading">
             <div class="kiwi-notconnected-caption">
                 <span>{{ $t('not_connected') }}</span>
-                <i v-if="!shouldShowLoading" class="fa fa-frown-o" aria-hidden="true" />
+                <svg-icon icon="fa-regular fa-face-frown" />
             </div>
             <div class="kiwi-notconnected-buttons">
                 <template v-if="isChannel()">
@@ -12,7 +12,7 @@
                         class="kiwi-notconnected-button"
                         @click="reconnect"
                     >
-                        <i class="fa fa-arrow-circle-o-right" aria-hidden="true" />
+                        <svg-icon icon="fa-regular fa-circle-right" />
                         {{ $t('reconnect_channel', {channel: buffer.name}) }}
                     </span>
                 </template>
@@ -22,7 +22,7 @@
                         class="kiwi-notconnected-button"
                         @click="reconnect"
                     >
-                        <i class="fa fa-arrow-circle-o-right" aria-hidden="true" />
+                        <svg-icon icon="fa-regular fa-circle-right" />
                         {{ $t('reconnect_network', {network: buffer.getNetwork().name}) }}
                     </span>
                 </template>
@@ -32,7 +32,7 @@
                         class="kiwi-notconnected-button"
                         @click="reconnect"
                     >
-                        <i class="fa fa-arrow-circle-o-right" aria-hidden="true" />
+                        <svg-icon icon="fa-regular fa-circle-right" />
                         {{ $t('reconnect_query', {user: buffer.name}) }}
                     </span>
                 </template>
@@ -42,15 +42,16 @@
                     class="kiwi-notconnected-button kiwi-notconnected-button-settings"
                     @click="showNetworkSettings"
                 >
-                    <i class="fa fa-cogs" aria-hidden="true" />
+                    <svg-icon icon="fa-solid fa-gears" />
                 </a>
             </div>
         </template>
         <div v-else class="kiwi-notconnected-caption">
             {{ $t('connecting') }}
-            <i
-                class="fa fa-refresh fa-spin kiwi-notconnected-bigicon"
-                aria-hidden="true"
+            <svg-icon
+                icon="fa-solid fa-arrows-rotate"
+                class="kiwi-notconnected-bigicon"
+                spin
             />
         </div>
 
@@ -162,7 +163,7 @@ export default {
     font-weight: 900;
 }
 
-.kiwi-notconnected-caption i {
+.kiwi-notconnected-caption svg {
     font-weight: normal;
     font-size: 1.5em;
     position: relative;
@@ -205,7 +206,7 @@ export default {
     transition: all 0.2s;
 }
 
-.kiwi-notconnected-button i {
+.kiwi-notconnected-button svg {
     float: left;
     font-size: 1.6em;
     line-height: 24px;
@@ -217,7 +218,7 @@ export default {
     border: none;
 }
 
-.kiwi-notconnected-button-settings i {
+.kiwi-notconnected-button-settings svg {
     margin-right: 0;
 }
 
@@ -241,7 +242,7 @@ export default {
         box-sizing: border-box;
     }
 
-    .kiwi-notconnected-button i {
+    .kiwi-notconnected-button svg {
         line-height: 36px;
     }
 }

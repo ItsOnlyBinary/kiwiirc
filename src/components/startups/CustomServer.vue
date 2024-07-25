@@ -96,7 +96,7 @@
                 >
                     <div v-if="!network || network.state === 'disconnected'" v-html="buttonText" />
                     <template v-else>
-                        <i class="fa fa-spin fa-spinner" aria-hidden="true" />
+                        <svg-spinner />
                     </template>
                 </button>
 
@@ -427,11 +427,6 @@ export default {
 </script>
 
 <style lang="less">
-.kiwi-customserver-start {
-    font-size: 1.1em;
-    cursor: pointer;
-}
-
 .kiwi-customserver-form {
     width: 70%;
     padding: 20px;
@@ -466,7 +461,6 @@ export default {
 .kiwi-customserver-form .u-submit {
     width: 100%;
     height: 50px;
-    padding: 0;
     letter-spacing: 1px;
     margin: 1em 0 2em 0;
     transition: all 0.2s;
@@ -516,5 +510,20 @@ export default {
         flex-grow: 1;
         text-align: center;
     }
+}
+
+.kiwi-customserver-start {
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+.kiwi-customserver-start svg {
+    width: initial;
+    height: 100%;
+}
+
+.kiwi-customserver-start[disabled] {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
 </style>

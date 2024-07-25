@@ -8,8 +8,8 @@
                     :placeholder="$t('settings_advanced_filter')"
                     class="u-input"
                 >
-                <i v-if="!filterString" class="fa fa-search" aria-hidden="true" />
-                <i v-else class="fa fa-times" aria-hidden="true" @click="filterString = ''" />
+                <svg-icon v-if="!filterString" icon="fa-solid fa-search" />
+                <svg-icon v-else icon="fa-solid fa-xmark" @click="filterString = ''" />
             </div>
             <table class="u-table kiwi-settings-advanced-table" cellspacing="0">
                 <tr v-if="filteredSettings.length === 0">
@@ -30,7 +30,7 @@
                         <td v-if="setting.modified">
                             <a class="u-link" @click="resetValue($event, setting.key)">
                                 {{ $t('settings_advanced_reset') }}
-                                <i class="fa fa-undo" style="margin-left: 10px;" />
+                                <svg-icon icon="fa-solid fa-rotate-left" />
                             </a>
                         </td>
                         <td v-else />
@@ -187,8 +187,8 @@ export default {
     display: none;
 }
 
-.kiwi-settings-advanced-filter-container .fa-search,
-.kiwi-settings-advanced-filter-container .fa-times {
+.kiwi-settings-advanced-filter-container .fa-magnifying-glass,
+.kiwi-settings-advanced-filter-container .fa-xmark {
     position: absolute;
     top: 8px;
     right: 10px;
@@ -196,7 +196,7 @@ export default {
     cursor: default;
 }
 
-.kiwi-settings-advanced-filter-container .fa-times {
+.kiwi-settings-advanced-filter-container .fa-xmark {
     cursor: pointer;
 }
 

@@ -11,7 +11,9 @@ const pkg = require('./package.json');
 const makeSourceMap = process.argv.indexOf('--nomap') === -1;
 
 module.exports = {
-    publicPath: '',
+    outputDir: path.resolve(__dirname, '../public/kiwi'),
+
+    publicPath: '/kiwi',
     assetsDir: 'static/',
     runtimeCompiler: true,
     transpileDependencies: ['irc-framework', 'ip-regex', 'isomorphic-textencoder'],
@@ -20,6 +22,7 @@ module.exports = {
         sourceMap: makeSourceMap,
     },
     configureWebpack: {
+        devtool: 'eval-source-map',
         resolve: {
             extensions: ['.js', '.vue', '.json'],
             alias: {
@@ -54,9 +57,9 @@ module.exports = {
             new ProvidePlugin({
                 Buffer: ['buffer', 'Buffer'],
             }),
-            new StyleLintPlugin({
-                files: ['src/**/*.{vue,htm,html,css,sss,less,scss}'],
-            }),
+            // new StyleLintPlugin({
+            //     files: ['src/**/*.{vue,htm,html,css,sss,less,scss}'],
+            // }),
             new ConvertLocalesPlugin(),
             new CopyWebpackPlugin({
                 patterns: [

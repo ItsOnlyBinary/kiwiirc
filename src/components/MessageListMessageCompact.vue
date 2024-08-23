@@ -67,6 +67,24 @@
             </span>
             {{ props.message.nick }}
         </a>
+        <div v-if="props.prepend.length"
+             class="kiwi-messagelist-body kiwi-messagelist-body-prepend-addons"
+        >
+            <component
+                :is="plugin.component"
+                v-for="plugin in props.prepend"
+                :key="plugin.id"
+                :plugin-props="{
+                    message: message,
+                    buffer: buffer
+                }"
+                v-bind="plugin.props"
+                :buffer="props.buffer"
+                :message="props.message"
+                :messagelist="props.ml"
+                :color="props.ml.userColour(props.message.user)"
+            />
+        </div>
         <div
             v-if="props.message.bodyTemplate &&
                 props.message.bodyTemplate.$el &&
@@ -85,7 +103,24 @@
             class="kiwi-messagelist-body"
         />
         <div v-else class="kiwi-messagelist-body" v-html="props.ml.formatMessage(props.message)" />
-
+        <div v-if="props.append.length"
+             class="kiwi-messagelist-body kiwi-messagelist-body-append-addons"
+        >
+            <component
+                :is="plugin.component"
+                v-for="plugin in props.append"
+                :key="plugin.id"
+                :plugin-props="{
+                    message: message,
+                    buffer: buffer
+                }"
+                v-bind="plugin.props"
+                :messagelist="props.ml"
+                :buffer="props.buffer"
+                :message="props.message"
+                :color="props.ml.userColour(props.message.user)"
+            />
+        </div>
         <component
             :is="injections.components.MessageInfo"
             v-if="props.ml.message_info_open===props.message"
@@ -135,7 +170,8 @@ const methods = {
             message.time - prevMessage.time < 60000 &&
             prevMessage.type !== 'traffic' &&
             message.type !== 'traffic' &&
-            message.type === prevMessage.type;
+            message.type === prevMessage.type &&
+            (message.tags && !message.tags['+draft/reply']);
     },
     isHoveringOverMessage(message) {
         let props = this.props;
@@ -165,6 +201,9 @@ export default {
         ml: Object,
         message: Object,
         idx: Number,
+        append: Array,
+        buffer: Object,
+        prepend: Array,
         m: {
             default: function m() {
                 // vue uses this function to generate the prop. `this`==null Return our own function

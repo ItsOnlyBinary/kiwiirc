@@ -87,6 +87,23 @@
                     {{ props.ml.formatTime(props.message.time) }}
                 </div>
             </div>
+            <div v-if="props.prepend.length"
+                 class="kiwi-messagelist-body-prepend-addons">
+                <component
+                    :is="plugin.component"
+                    v-for="plugin in props.prepend"
+                    :messagelist="props.ml"
+                    :key="plugin.id"
+                    :plugin-props="{
+                        message: message,
+                        buffer: buffer
+                    }"
+                    :color="props.ml.userColour(props.message.user)"
+                    v-bind="plugin.props"
+                    :buffer="props.buffer"
+                    :message="props.message"
+                />
+            </div>
             <div
                 v-if="props.message.bodyTemplate &&
                     props.message.bodyTemplate.$el &&
@@ -109,7 +126,23 @@
                 class="kiwi-messagelist-body"
                 v-html="props.ml.formatMessage(props.message)"
             />
-
+            <div v-if="props.append.length"
+                 class="kiwi-messagelist-body kiwi-messagelist-body-append-addons">
+                <component
+                    :is="plugin.component"
+                    v-for="plugin in props.append"
+                    :key="plugin.id"
+                    :messagelist="props.ml"
+                    :plugin-props="{
+                        message: message,
+                        buffer: buffer
+                    }"
+                    v-bind="plugin.props"
+                    :buffer="props.buffer"
+                    :color="props.ml.userColour(props.message.user)"
+                    :message="props.message"
+                />
+            </div>
             <component
                 :is="injections.components.MessageInfo"
                 v-if="props.ml.message_info_open===props.message"
@@ -194,7 +227,8 @@ const methods = {
             prevMessage.type !== 'traffic' &&
             message.type !== 'traffic' &&
             message.type === prevMessage.type &&
-            message.day_num === prevMessage.day_num;
+            message.day_num === prevMessage.day_num &&
+            (message.tags && !message.tags['+draft/reply']);
     },
     isHoveringOverMessage(message) {
         let props = this.props;
@@ -253,6 +287,9 @@ export default {
         ml: Object,
         message: Object,
         idx: Number,
+        append: Array,
+        prepend: Array,
+        buffer: Object,
         m: {
             default: function m() {
                 // vue uses this function to generate the prop. `this`==null Return our own function
@@ -398,7 +435,9 @@ export default {
 .kiwi-messagelist-message-error .kiwi-messagelist-body {
     margin-bottom: 0;
 }
-
+.kiwi-messagelist-body-prepend-addons {
+    color: initial;
+}
 @media screen and (max-width: 769px) {
     .kiwi-messagelist-message--modern .kiwi-messagelist-modern-left {
         width: 10px;

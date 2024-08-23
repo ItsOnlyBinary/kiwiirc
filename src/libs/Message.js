@@ -31,6 +31,7 @@ export default class Message {
         //   time = time in the users local time (getter/setter)
         //   server_time = time the server gave us
         this.time = message.time || Date.now();
+        this.seen = false;
         def(this, 'server_time', message.server_time || this.time);
         def(this, 'nick', message.nick);
         def(this, 'message', message.message);

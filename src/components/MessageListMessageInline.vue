@@ -59,6 +59,23 @@
                 <a :data-nick="(props.message.nick||'').toLowerCase()">
                     {{ props.m().displayNick() }}
                 </a>
+                <div v-if="props.prepend.length"
+                     class="kiwi-messagelist-body kiwi-messagelist-body-prepend-addons">
+                    <component
+                        :is="plugin.component"
+                        v-for="plugin in props.prepend"
+                        :messagelist="props.ml"
+                        :key="plugin.id"
+                        :plugin-props="{
+                            message: message,
+                            buffer: buffer
+                        }"
+                        v-bind="plugin.props"
+                        :buffer="props.buffer"
+                        :color="props.ml.userColour(props.message.user)"
+                        :message="props.message"
+                    />
+                </div>
             </span>
             <div
                 v-if="props.message.bodyTemplate &&
@@ -83,7 +100,23 @@
                 v-html="props.ml.formatMessage(props.message)"
             />
         </div>
-
+        <div v-if="props.append.length"
+             class="kiwi-messagelist-body kiwi-messagelist-body-append-addons">
+            <component
+                :is="plugin.component"
+                v-for="plugin in props.append"
+                :key="plugin.id"
+                :messagelist="props.ml"
+                :plugin-props="{
+                    message: message,
+                    buffer: buffer
+                }"
+                v-bind="plugin.props"
+                :buffer="props.buffer"
+                :color="props.ml.userColour(props.message.user)"
+                :message="props.message"
+            />
+        </div>
         <component
             :is="injections.components.MessageInfo"
             v-if="props.ml.message_info_open===props.message"
@@ -142,6 +175,9 @@ export default {
         ml: Object,
         message: Object,
         idx: Number,
+        buffer: Object,
+        append: Array,
+        prepend: Array,
         m: {
             default: function m() {
                 // vue uses this function to generate the prop. `this`==null Return our own function
@@ -233,7 +269,9 @@ export default {
 .kiwi-messagelist-message--text.kiwi-messagelist-message--unread {
     opacity: 1;
 }
-
+.kiwi-messagelist-body-prepend-addons {
+    color: initial;
+}
 .kiwi-messagelist-message--text .kiwi-messagelist-message-traffic .kiwi-messagelist-nick {
     display: none;
 }

@@ -48,6 +48,20 @@
                     </a>
                 </input-prompt>
             </div>
+            <template>
+                <component
+                    :is="plugin.component"
+                    v-for="plugin in pluginUiElements"
+                    :key="plugin.id"
+                    :plugin-props="{
+                        message: message,
+                        buffer: buffer
+                    }"
+                    v-bind="plugin.props"
+                    :buffer="buffer"
+                    :message="message"
+                />
+            </template>
         </div>
     </div>
 </template>
@@ -55,11 +69,14 @@
 <script>
 'kiwi public';
 
+import GlobalApi from '@/libs/GlobalApi';
+
 export default {
     props: ['buffer', 'message'],
     data() {
         return {
             requestingInput: false,
+            pluginUiElements: GlobalApi.singleton().messageInfoPlugins,
         };
     },
     computed: {
@@ -77,7 +94,7 @@ export default {
         },
         isSelf() {
             let user = this.$state.getUser(this.buffer.getNetwork().id, this.message.nick);
-            return this.buffer.getNetwork().ircClient.user.nick === user.nick;
+            return user && this.buffer.getNetwork().ircClient.user.nick === user.nick;
         },
         onBan(reason) {
             let network = this.buffer.getNetwork();

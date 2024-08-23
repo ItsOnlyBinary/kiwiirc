@@ -5,6 +5,7 @@ node_modules/
 src/res/locales/available.json
 static/config.local.json
 tests/coverage
+src/libs/external
 
 
 # local env files

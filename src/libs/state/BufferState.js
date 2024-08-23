@@ -357,11 +357,11 @@ export default class BufferState {
         // Going backwards takes the earliest message we already have and requests messages
         // before it. Going forward takes the last message we have and requests messages after
         // it.
+        const ignoreTypes = ['traffic', 'topic', 'connection', 'presence'];
 
         if (direction === 'backward') {
             let lastMessage = this.getMessages().reduce((earliest, current) => {
-                let ignoreTypes = ['traffic', 'topic', 'connection', 'presence'];
-                let validType = ignoreTypes.indexOf(earliest.type) === -1;
+                let validType = ignoreTypes.indexOf(earliest.type) === -1 || this.state.setting('eventPlaybackEnabled');
                 if (validType && earliest.time && earliest.time < current.time) {
                     return earliest;
                 }
@@ -374,8 +374,7 @@ export default class BufferState {
                 new Date();
         } else if (direction === 'forward') {
             let firstMessage = this.getMessages().reduce((latest, current) => {
-                let ignoreTypes = ['traffic', 'topic', 'connection', 'presence'];
-                let validType = ignoreTypes.indexOf(latest.type) === -1;
+                let validType = ignoreTypes.indexOf(latest.type) === -1 || this.state.setting('eventPlaybackEnabled');
                 if (validType && latest.time && latest.time > current.time) {
                     return latest;
                 }

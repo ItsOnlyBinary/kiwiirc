@@ -45,7 +45,7 @@ export function create(state, network) {
         } else {
             // No password so give an empty account config. This forces irc-framework to keep
             // the server password (options.password) separate from SASL
-            ircClient.options.account = { };
+            ircClient.options.account = {};
         }
         ircClient.options.nick = network.connection.nick;
         ircClient.options.username = network.username || network.connection.nick;
@@ -244,7 +244,7 @@ function clientMiddleware(state, network) {
             next();
             return;
         }
-
+        const historical = event?.batch?.type === 'chathistory';
         // If there is a time difference between this client and the server, convert it
         // to match our local time so it makes sense to the user
         let eventTime = (event && event.time) ?
@@ -554,20 +554,22 @@ function clientMiddleware(state, network) {
                 buffer.rename(event.channel);
             }
 
-            state.addUserToBuffer(buffer, {
-                nick: event.nick,
-                username: event.ident,
-                host: event.hostname,
-                realname: event.gecos,
-                account: event.account || '',
-            });
+            if (!historical) {
+                state.addUserToBuffer(buffer, {
+                    nick: event.nick,
+                    username: event.ident,
+                    host: event.hostname,
+                    realname: event.gecos,
+                    account: event.account || '',
+                });
 
-            if (event.nick === client.user.nick) {
-                buffer.enabled = true;
-                buffer.joined = true;
-                buffer.flags.channel_badkey = false;
-                network.ircClient.raw('MODE', event.channel);
-                network.ircClient.who(event.channel);
+                if (event.nick === client.user.nick) {
+                    buffer.enabled = true;
+                    buffer.joined = true;
+                    buffer.flags.channel_badkey = false;
+                    network.ircClient.raw('MODE', event.channel);
+                    network.ircClient.who(event.channel);
+                }
             }
 
             let ignoreEvent = state.setting('skipHiddenMessages') && !buffer.setting('show_joinparts');
@@ -597,12 +599,14 @@ function clientMiddleware(state, network) {
         }
         if (command === 'kick') {
             let buffer = state.getOrAddBufferByName(networkid, event.channel);
-            state.removeUserFromBuffer(buffer, event.kicked);
+            if (!historical) {
+                state.removeUserFromBuffer(buffer, event.kicked);
 
-            if (event.kicked === client.user.nick) {
-                buffer.joined = false;
-                buffer.enabled = false;
-                buffer.clearUsers();
+                if (event.kicked === client.user.nick) {
+                    buffer.joined = false;
+                    buffer.enabled = false;
+                    buffer.clearUsers();
+                }
             }
 
             let messageBody = '';
@@ -649,20 +653,21 @@ function clientMiddleware(state, network) {
             if (!buffer) {
                 return;
             }
+            if (!historical) {
+                state.removeUserFromBuffer(buffer, event.nick);
+                if (event.nick === client.user.nick) {
+                    buffer.joined = false;
+                    buffer.enabled = false;
+                    buffer.clearUsers();
+                }
 
-            state.removeUserFromBuffer(buffer, event.nick);
-            if (event.nick === client.user.nick) {
-                buffer.joined = false;
-                buffer.enabled = false;
-                buffer.clearUsers();
-            }
-
-            // Remove the user from network state if no remaining common channels
-            let remainingBuffers = state.getBuffersWithUser(networkid, event.nick);
-            if (remainingBuffers.length === 0) {
-                state.removeUser(networkid, {
-                    nick: event.nick,
-                });
+                // Remove the user from network state if no remaining common channels
+                let remainingBuffers = state.getBuffersWithUser(networkid, event.nick);
+                if (remainingBuffers.length === 0) {
+                    state.removeUser(networkid, {
+                        nick: event.nick,
+                    });
+                }
             }
 
             let ignoreEvent = state.setting('skipHiddenMessages') && !buffer.setting('show_joinparts');
@@ -697,10 +702,11 @@ function clientMiddleware(state, network) {
                 if (!buffer) {
                     return;
                 }
-
-                if (event.nick === client.user.nick) {
-                    buffer.joined = false;
-                    buffer.clearUsers();
+                if (!historical) {
+                    if (event.nick === client.user.nick) {
+                        buffer.joined = false;
+                        buffer.clearUsers();
+                    }
                 }
 
                 let ignoreEvent = state.setting('skipHiddenMessages') && !buffer.setting('show_joinparts');
@@ -730,16 +736,17 @@ function clientMiddleware(state, network) {
                     type_extra: typeExtra,
                 });
             });
+            if (!historical) {
+                // Set the user as away before removing so away status indicators are updated
+                let user = state.getUser(networkid, event.nick);
+                if (user) {
+                    user.away = 'offline';
+                }
 
-            // Set the user as away before removing so away status indicators are updated
-            let user = state.getUser(networkid, event.nick);
-            if (user) {
-                user.away = 'offline';
+                state.removeUser(networkid, {
+                    nick: event.nick,
+                });
             }
-
-            state.removeUser(networkid, {
-                nick: event.nick,
-            });
         }
 
         if (command === 'invite') {
@@ -771,7 +778,7 @@ function clientMiddleware(state, network) {
         }
 
         if (command === 'account') {
-            state.addUser(networkid, { nick: event.nick, account: event.account || '' });
+            !historical && state.addUser(networkid, { nick: event.nick, account: event.account || '' });
         }
 
         if (command === 'whois' && !event.error) {
@@ -816,7 +823,7 @@ function clientMiddleware(state, network) {
         }
 
         if (command === 'back') {
-            state.addUser(networkid, {
+            !historical && state.addUser(networkid, {
                 nick: event.nick,
                 away: '',
             });
@@ -953,8 +960,9 @@ function clientMiddleware(state, network) {
             if (event.nick === client.user.nick) {
                 network.nick = event.new_nick;
             }
-
-            state.changeUserNick(networkid, event.nick, event.new_nick);
+            if (!historical) {
+                state.changeUserNick(networkid, event.nick, event.new_nick);
+            }
 
             let messageBody = TextFormatting.formatAndT(
                 'nick_changed',
@@ -1013,6 +1021,7 @@ function clientMiddleware(state, network) {
                     buffer.isChannel()
                     && ['all', 'channels'].includes(buffer.setting('auto_request_history'))
                 ) {
+                    this.messagesObj?.messages && filterInPlace(this.messagesObj.messages, (m) => m.type !== 'topic');
                     buffer.requestLatestScrollback();
                 }
             }
@@ -1098,51 +1107,9 @@ function clientMiddleware(state, network) {
             let buffer = network.bufferByName(event.target);
             let modeStrs = {};
             if (buffer) {
-                // Join all the same mode changes together so they can be shown on one
-                // line such as "prawnsalad sets +b on nick1, nick2"
-                event.modes.forEach((mode) => {
-                    modeStrs[mode.mode] = modeStrs[mode.mode] || [];
-
-                    // If this mode has a user prefix then we need to update the user object
-                    let prefix = _.find(network.ircClient.network.options.PREFIX, {
-                        mode: mode.mode[1],
-                    });
-
-                    if (prefix) {
-                        let user = state.getUser(network.id, mode.param);
-                        if (user) {
-                            let adding = mode.mode[0] === '+';
-                            let modes = user.buffers[buffer.id].modes;
-                            let modeIdx = modes.indexOf(prefix.mode);
-
-                            // Add or remove the mode from the users mode list
-                            if (adding && modeIdx === -1) {
-                                modes.push(prefix.mode);
-                            } else if (!adding && modeIdx > -1) {
-                                modes.splice(modeIdx, 1);
-                            }
-                        }
-
-                        modeStrs[mode.mode].push({ target: mode.param });
-                    } else {
-                        // Not a user prefix, add it as a channel mode
-                        // TODO: Why are these not appearing as the 'channel info' command?
-                        let adding = mode.mode[0] === '+';
-                        let modeChar = mode.mode.substr(1);
-
-                        if (adding) {
-                            state.$set(buffer.modes, modeChar, mode.param);
-                        } else if (!adding) {
-                            state.$delete(buffer.modes, modeChar);
-                        }
-
-                        modeStrs[mode.mode].push({ target: buffer.name, param: mode.param });
-                    }
-                });
-
                 // Mode -> locale ID mappings
                 // If a mode isn't found here, the local ID modes_other is used
-                let modeLocaleIds = {
+                const modeLocaleIds = {
                     '+o': 'modes_give_ops',
                     '-o': 'modes_take_ops',
                     '+h': 'modes_give_halfops',
@@ -1156,15 +1123,57 @@ function clientMiddleware(state, network) {
                     '+b': 'modes_gives_ban',
                     '-b': 'modes_takes_ban',
                 };
+                if (!historical) {
+                    // Join all the same mode changes together so they can be shown on one
+                    // line such as "prawnsalad sets +b on nick1, nick2"
+                    event.modes.forEach((mode) => {
+                        modeStrs[mode.mode] = modeStrs[mode.mode] || [];
 
-                let prefixes = network.ircClient.network.options.PREFIX;
-                Object.keys(modeLocaleIds).forEach((mode) => {
-                    let supported = mode[1] === 'b' || prefixes.find((p) => mode[1] === p.mode);
-                    if (!supported) {
-                        delete modeLocaleIds[mode];
-                    }
-                });
+                        // If this mode has a user prefix then we need to update the user object
+                        let prefix = _.find(network.ircClient.network.options.PREFIX, {
+                            mode: mode.mode[1],
+                        });
 
+                        if (prefix) {
+                            let user = state.getUser(network.id, mode.param);
+                            if (user) {
+                                let adding = mode.mode[0] === '+';
+                                let modes = user.buffers[buffer.id].modes;
+                                let modeIdx = modes.indexOf(prefix.mode);
+
+                                // Add or remove the mode from the users mode list
+                                if (adding && modeIdx === -1) {
+                                    modes.push(prefix.mode);
+                                } else if (!adding && modeIdx > -1) {
+                                    modes.splice(modeIdx, 1);
+                                }
+                            }
+
+                            modeStrs[mode.mode].push({ target: mode.param });
+                        } else {
+                            // Not a user prefix, add it as a channel mode
+                            // TODO: Why are these not appearing as the 'channel info' command?
+                            let adding = mode.mode[0] === '+';
+                            let modeChar = mode.mode.substr(1);
+
+                            if (adding) {
+                                state.$set(buffer.modes, modeChar, mode.param);
+                            } else if (!adding) {
+                                state.$delete(buffer.modes, modeChar);
+                            }
+
+                            modeStrs[mode.mode].push({ target: buffer.name, param: mode.param });
+                        }
+                    });
+
+                    let prefixes = network.ircClient.network.options.PREFIX;
+                    Object.keys(modeLocaleIds).forEach((mode) => {
+                        let supported = mode[1] === 'b' || prefixes.find((p) => mode[1] === p.mode);
+                        if (!supported) {
+                            delete modeLocaleIds[mode];
+                        }
+                    });
+                }
                 // Some modes have specific data for its locale data while most
                 // use a default. The returned objects are passed to the translation
                 // functions to build the translation
@@ -1226,7 +1235,7 @@ function clientMiddleware(state, network) {
                     });
                 });
             } else {
-                if (event.target === network.nick) {
+                if (!historical && event.target === network.nick) {
                     let user = network.currentUser();
 
                     event.modes.forEach((item) => {
@@ -1377,7 +1386,7 @@ function clientMiddleware(state, network) {
 
         if (command === 'topic') {
             let buffer = state.getOrAddBufferByName(networkid, event.channel);
-            buffer.topic = event.topic || '';
+            if (!historical) buffer.topic = event.topic || '';
 
             let typeExtra = '';
             let messageBody = '';
@@ -1410,7 +1419,7 @@ function clientMiddleware(state, network) {
             }
         }
 
-        if (command === 'topicsetby') {
+        if (command === 'topicsetby' && !historical) {
             let buffer = network.bufferByName(event.channel);
             if (buffer) {
                 buffer.topic_by = event.nick;
@@ -1609,4 +1618,19 @@ function clientMiddleware(state, network) {
 
 function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+/**
+ * {@link https://stackoverflow.com/a/37319954/1538301}
+ */
+function filterInPlace(a, condition) {
+    let i = 0;
+    let j = 0;
+
+    while (i < a.length) {
+        const val = a[i];
+        if (condition(val, i, a)) a[j++] = val;
+        i++;
+    }
+    a.length = j;
+    return a;
 }

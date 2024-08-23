@@ -58,39 +58,57 @@
                                     custom component to apply only to the body area
                                 -->
                                 <div
-                                    v-if="message.render() &&
-                                        message.template &&
-                                        message.template.$el &&
-                                        isTemplateVue(message.template)"
-                                    v-rawElement="message.template.$el"
+                                    :data-message-id="message.id"
+                                    v-if="!message.seen"
+                                    class="kiwi-messagelist-message unloaded"
                                 />
-                                <component
-                                    :is="message.template"
-                                    v-else-if="message.render() && message.template"
-                                    v-bind="message.templateProps"
-                                    :buffer="buffer"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-modern
-                                    v-else-if="listType === 'modern'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-inline
-                                    v-else-if="listType === 'inline'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-compact
-                                    v-else-if="listType === 'compact'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
+                                <template v-else>
+                                    <div
+                                        v-if="message.render() &&
+                                            message.template &&
+                                            message.template.$el &&
+                                            isTemplateVue(message.template)"
+                                        v-rawElement="message.template.$el"
+                                    />
+                                    <component
+                                        :is="message.template"
+                                        v-else-if="message.render() && message.template"
+                                        v-bind="message.templateProps"
+                                        :buffer="buffer"
+                                        :message="message"
+                                        :prepend="messagePrependPlugins"
+                                        :append="messageAppendPlugins"
+                                        :idx="filteredMessages.indexOf(message)"
+                                        :ml="thisMl"
+                                    />
+                                    <message-list-message-modern
+                                        v-else-if="listType === 'modern'"
+                                        :message="message"
+                                        :prepend="messagePrependPlugins"
+                                        :append="messageAppendPlugins"
+                                        :idx="filteredMessages.indexOf(message)"
+                                        :buffer="buffer"
+                                        :ml="thisMl"
+                                    />
+                                    <message-list-message-inline
+                                        v-else-if="listType === 'inline'"
+                                        :message="message"
+                                        :prepend="messagePrependPlugins"
+                                        :append="messageAppendPlugins"
+                                        :buffer="buffer"
+                                        :idx="filteredMessages.indexOf(message)"
+                                        :ml="thisMl"
+                                    />
+                                    <message-list-message-compact
+                                        v-else-if="listType === 'compact'"
+                                        :message="message"
+                                        :prepend="messagePrependPlugins"
+                                        :append="messageAppendPlugins"
+                                        :idx="filteredMessages.indexOf(message)"
+                                        :buffer="buffer"
+                                        :ml="thisMl"
+                                    />
+                                </template>
                             </div>
                         </template>
                     </remove-before-update>
@@ -102,7 +120,6 @@
                     <LoadingAnimation />
                 </div>
             </transition>
-
             <buffer-key
                 v-if="shouldRequestChannelKey"
                 :buffer="buffer"
@@ -118,6 +135,7 @@
 import Vue from 'vue';
 import strftime from 'strftime';
 import Logger from '@/libs/Logger';
+import GlobalApi from '@/libs/GlobalApi';
 import * as bufferTools from '@/libs/bufferTools';
 import RemoveBeforeUpdate from './utils/RemoveBeforeUpdate';
 import MessageListMessageCompact from './MessageListMessageCompact';
@@ -133,7 +151,22 @@ let log = Logger.namespace('MessageList.vue');
 // If we're scrolled up more than this many pixels, don't auto scroll down to the bottom
 // of the message list
 const BOTTOM_SCROLL_MARGIN = 60;
+const intersection = (r1, r2) => {
+    const xOverlap = Math.max(0, Math.min(r1.x + r1.w, r2.x + r2.w) - Math.max(r1.x, r2.x));
+    const yOverlap = Math.max(0, Math.min(r1.y + r1.h, r2.y + r2.h) - Math.max(r1.y, r2.y));
+    const overlapArea = xOverlap * yOverlap;
+    return overlapArea;
+};
+const percentInView = (div) => {
+    const rect = div.getBoundingClientRect();
 
+    const dimension = { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
+    const viewport = { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
+    const divsize = dimension.w * dimension.h;
+    const overlap = intersection(dimension, viewport);
+    window.kiwi.log.debug({ rect, dimension, viewport, divsize, overlap });
+    return overlap / divsize;
+};
 export default {
     components: {
         RemoveBeforeUpdate,
@@ -152,9 +185,14 @@ export default {
             chathistoryAvailable: true,
             hover_nick: '',
             message_info_open: null,
+            maintainScroll: false,
             timeToClose: false,
             startClosing: false,
+            messagePrependPlugins: GlobalApi.singleton().messagePrependPlugins,
+            messageAppendPlugins: GlobalApi.singleton().messageAppendPlugins,
             selectedMessages: Object.create(null),
+            seen: Object.create(null),
+            observer: null,
         };
     },
     computed: {
@@ -237,6 +275,14 @@ export default {
             // previous check
             this.$nextTick(() => {
                 this.maybeScrollToBottom();
+                document.querySelectorAll('.kiwi-messagelist-message.unloaded').forEach((i) => {
+                    this.observer.observe(i);
+                    const percent = percentInView(i);
+                    window.kiwi.log.debug('Percent in view for', i, ':', percent);
+                    if (percent > 0.01) {
+                        this.tryRender(i);
+                    }
+                });
             });
         },
         buffer(newBuffer, oldBuffer) {
@@ -263,23 +309,47 @@ export default {
     },
     mounted() {
         this.addCopyListeners();
-
+        this.observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach((e) => {
+                if (e?.target?.dataset?.messageId && e.isIntersecting) {
+                    this.$nextTick(() => this.tryRender(e.target));
+                }
+            });
+        }, {
+            root: this.$refs.scroller,
+            rootMargin: '0px',
+            threshold: 0.01,
+        });
         this.$nextTick(() => {
             this.scrollToBottom();
             // this.smooth_scroll = true;
         });
-
         this.listen(this.$state, 'mediaviewer.opened', () => {
             this.$nextTick(this.maybeScrollToBottom.apply(this));
         });
-
         this.listen(this.$state, 'messagelist.scrollto', (opt) => {
             if (opt && opt.id) {
                 this.maybeScrollToId(opt.id);
             }
         });
+        this.$state.$on('messageinfo.close', () => {
+            this.message_info_open = null;
+        });
     },
     methods: {
+        tryRender(el) {
+            const msg = this.buffer.messagesObj.messages
+                .find((m) => m.id.toString() === el.dataset.messageId);
+            if (msg) {
+                window.kiwi.log.debug('rendered', el.dataset.messageId, this.buffer.messagesObj.messages.slice(), msg);
+                msg.seen = true;
+                this.observer.unobserve(el);
+                this.keepScroll(2);
+            } else {
+                window.kiwi.log.debug('couldnt render', el.dataset.messageId, this.buffer.messagesObj.messages.slice());
+                this.$nextTick(() => this.tryRender(el));
+            }
+        },
         isTemplateVue(template) {
             const isVue = template instanceof Vue;
             if (isVue && !window.kiwi_deprecations_messageTemplate) {
@@ -384,7 +454,18 @@ export default {
             }
             return '';
         },
+        keepScroll(hacklevel = 2) {
+            const self = this;
+            this.maintainScroll = {
+                resistance: hacklevel,
+                release() {
+                    this.resistance--;
+                    if (!this.resistance) self.maintainScroll = null;
+                },
+            };
+        },
         openUserBox(nick) {
+            this.keepScroll(2);
             let user = this.$state.getUser(this.buffer.networkid, nick);
             if (user) {
                 this.$state.$emit('userbox.show', user, {
@@ -461,7 +542,7 @@ export default {
                 return;
             }
 
-            if (this.$state.ui.is_touch && this.$state.setting('buffers.show_message_info')) {
+            if ((this.$state.ui.is_touch || this.$state.setting('buffers.show_message_info_desktop')) && this.$state.setting('buffers.show_message_info')) {
                 if (this.canShowInfoForMessage(message) && event.target.nodeName === 'A') {
                     // We show message info boxes on touch screen devices so that the user has an
                     // option to preview the links or do other stuff.
@@ -505,6 +586,10 @@ export default {
             this.maybeScrollToBottom();
         },
         scrollToBottom() {
+            if (this.maintainScroll) {
+                this.maintainScroll.release();
+                return;
+            }
             this.$el.scrollTop = this.$el.scrollHeight;
         },
         maybeScrollToBottom() {

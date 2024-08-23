@@ -47,6 +47,10 @@ export default class GlobalApi extends EventEmitter {
         this.appSettingsPlugins = [];
         this.serverViewPlugins = [];
         this.aboutBufferPlugins = [];
+        this.messageInfoPlugins = [];
+        this.messagePrependPlugins = [];
+        this.messageAppendPlugins = [];
+        this.controlInputDockPlugins = [];
         this.tabs = Object.create(null);
         this.isReady = false;
         /* eslint-disable no-underscore-dangle */
@@ -174,8 +178,12 @@ export default class GlobalApi extends EventEmitter {
         const plugin = Misc.makePluginObject(nextPluginId++, component, args);
 
         switch (type) {
+        case 'input_tool':
         case 'input':
             this.controlInputPlugins.push(plugin);
+            break;
+        case 'input_dock':
+            this.controlInputDockPlugins.push(plugin);
             break;
         case 'browser':
             this.stateBrowserPlugins.push(plugin);
@@ -197,6 +205,15 @@ export default class GlobalApi extends EventEmitter {
             break;
         case 'about_buffer':
             this.aboutBufferPlugins.push(plugin);
+            break;
+        case 'message_info':
+            this.messageInfoPlugins.push(plugin);
+            break;
+        case 'message_prepend':
+            this.messagePrependPlugins.push(plugin);
+            break;
+        case 'message_append':
+            this.messageAppendPlugins.push(plugin);
             break;
         default:
             break;

@@ -43,7 +43,18 @@ import '@/components/utils/IrcInput';
 import '@/components/utils/InputPrompt';
 import '@/components/utils/InputConfirm';
 import '@/components/utils/TransitionExpand';
+import * as uuid from 'uuid';
+import IrcMessage from 'irc-framework/src/ircmessage';
+import { lineBreak } from 'irc-framework/src/linebreak';
+import Irc from 'irc-framework';
+/* eslint-disable no-underscore-dangle */
+const kiwiExports = window._kiwi_exports;
 
+if (!kiwiExports.libs.external) kiwiExports.libs.external = {};
+kiwiExports.libs.external.uuid = uuid;
+kiwiExports.libs.external.IrcMessage = IrcMessage;
+kiwiExports.libs.external.lineBreak = lineBreak;
+kiwiExports.libs.external.Irc = Irc;
 Vue.use(VueVirtualScroller);
 
 let logLevelMatch = window.location.href.match(/kiwi-loglevel=(\d)/);

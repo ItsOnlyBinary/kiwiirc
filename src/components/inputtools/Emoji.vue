@@ -45,7 +45,8 @@ export default {
 
             url = Misc.extractURL(url);
             let code = event.target.dataset.code;
-            this.ircinput.addImg(code, url);
+            this.ircinput && this.ircinput.addImg(code, url);
+            this.$emit('emoji', code, url);
         },
     },
 };

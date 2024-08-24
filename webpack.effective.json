@@ -126,7 +126,7 @@
         {
             "definitions": {
                 "__VERSION__": "\"2.0.0\"",
-                "__COMMITHASH__": "\"2785489c-modified\"",
+                "__COMMITHASH__": "\"c37d967d-modified\"",
                 "__VUE_OPTIONS_API__": "true",
                 "__VUE_PROD_DEVTOOLS__": "false",
                 "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false",

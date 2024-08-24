@@ -58,7 +58,7 @@
                                 -->
                                 <div
                                     :data-message-id="message.id"
-                                    v-if="!message.seen"
+                                    v-if="false"
                                     class="kiwi-messagelist-message unloaded"
                                 />
                                 <template v-else>

@@ -240,7 +240,7 @@ const messageModern = (props, context) => {
     ])];
 };
 
-messageModern.props = ['ml', 'idx', 'message'];
+messageModern.props = ['ml', 'append', 'prepend', 'message'];
 
 export default messageModern;
 </script>

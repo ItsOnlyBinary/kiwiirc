@@ -81,6 +81,7 @@ export default {
     },
     computed: {
         showLinkPreviews() {
+            window.kiwi.log.debug('Plugins?', this.pluginUiElements);
             return this.$state.setting('buffers.show_link_previews');
         },
     },

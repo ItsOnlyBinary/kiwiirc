@@ -130,7 +130,7 @@ const messageInline = (props, context) => {
         ...buildMessageFooter(props, context, cache),
     ]);
 };
-messageInline.props = ['ml', 'idx', 'message'];
+messageInline.props = ['ml', 'append', 'prepend', 'message'];
 
 export default messageInline;
 </script>

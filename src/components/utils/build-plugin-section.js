@@ -1,10 +1,10 @@
 import { h } from 'vue';
 
 const buildPluginSection = (prop) => (props, context, cache) => {
-    kiwi.log.debug("building plugin section....", props, context, cache)
+    window.kiwi.log.debug('building plugin section....', props, context, cache);
     if (!(props[prop] instanceof Array)) return [];
     if (!props[prop].length) return [];
-    const plugins = props[prop].map((plugin) => h(plugin.component, {
+    const plugins = props[prop].map((plugin) => h({ template: '<p>Hi</p>' }, {
         key: plugin.id,
         messagelist: props.ml,
         buffer: props.ml.buffer,

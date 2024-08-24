@@ -28,7 +28,7 @@
                         :title="$t('channel_settings')"
                         @click="sidebarState.toggleBufferSettings()"
                     >
-                        <i class="fa fa-cog" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-screwdriver-wrench" />
                     </a>
                 </div>
                 <div
@@ -39,11 +39,16 @@
                     class="kiwi-header-option kiwi-header-option-nicklist"
                 >
                     <a
-                        :title="$t('person', {count: Object.keys(buffer.users).length})"
+                        :title="$t('person', {count: userCount})"
                         @click="sidebarState.toggleNicklist()"
                     >
-                        <i class="fa fa-users" aria-hidden="true" />
-                        <span>{{ Object.keys(buffer.users).length }}</span>
+                        <svg-icon icon="fa-solid fa-users" />
+                        <span v-if="!$state.ui.is_narrow" class="kiwi-stack">
+                            <span class="kiwi-stack-hidden">{{
+                                new Array(userCount.toString().length < 4 ? 5 : userCount.toString().length + 1).join('8')
+                            }}</span>
+                            <span class="kiwi-stack-content">{{ userCount }}</span>
+                        </span>
                     </a>
                 </div>
                 <div
@@ -53,7 +58,7 @@
                     class="kiwi-header-option kiwi-header-option-about"
                 >
                     <a :title="$t('more_information')" @click="sidebarState.toggleAbout()">
-                        <i class="fa fa-info" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-info" />
                     </a>
                 </div>
                 <component
@@ -95,7 +100,7 @@
                     {{ $t('connect') }}
                 </a>
                 <span v-else-if="buffer.getNetwork().state === 'connecting'">
-                    <i class="fa fa-spin fa-spinner" aria-hidden="true" />
+                    <svg-spinner />
                     {{ $t('connecting') }}
                 </span>
             </div>
@@ -128,7 +133,7 @@
                     class="kiwi-header-option kiwi-header-option-user"
                 >
                     <a @click="toggleUser()">
-                        <i class="fa fa-user" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-user" />
                     </a>
                 </div>
                 <component
@@ -215,6 +220,12 @@ export default {
         userOnline() {
             let user = this.$state.getUser(this.buffer.getNetwork().id, this.buffer.name);
             return !!user;
+        },
+        userCount() {
+            if (!this.buffer.isChannel()) {
+                return 0;
+            }
+            return Object.keys(this.buffer.users).length;
         },
     },
     methods: {
@@ -362,15 +373,22 @@ export default {
     border: none;
     float: left;
     background: none;
-    font-size: 0.8em;
     opacity: 0.9;
     font-weight: 900;
+    font-size: 0.8em;
+
+    svg {
+        height: 12px;
+    }
+
+    svg:only-child {
+        height: 22px;
+    }
 }
 
 .kiwi-header-option a {
     float: left;
     padding: 0 10px;
-    line-height: 43px;
     display: flex;
     justify-content: center;
     box-sizing: border-box;
@@ -379,20 +397,14 @@ export default {
     opacity: 0.8;
     cursor: pointer;
     transition: all 0.3s;
+    align-items: center;
+    height: 100%;
+    gap: 4px;
+    flex-direction: column;
 }
 
 .kiwi-header-option a:hover {
     opacity: 1;
-}
-
-.kiwi-header-option i {
-    font-size: 1.4em;
-    float: left;
-    line-height: 43px;
-}
-
-.kiwi-header-options i + span {
-    margin-left: 10px;
 }
 
 .kiwi-header-option--active {
@@ -488,10 +500,6 @@ export default {
 
     .kiwi-header-name {
         padding: 0;
-    }
-
-    .kiwi-header-option span {
-        display: none;
     }
 
     .kiwi-header-server-connection .u-button {

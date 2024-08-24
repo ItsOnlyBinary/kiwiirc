@@ -25,27 +25,26 @@
                 <a v-else>{{ $t('messages_loading') }}</a>
             </div>
 
-            <remove-before-update>
-                <template v-for="day in filteredMessagesGroupedDay">
+            <!-- <remove-before-update> -->
+            <div>
+                <template v-for="day in filteredMessagesGroupedDay" :key="day.dayNum">
                     <div
                         v-if="filteredMessagesGroupedDay.length > 1 && day.messages.length > 0"
-                        :key="'msgdatemarker' + day.dayNum"
                         class="kiwi-messagelist-seperator"
                     >
                         <span>{{ (new Date(day.messages[0].time)).toDateString() }}</span>
                     </div>
-                    <remove-before-update :key="day.dayNum">
-                        <template v-for="message in day.messages">
+                    <!-- <remove-before-update> -->
+                    <div>
+                        <template v-for="message in day.messages" :key="'msg' + message.id">
                             <div
                                 v-if="shouldShowUnreadMarker(message)"
-                                :key="'msgunreadmarker' + message.id"
                                 class="kiwi-messagelist-seperator"
                             >
                                 <span>{{ $t('unread_messages') }}</span>
                             </div>
 
                             <div
-                                :key="'msg' + message.id"
                                 :class="[
                                     'kiwi-messagelist-item',
                                     selectedMessages[message.id] ?
@@ -63,16 +62,9 @@
                                     class="kiwi-messagelist-message unloaded"
                                 />
                                 <template v-else>
-                                    <div
-                                        v-if="message.render() &&
-                                            message.template &&
-                                            message.template.$el &&
-                                            isTemplateVue(message.template)"
-                                        v-rawElement="message.template.$el"
-                                    />
                                     <component
                                         :is="message.template"
-                                        v-else-if="message.render() && message.template"
+                                        v-if="message.render() && message.template"
                                         v-bind="message.templateProps"
                                         :buffer="buffer"
                                         :message="message"
@@ -111,9 +103,11 @@
                                 </template>
                             </div>
                         </template>
-                    </remove-before-update>
+                    <!-- </remove-before-update> -->
+                    </div>
                 </template>
-            </remove-before-update>
+            <!-- </remove-before-update> -->
+            </div>
 
             <transition name="kiwi-messagelist-joinloadertrans">
                 <div v-if="shouldShowJoiningLoader" class="kiwi-messagelist-joinloader">
@@ -132,12 +126,11 @@
 <script>
 'kiwi public';
 
-import Vue from 'vue';
+import { watch } from 'vue';
 import strftime from 'strftime';
 import Logger from '@/libs/Logger';
 import GlobalApi from '@/libs/GlobalApi';
 import * as bufferTools from '@/libs/bufferTools';
-import RemoveBeforeUpdate from './utils/RemoveBeforeUpdate';
 import MessageListMessageCompact from './MessageListMessageCompact';
 import MessageListMessageModern from './MessageListMessageModern';
 import MessageListMessageInline from './MessageListMessageInline';
@@ -169,7 +162,6 @@ const percentInView = (div) => {
 };
 export default {
     components: {
-        RemoveBeforeUpdate,
         MessageListMessageModern,
         MessageListMessageCompact,
         MessageListMessageInline,
@@ -196,6 +188,12 @@ export default {
         };
     },
     computed: {
+        showRealNames() {
+            return this.buffer.setting('show_realnames');
+        },
+        showTimestamps() {
+            return this.buffer.setting('show_timestamps');
+        },
         thisMl() {
             return this;
         },
@@ -255,6 +253,14 @@ export default {
             return days;
         },
         filteredMessages() {
+            // Hack; We need to make vue aware that we depend on buffer.message_count in order to
+            // get the messagelist to update its DOM, as the change of message_count alerts
+            // us that the messages have changed. This is done so that vue does not have to make
+            // every emssage reactive which gets very expensive.
+
+            /* eslint-disable no-unused-vars */
+            let ignoredVar = this.buffer.message_count;
+
             return bufferTools.orderedMessages(this.buffer);
         },
         shouldShowJoiningLoader() {
@@ -265,26 +271,6 @@ export default {
         },
     },
     watch: {
-        filteredMessages() {
-            // Data has changed and now preparing to update the DOM.
-            // Check our scrolling state before the DOM updates so that we know if we're scrolled
-            // at the bottom before new messages are added
-            this.checkScrollingState();
-
-            // Wait until after the DOM has updated before possibly scrolling down based on the
-            // previous check
-            this.$nextTick(() => {
-                this.maybeScrollToBottom();
-                document.querySelectorAll('.kiwi-messagelist-message.unloaded').forEach((i) => {
-                    this.observer.observe(i);
-                    const percent = percentInView(i);
-                    window.kiwi.log.debug('Percent in view for', i, ':', percent);
-                    if (percent > 0.01) {
-                        this.tryRender(i);
-                    }
-                });
-            });
-        },
         buffer(newBuffer, oldBuffer) {
             if (oldBuffer) {
                 oldBuffer.isMessageTrimming = true;
@@ -324,6 +310,29 @@ export default {
             this.scrollToBottom();
             // this.smooth_scroll = true;
         });
+
+        // this watcher was moved here due to it firing before mounted() could scroll
+        // to the bottom, this resulted in auto_scroll being set to false
+        watch(() => this.buffer.message_count, () => {
+            // Data has changed and now preparing to update the DOM.
+            // Check our scrolling state before the DOM updates so that we know
+            // if we're scrolled at the bottom before new messages are added
+            this.checkScrollingState();
+            // Wait until after the DOM has updated before possibly scrolling down based on the
+            // previous check
+            this.$nextTick(() => {
+                this.maybeScrollToBottom();
+                document.querySelectorAll('.kiwi-messagelist-message.unloaded').forEach((i) => {
+                    this.observer.observe(i);
+                    const percent = percentInView(i);
+                    window.kiwi.log.debug('Percent in view for', i, ':', percent);
+                    if (percent > 0.01) {
+                        this.tryRender(i);
+                    }
+                });
+            });
+        }, { deep: true });
+
         this.listen(this.$state, 'mediaviewer.opened', () => {
             this.$nextTick(this.maybeScrollToBottom.apply(this));
         });
@@ -349,15 +358,6 @@ export default {
                 window.kiwi.log.debug('couldnt render', el.dataset.messageId, this.buffer.messagesObj.messages.slice());
                 this.$nextTick(() => this.tryRender(el));
             }
-        },
-        isTemplateVue(template) {
-            const isVue = template instanceof Vue;
-            if (isVue && !window.kiwi_deprecations_messageTemplate) {
-                window.kiwi_deprecations_messageTemplate = true;
-                // eslint-disable-next-line no-console
-                console.warn('deprecated message.template or message.bodyTemplate, please use `message.template = kiwi.Vue.extend(component object)`');
-            }
-            return isVue;
         },
         isHoveringOverMessage(message) {
             return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();

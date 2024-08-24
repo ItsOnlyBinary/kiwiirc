@@ -85,11 +85,8 @@
                     @click="show_advanced=!show_advanced"
                 >
                     {{ $t('settings_advanced') }}
-                    <i
-                        :class="['fa-caret-'+(show_advanced?'up':'down')]"
-                        class="fa"
-                        aria-hidden="true"
-                    />
+                    <!-- svg icons: fas-caret-down, fas-caret-right -->
+                    <svg-icon :icon="['fa-solid', show_advanced ? 'fa-caret-down' : 'fa-caret-right']" />
                 </h4>
 
                 <div v-if="show_advanced" class="kiwi-networksettings-advanced">
@@ -163,7 +160,7 @@
             <div class="kiwi-dangerzone">
                 <h3>{{ $t('settings_danger') }}</h3>
                 <a class="u-button u-button-warning" @click="removeNetwork">
-                    <i class="fa fa-times" aria-hidden="true" /> {{ $t('settings_remove') }}
+                    <svg-icon icon="fa-solid fa-xmark" /> {{ $t('settings_remove') }}
                 </a>
             </div>
         </form>
@@ -390,12 +387,8 @@ export default {
 .kiwi-networksettings .kiwi-customserver-tls {
     text-align: center;
     cursor: pointer;
-    font-size: 1em;
-}
-
-.kiwi-networksettings .kiwi-customserver-tls i {
-    left: 3px;
-    top: 2px;
+    position: relative;
+    margin: 6px 0 0 6px;
     font-size: 1.3em;
 }
 
@@ -458,7 +451,7 @@ export default {
     border-top: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-.kiwi-dangerzone i {
+.kiwi-dangerzone svg {
     margin-right: 5px;
 }
 

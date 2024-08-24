@@ -13,8 +13,9 @@
                 class="kiwi-statebrowser-channel-name"
                 @click="$emit('selected')"
             >
+                <svg-icon v-if="buffer.isSpecial()" icon="fa-regular fa-star" />
                 <away-status-indicator
-                    v-if="buffer.isQuery() && awayNotifySupported()"
+                    v-else-if="buffer.isQuery() && awayNotifySupported()"
                     :network="network" :user="network.userByName(buffer.name)"
                 />{{ buffer.name }}
             </div>
@@ -38,7 +39,7 @@
                     class="kiwi-statebrowser-channel-leave"
                     @click="maybePromptClose()"
                 >
-                    <i class="fa fa-times" aria-hidden="true" />
+                    <svg-icon icon="fa-solid fa-xmark" />
                 </div>
             </div>
         </div>
@@ -68,6 +69,7 @@ export default {
         AwayStatusIndicator,
     },
     props: ['buffer', 'activePrompt'],
+    emits: ['selected'],
     computed: {
         network() {
             return this.buffer.getNetwork();

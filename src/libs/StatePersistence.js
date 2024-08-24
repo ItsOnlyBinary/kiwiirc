@@ -1,6 +1,7 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { watch } from 'vue';
 
 export default class StatePersistence {
     constructor(storageKey, state, storage, logger) {
@@ -52,12 +53,12 @@ export default class StatePersistence {
             this.storage.set(this.storageKey, this.state.exportState(this.includeBuffers));
         }, 1000);
 
-        this.state.$watch('networks', debouncedSaveState, { deep: true });
-        this.state.$watch('user_settings', debouncedSaveState, { deep: true });
+        watch(this.state.networks, debouncedSaveState, { deep: true });
+        watch(this.state.user_settings, debouncedSaveState, { deep: true });
 
         // We need to touch each property of each buffer for that we want to save our state on.
         // If any of the properties change then the $watch()er will call debouncedSaveState()
-        this.watcher = this.state.$watch(() => {
+        this.watcher = watch(() => {
             let watchVals = [];
 
             this.state.networks.forEach((network) => {

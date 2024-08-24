@@ -1,13 +1,14 @@
 <template>
     <div class="kiwi-appsettings">
 
-        <div class="kiwi-appsettings-close" @click="closeSettings">
-            <span>{{ $t('close') }}</span>
-            <i class="fa fa-times" aria-hidden="true" />
-        </div>
-
         <form class="u-form">
             <tabbed-view ref="tabs" class="kiwi-appsettings-tab-container">
+                <template #right>
+                    <div class="kiwi-appsettings-close" @click="closeSettings">
+                        <span>{{ $t('close') }}</span>
+                        <svg-icon icon="fa-solid fa-xmark" />
+                    </div>
+                </template>
                 <tabbed-tab :header="$t('settings_general')" :focus="true" name="general">
 
                     <div class="kiwi-appsettings-block">
@@ -15,7 +16,7 @@
                         <div class="kiwi-appsettings-section kiwi-appsettings-general">
                             <label class="kiwi-appsettings-setting-language">
                                 <span>{{ $t('settings_language') }}</span>
-                                <div><i class="fa fa-globe" /></div>
+                                <div><svg-icon icon="fa-solid fa-globe" /></div>
                                 <select v-model="settingLanguage">
                                     <option value="">
                                         Auto
@@ -32,7 +33,7 @@
                                     class="kiwi-appsettings-theme-reload"
                                     @click="refreshTheme"
                                 >
-                                    <i class="fa fa-refresh" aria-hidden="true" />
+                                    <svg-icon icon="fa-solid fa-refresh" />
                                 </a>
                                 <select v-model="theme">
                                     <option
@@ -219,6 +220,8 @@
 'kiwi public';
 
 import _ from 'lodash';
+import { toRef, watch } from 'vue';
+
 import ThemeManager from '@/libs/ThemeManager';
 import GlobalApi from '@/libs/GlobalApi';
 import localesList from '@/res/localesList';
@@ -250,6 +253,7 @@ export default {
             theme: '',
             customThemeUrl: '',
             pluginUiElements: GlobalApi.singleton().appSettingsPlugins,
+            teardownFn: null,
             localesList,
         };
     },
@@ -334,6 +338,11 @@ export default {
             this.showTab(tabName);
         });
     },
+    beforeUnmount() {
+        if (this.teardownFn) {
+            this.teardownFn();
+        }
+    },
     methods: {
         closeSettings: function closeSettings() {
             this.$state.$emit('active.component');
@@ -377,11 +386,10 @@ export default {
             }, 800, { leading: false, trailing: true });
 
             // Remove all our attached events to cleanup
-            let teardownFn = () => {
+            this.teardownFn = () => {
                 this.$state.$off('theme.change', updateFn);
                 this.$state.$off('theme.failed', failedFn);
                 watches.forEach((unwatchFn) => unwatchFn());
-                this.$off('hook:destroy', teardownFn);
             };
 
             // Update our info with the latest theme settings before we start
@@ -390,14 +398,13 @@ export default {
 
             this.$state.$on('theme.change', updateFn);
             this.$state.$on('theme.failed', failedFn);
-            this.$once('hook:destroyed', teardownFn);
 
-            // $watch returns a function to stop watching the data field. Add them into
+            // watch returns a function to stop watching the data field. Add them into
             // an array to make it easier to iterate over them all and unwatch them all
             // when needed.
             watches = [
-                this.$watch('theme', watchTheme),
-                this.$watch('customThemeUrl', watchCustomThemeUrl),
+                watch(toRef(this, 'theme'), watchTheme),
+                watch(toRef(this, 'customThemeUrl'), watchCustomThemeUrl),
             ];
         },
         enableAdvancedTab() {
@@ -419,13 +426,18 @@ export default {
 .kiwi-appsettings {
     box-sizing: border-box;
     height: 100%;
-    overflow-y: auto;
+    overflow-y: hidden;
     padding: 0;
     position: relative;
 
     .u-form {
+        height: 100%;
         width: 100%;
         overflow: hidden;
+    }
+
+    .u-tabbed-content {
+        overflow: auto
     }
 }
 
@@ -445,9 +457,9 @@ export default {
     margin-right: 1em;
 }
 
-.kiwi-appsettings-setting-language .fa-globe {
+.kiwi-appsettings-setting-language svg {
     vertical-align: middle;
-    font-size: 1.8em;
+    font-size: 1.4em;
 }
 
 .kiwi-appsettings-setting-theme span {
@@ -545,38 +557,19 @@ export default {
 
 .kiwi-appsettings-close {
     cursor: pointer;
-    position: absolute;
-    top: 0;
-    right: 0;
     padding: 0 10px;
     font-weight: 600;
     box-sizing: border-box;
     text-transform: uppercase;
-    line-height: 55px;
-    text-align: right;
     transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    background: initial;
 }
 
-.kiwi-appsettings-close h2 {
-    padding: 10px 0 11px 20px;
-    width: auto;
-    float: left;
-}
-
-.kiwi-appsettings-close a {
-    float: right;
-    position: static;
-    background: none;
-    border: none;
-    padding: 10px 20px;
-    font-size: 1.4em;
-}
-
-.kiwi-appsettings-close i {
+.kiwi-appsettings-close svg {
     margin-left: 10px;
-    font-size: 1.5em;
-    float: right;
-    line-height: 53px;
+    font-size: 1.3em;
 }
 
 .kiwi-appsettings-messagelistDisplay select {
@@ -601,11 +594,6 @@ export default {
         width: auto;
         margin-right: 0;
         display: inline-block;
-    }
-
-    .kiwi-appsettings-close,
-    .kiwi-appsettings-close i {
-        line-height: 46px;
     }
 }
 </style>

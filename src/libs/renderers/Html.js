@@ -1,8 +1,12 @@
 'kiwi public';
 
 import { escape } from 'lodash';
+import { findIconDefinition, icon } from '@fortawesome/fontawesome-svg-core';
+
 import getState from '@/libs/state';
 import * as EmojiProvider from '@/libs/EmojiProvider';
+
+const iconCache = Object.create(null);
 
 export default render;
 
@@ -40,7 +44,7 @@ function render(blocks, renderEmoticons) {
         case 'url':
             content = linkifyUrl(block, {
                 addHandle: state.setting('buffers.show_link_previews'),
-                handleClass: 'fa fa-share-square u-link kiwi-messagelist-message-linkhandle',
+                handleClass: 'u-link kiwi-messagelist-message-linkhandle',
             });
             break;
         case 'user':
@@ -78,9 +82,15 @@ function linkifyUrl(block, _opts) {
     let out = `<a target="_blank" href="${href}" rel="noopener noreferrer" class="u-link">${nice}</a>`;
 
     if (opts.addHandle) {
+        if (!iconCache.share) {
+            /* svg icons: fas-share-from-square */
+            iconCache.share = icon(findIconDefinition({
+                prefix: 'fas',
+                iconName: 'share-from-square',
+            })).html;
+        }
         let cssClass = opts.handleClass || '';
-        let content = opts.handleContent || '';
-        out += `<a data-url="${escape(block.meta.url)}" class="${cssClass}">${content}</a>`;
+        out += `<a data-url="${escape(block.meta.url)}" class="${cssClass}">${iconCache.share}</a>`;
     }
 
     return out;

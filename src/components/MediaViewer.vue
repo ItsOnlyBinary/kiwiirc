@@ -6,13 +6,13 @@
                 class="u-button u-link kiwi-mediaviewer-controls-pin"
                 @click="$emit('pin')"
             >
-                <i class="fa fa-map-pin" aria-hidden="true" />
+                <svg-icon icon="fa-solid fa-map-pin" />
             </a>
             <a
                 class="u-button u-button-warning kiwi-mediaviewer-controls-close"
                 @click="$emit('close');"
             >
-                <i class="fa fa-window-close" aria-hidden="true" />
+                <svg-icon icon="fa-solid fa-rectangle-xmark" />
             </a>
         </div>
         <div class="kiwi-mediaviewer-content">
@@ -56,6 +56,7 @@ export default {
         UrlEmbed,
     },
     props: ['url', 'component', 'componentProps', 'isIframe', 'showPin'],
+    emits: ['close', 'pin'],
     data() {
         return {
             debouncedUpdateEmbed: null,
@@ -161,12 +162,14 @@ export default {
     border-radius: 5px;
     padding: 3px;
     opacity: 0;
+    display: none;
     transition: opacity 0.1s;
     box-shadow: 0 1px var(--brand-input-border);
 }
 
 .kiwi-mediaviewer:hover .kiwi-mediaviewer-controls {
     opacity: 1;
+    display: block;
 }
 
 .kiwi-mediaviewer-controls-close {

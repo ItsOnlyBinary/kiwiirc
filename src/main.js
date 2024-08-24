@@ -1,16 +1,17 @@
+/* eslint-disable import/no-import-module-exports */
 import _ from 'lodash';
-import Vue from 'vue';
+import { createApp, markRaw, watch } from 'vue';
 import JSON5 from 'json5';
 import i18next from 'i18next';
 import i18nextHTTP from 'i18next-http-backend';
-import VueI18Next from '@panter/vue-i18next';
+import VueI18Next from 'i18next-vue';
 import VueVirtualScroller from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
 // fetch polyfill
 import 'whatwg-fetch';
-// polyfill for vue-virtual-scroller & ie11
-import 'intersection-observer';
 
 import App from '@/components/App';
 import StartupError from '@/components/StartupError';
@@ -33,29 +34,34 @@ import { SoundBleep } from '@/libs/SoundBleep';
 import WindowTitle from '@/libs/WindowTitle';
 import { configTemplates } from '@/res/configTemplates';
 
-import AvailableLocales from '@/res/locales/available.json';
-import FallbackLocale from '@/../static/locales/en-us.json';
-
 // Global utilities
-import '@/components/utils/TabbedView';
-import '@/components/utils/InputText';
-import '@/components/utils/IrcInput';
-import '@/components/utils/InputPrompt';
-import '@/components/utils/InputConfirm';
-import '@/components/utils/TransitionExpand';
-import * as uuid from 'uuid';
-import IrcMessage from 'irc-framework/src/ircmessage';
-import { lineBreak } from 'irc-framework/src/linebreak';
-import Irc from 'irc-framework';
-/* eslint-disable no-underscore-dangle */
-const kiwiExports = window._kiwi_exports;
+import InputConfirm from '@/components/utils/InputConfirm';
+import InputPrompt from '@/components/utils/InputPrompt';
+import InputText from '@/components/utils/InputText';
+import IrcInput from '@/components/utils/IrcInput';
+import TabbedView from '@/components/utils/TabbedView';
+import TransitionExpand from '@/components/utils/TransitionExpand';
 
-if (!kiwiExports.libs.external) kiwiExports.libs.external = {};
-kiwiExports.libs.external.uuid = uuid;
-kiwiExports.libs.external.IrcMessage = IrcMessage;
-kiwiExports.libs.external.lineBreak = lineBreak;
-kiwiExports.libs.external.Irc = Irc;
-Vue.use(VueVirtualScroller);
+import AvailableLocales from '@/res/locales/available.json';
+import FallbackLocale from '@/../static/locales/dev.json';
+
+import SvgSpinner from '@/res/icons/ring-resize.svg';
+
+import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
+
+Object.assign(faConfig, {
+    observeMutations: false,
+});
+
+import('@/libs/iconLibrary');
+
+if (module.hot) {
+    module.hot.accept('./libs/iconLibrary.js', () => {
+        import('@/libs/iconLibrary');
+    });
+}
+
+const log = Logger.namespace('main');
 
 let logLevelMatch = window.location.href.match(/kiwi-loglevel=(\d)/);
 if (logLevelMatch && logLevelMatch[1]) {
@@ -64,14 +70,31 @@ if (logLevelMatch && logLevelMatch[1]) {
     Logger('Logging level set to', newLevel);
 }
 
-let log = Logger.namespace('main');
+const app = createApp(
+    App,
+    { startupComponent: null }
+);
+
+app.use(VueVirtualScroller);
+
+app.component('SvgSpinner', SvgSpinner);
+app.component('SvgIcon', FontAwesomeIcon);
+app.component('InputConfirm', InputConfirm);
+app.component('InputPrompt', InputPrompt);
+app.component('InputText', InputText);
+app.component('IrcInput', IrcInput);
+app.component('TabbedView', TabbedView);
+app.component('TabbedTab', TabbedView.Tab);
+app.component('TransitionExpand', TransitionExpand);
 
 // Add the global API as soon as possible so that things can start listening to it
 let api = window.kiwi = GlobalApi.singleton();
 
+api.app = app;
+
 // Third party imports now have access to the state and api
 /* eslint-disable import/first */
-import '@/thirdparty/';
+// import '@/thirdparty/';
 
 function getQueryVariable(variable) {
     let query = window.location.search.substring(1);
@@ -88,12 +111,12 @@ function getQueryVariable(variable) {
 
 // Add a handy this.listen() fn to Vue instances. Saves on the need to add an event listener
 // and then manually remove them all the time.
-Vue.mixin({
-    beforeDestroy: function beforeDestroy() {
+app.mixin({
+    beforeUnmount() {
         (this.listeningEvents || []).forEach((fn) => fn());
     },
     methods: {
-        listen: function listen(source, event, fn) {
+        listen(source, event, fn) {
             this.listeningEvents = this.listeningEvents || [];
             let off = () => {
                 (source.removeEventListener || source.$off || source.off).call(source, event, fn);
@@ -102,7 +125,7 @@ Vue.mixin({
             (source.addEventListener || source.$on || source.on).call(source, event, fn);
             return off;
         },
-        listenOnce: function listenOnce(source, event, _fn) {
+        listenOnce(source, event, _fn) {
             let fn = _fn;
             this.listeningEvents = this.listeningEvents || [];
             let off = () => {
@@ -128,8 +151,8 @@ Vue.mixin({
 });
 
 // Timer functions that are auto cleaned up when a component is destroyed
-Vue.mixin({
-    beforeDestroy: function beforeDestroy() {
+app.mixin({
+    beforeUnmount() {
         (this.timerEvents || []).forEach((tmr) => clearTimeout(tmr));
     },
     methods: {
@@ -163,7 +186,7 @@ Vue.mixin({
 });
 
 // Make the state available to all components by default
-Vue.mixin({
+app.mixin({
     computed: {
         $state() {
             return getState();
@@ -174,8 +197,8 @@ Vue.mixin({
 // Allow adding existing raw elements to component templates
 // Eg: <div v-rawElement="domElement"></div>
 // Eg: <div v-rawElement="{el: domElement, data:{foo:'bar'}}"></div>
-Vue.directive('rawElement', {
-    bind(el, binding) {
+app.directive('rawElement', {
+    beforeMount(el, binding) {
         if (binding.value.nodeName) {
             el.appendChild(binding.value);
         } else if (binding.value.el) {
@@ -200,13 +223,13 @@ Vue.directive('rawElement', {
 });
 
 // Register a global custom directive called `v-focus`
-Vue.directive('focus', {
+app.directive('focus', {
     // Support conditional eg. v-focus="false"
-    bind(el, bindings) {
+    beforeMount(el, bindings) {
         el.dataset.focus = bindings.value === undefined || !!bindings.value;
     },
     // When the bound element is inserted into the DOM...
-    inserted(el) {
+    mounted(el) {
         // dataset properties are strings
         if (el.dataset.focus !== 'true') {
             return;
@@ -225,13 +248,13 @@ Vue.directive('focus', {
 });
 
 let ROSymbol = Symbol('resizeobserver');
-Vue.directive('resizeobserver', {
-    bind(el, bindings) {
+app.directive('resizeobserver', {
+    beforeMount(el, bindings) {
         let cb = bindings.value || function noop() {};
         el[ROSymbol] = new ResizeObserver(cb);
         el[ROSymbol].observe(el);
     },
-    unbind(el) {
+    unmounted(el) {
         el[ROSymbol].unobserve(el);
     },
 });
@@ -311,7 +334,7 @@ function applyConfig(config) {
     applyConfigObj(config, getState().settings);
 }
 
-// Recursively merge an object onto another via Vue.$set
+// Recursively merge an object onto another via
 function applyConfigObj(obj, target) {
     // Keys in the newObjects array will get new objects created (empty) before merging from config
     let newObjects = ['emojis', 'autocompleteTokens'];
@@ -328,11 +351,11 @@ function applyConfigObj(obj, target) {
                     [] :
                     {};
 
-                Vue.set(target, key, newVal);
+                target[key] = newVal;
             }
             applyConfigObj(val, target[key]);
         } else {
-            Vue.set(target, key, val);
+            target[key] = val;
         }
     });
 }
@@ -404,13 +427,13 @@ function loadPlugins() {
 }
 
 function initLocales() {
-    Vue.use(VueI18Next);
+    app.use(VueI18Next, { i18next });
 
     i18next.use(i18nextHTTP);
     i18next.init({
         supportedLngs: AvailableLocales.locales,
+        fallbackLng: 'dev',
         compatibilityJSON: 'v3',
-        fallbackLng: 'en-us',
         lowerCaseLng: true,
         backend: {
             loadPath: (langs, namespaces) => {
@@ -438,29 +461,10 @@ function initLocales() {
     });
 
     // Build in the english translation so it can be used as a fallback
-    i18next.addResourceBundle('en-us', 'translation', FallbackLocale);
+    i18next.addResourceBundle('dev', 'translation', FallbackLocale);
 
     // Make the translation services available via the global API
     api.i18n = i18next;
-    api.vueI18n = new VueI18Next(i18next);
-
-    // Override the $t function so that empty translations fallback to en-us
-    Vue.mixin({
-        computed: {
-            $t() {
-                return (key, options) => {
-                    const vueI18n = this.$i18n || api.vueI18n;
-                    let val = vueI18n.i18next.t(key, options, vueI18n.i18nLoadedAt);
-                    if (!val) {
-                        let opts = options || {};
-                        opts.lng = 'en-us';
-                        val = vueI18n.i18next.t(key, opts, vueI18n.i18nLoadedAt);
-                    }
-                    return val;
-                };
-            },
-        },
-    });
 
     const setDefaultLanguage = () => {
         let defaultLang = getState().setting('language');
@@ -498,7 +502,7 @@ function initLocales() {
     setDefaultLanguage();
 
     // Update the language if the setting changes.
-    getState().$watch('user_settings.language', (lang) => {
+    watch(getState().settingComputed('language'), (lang) => {
         if (!lang && !getState().setting('language')) {
             setDefaultLanguage();
         } else {
@@ -569,15 +573,10 @@ function startApp() {
         throw new Error(`Startup screen "${startupName}" does not exist`);
     }
 
-    /* eslint-disable no-new */
-    new Vue({
-        el: '#app',
-        render: (h) => h(
-            App,
-            { props: { startupComponent: startup } }
-        ),
-        i18n: api.vueI18n,
-    });
+    // eslint-disable-next-line no-underscore-dangle
+    app._props.startupComponent = markRaw(startup);
+
+    app.mount('#kiwiirc');
 
     api.emit('ready');
 }
@@ -589,12 +588,8 @@ function showError(err) {
         log.error('Unknown error starting Kiwi IRC');
     }
 
-    /* eslint-disable no-new */
-    new Vue({
-        el: '#app',
-        render: (h) => h(
-            StartupError,
-            { props: { error: err } },
-        ),
-    });
+    createApp(
+        StartupError,
+        { error: err }
+    ).mount('#kiwiirc');
 }

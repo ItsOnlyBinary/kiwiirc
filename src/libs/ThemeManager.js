@@ -1,7 +1,6 @@
 'kiwi public';
 
 import _ from 'lodash';
-import Vue from 'vue';
 
 import Logger from '@/libs/Logger';
 
@@ -19,8 +18,6 @@ export default class ThemeManager {
         this.varsElement = null;
         this.currentElement = null;
         this.loadingElement = null;
-
-        Vue.observable(this);
 
         const initialTheme = this.findTheme(argTheme)
             || this.findTheme(state.setting('theme'))

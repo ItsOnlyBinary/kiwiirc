@@ -227,6 +227,19 @@ select {
     background-color: rgba(128, 128, 128, 0.1);
 }
 
+.kiwi-stack {
+    position: relative;
+}
+
+.kiwi-stack-hidden {
+    visibility: hidden;
+}
+
+.kiwi-stack-content {
+    position: absolute;
+    inset: 0;
+}
+
 .kiwi-typing::after {
     display: inline-block;
     animation: dotty steps(1, end) 1s infinite;

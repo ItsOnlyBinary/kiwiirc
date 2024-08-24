@@ -1,312 +1,250 @@
-<template functional>
-    <div
-        :class="[
-            props.m().isRepeat() ?
-                'kiwi-messagelist-message--authorrepeat' :
-                'kiwi-messagelist-message--authorfirst',
-            'kiwi-messagelist-message-' + props.message.type,
-            props.message.type_extra ?
-                'kiwi-messagelist-message-' + props.message.type + '-' + props.message.type_extra :
-                '',
-            props.ml.isMessageHighlight(props.message) ?
-                'kiwi-messagelist-message--highlight' :
-                '',
-            props.ml.isHoveringOverMessage(props.message) ?
-                'kiwi-messagelist-message--hover' :
-                '',
-            props.ml.buffer.last_read && props.message.time > props.ml.buffer.last_read ?
-                'kiwi-messagelist-message--unread' :
-                '',
-            props.message.nick.toLowerCase() === props.ml.ourNick.toLowerCase() ?
-                'kiwi-messagelist-message--own' :
-                '',
-            props.ml.message_info_open === props.message ?
-                'kiwi-messagelist-message--info-open' :
-                '',
-            props.ml.message_info_open && props.ml.message_info_open !== props.message ?
-                'kiwi-messagelist-message--blur' :
-                '',
-            (props.message.user && props.m().userMode(props.message.user)) ?
-                'kiwi-messagelist-message--user-mode-' + props.m().userMode(props.message.user) :
-                '',
-            data.staticClass,
-        ]"
-        :data-message-id="props.message.id"
-        :data-nick="(props.message.nick||'').toLowerCase()"
-        class="kiwi-messagelist-message kiwi-messagelist-message--modern"
-        @click="props.ml.onMessageClick($event, props.message, true)"
-        @dblclick="props.ml.onMessageDblClick($event, props.message)"
-    >
-        <div class="kiwi-messagelist-modern-left">
-            <template v-if="props.m().displayAvatar(props.message)">
-                <component
-                    :is="injections.components.UserAvatar"
-                    :data-nick="props.message.nick"
-                    :user="props.message.user"
-                    :network="props.m().getNetwork()"
-                    :message="props.message"
-                />
-            </template>
-        </div>
-        <div class="kiwi-messagelist-modern-right">
-            <div class="kiwi-messagelist-top">
-                <a
-                    v-if="props.message.nick"
-                    :style="{ 'color': props.ml.userColour(props.message.user) }"
-                    :class="[
-                        'kiwi-messagelist-nick',
-                        props.message.user && props.m().userMode(props.message.user) ?
-                            'kiwi-messagelist-nick--mode-'+props.m().userMode(props.message.user) :
-                            ''
-                    ]"
-                    :data-nick="(props.message.nick).toLowerCase()"
-                    @mouseover="props.ml.hover_nick=props.message.nick.toLowerCase();"
-                    @mouseout="props.ml.hover_nick='';"
-                >
-                    <span class="kiwi-messagelist-nick-prefix">{{
-                        props.message.user ?
-                            props.m().userModePrefix(props.message.user) :
-                            ''
-                    }}</span>{{ props.message.nick }}
-                </a>
-                <div
-                    v-if="props.m().showRealName()"
-                    class="kiwi-messagelist-realname"
-                    @click="props.ml.openUserBox(props.message.nick)"
-                    @mouseover="props.ml.hover_nick=props.message.nick.toLowerCase();"
-                    @mouseout="props.ml.hover_nick='';"
-                >
-                    {{ props.message.user.realname }}
-                </div>
-                <div
-                    v-if="props.m().isMessage(props.message) &&
-                        props.ml.bufferSetting('show_timestamps')"
-                    :title="props.ml.formatTimeFull(props.message.time)"
-                    class="kiwi-messagelist-time"
-                >
-                    {{ props.ml.formatTime(props.message.time) }}
-                </div>
-            </div>
-            <div v-if="props.prepend.length"
-                 class="kiwi-messagelist-body-prepend-addons">
-                <component
-                    :is="plugin.component"
-                    v-for="plugin in props.prepend"
-                    :messagelist="props.ml"
-                    :key="plugin.id"
-                    :plugin-props="{
-                        message: message,
-                        buffer: buffer
-                    }"
-                    :color="props.ml.userColour(props.message.user)"
-                    v-bind="plugin.props"
-                    :buffer="props.buffer"
-                    :message="props.message"
-                />
-            </div>
-            <div
-                v-if="props.message.bodyTemplate &&
-                    props.message.bodyTemplate.$el &&
-                    props.ml.isTemplateVue(props.message.bodyTemplate)"
-                v-rawElement="props.message.bodyTemplate.$el"
-                class="kiwi-messagelist-body"
-            />
-            <component
-                :is="props.message.bodyTemplate"
-                v-else-if="props.message.bodyTemplate"
-                v-bind="props.message.bodyTemplateProps"
-                :buffer="props.ml.buffer"
-                :message="props.message"
-                :idx="props.idx"
-                :ml="props.ml"
-                class="kiwi-messagelist-body"
-            />
-            <div
-                v-else
-                class="kiwi-messagelist-body"
-                v-html="props.ml.formatMessage(props.message)"
-            />
-            <div v-if="props.append.length"
-                 class="kiwi-messagelist-body kiwi-messagelist-body-append-addons">
-                <component
-                    :is="plugin.component"
-                    v-for="plugin in props.append"
-                    :key="plugin.id"
-                    :messagelist="props.ml"
-                    :plugin-props="{
-                        message: message,
-                        buffer: buffer
-                    }"
-                    v-bind="plugin.props"
-                    :buffer="props.buffer"
-                    :color="props.ml.userColour(props.message.user)"
-                    :message="props.message"
-                />
-            </div>
-            <component
-                :is="injections.components.MessageInfo"
-                v-if="props.ml.message_info_open===props.message"
-                :message="props.message"
-                :buffer="props.ml.buffer"
-                @close="props.ml.toggleMessageInfo()"
-            />
-
-            <div v-if="props.message.embed.payload && props.ml.shouldAutoEmbed">
-                <component
-                    :is="injections.components.MediaViewer"
-                    :url="props.message.embed.payload"
-                    :show-pin="true"
-                    @close="props.message.embed.payload = ''"
-                    @pin="props.ml.openEmbedInPreview(props.message)"
-                />
-            </div>
-        </div>
-    </div>
-</template>
-
 <script>
-'kiwi public';
-
-// eslint-plugin-vue's max-len rule reads the entire file, including the CSS. so we can't use this
-// here as some of the rules cannot be broken up any smaller
-/* eslint-disable max-len */
+import { h, createTextVNode } from 'vue';
 
 import { urlRegex } from '@/helpers/TextFormatting';
-import MessageInfo from './MessageInfo';
-import AwayStatusIndicator from './AwayStatusIndicator';
 import UserAvatar from './UserAvatar';
+import MessageInfo from './MessageInfo';
 import MediaViewer from './MediaViewer';
 
-const methods = {
-    props: {},
-    showRealName() {
-        let props = this.props;
+const messageTypes = ['privmsg', 'action', 'notice', 'message'];
+const isMessage = (message) => messageTypes.indexOf(message.type) > -1;
 
-        // Showing realname is not enabled
-        if (!props.ml.buffer.setting('show_realnames')) {
-            return false;
-        }
+const isRepeat = (props) => {
+    let ml = props.ml;
+    let idx = props.idx;
+    let message = props.message;
+    let prevMessage = ml.filteredMessages[idx - 1];
 
-        // Server does not support extended-join so realname would be inconsistent
-        let client = props.ml.buffer.getNetwork().ircClient;
-        if (!client.network.cap.isEnabled('extended-join')) {
-            return false;
-        }
-
-        // We dont have a user or users realname
-        if (!props.message.user || !props.message.user.realname) {
-            return false;
-        }
-
-        // No point showing the realname if it's the same as the nick
-        if (props.message.user.nick.toLowerCase() === props.message.user.realname.toLowerCase()) {
-            return false;
-        }
-
-        // If the realname contains a URL it's most likely a clients website
-        if (urlRegex.test(props.message.user.realname)) {
-            return false;
-        }
-
-        return true;
-    },
-    getNetwork() {
-        let props = this.props;
-        return props.ml.buffer.getNetwork();
-    },
-    isRepeat() {
-        let props = this.props;
-        let ml = props.ml;
-        let idx = props.idx;
-        let message = props.message;
-        let prevMessage = ml.filteredMessages[idx - 1];
-
-        return !!prevMessage &&
-            prevMessage.nick === message.nick &&
-            message.time - prevMessage.time < 60000 &&
-            prevMessage.type !== 'traffic' &&
-            message.type !== 'traffic' &&
-            message.type === prevMessage.type &&
-            message.day_num === prevMessage.day_num &&
-            (message.tags && !message.tags['+draft/reply']);
-    },
-    isHoveringOverMessage(message) {
-        let props = this.props;
-        return message.nick && message.nick.toLowerCase() === props.ml.hover_nick.toLowerCase();
-    },
-    isMessage(message) {
-        let types = ['privmsg', 'action', 'notice', 'message'];
-        return types.indexOf(message.type) > -1;
-    },
-    displayAvatar(message) {
-        let props = this.props;
-        // if there is no user attached hide the avatar
-        if (!message.user) {
-            return false;
-        }
-
-        // if its not a message hide the avatar
-        if (!this.isMessage(message)) {
-            return false;
-        }
-
-        // dont show avatars in server or special buffers
-        if (props.ml.buffer.isServer() || props.ml.buffer.isSpecial()) {
-            return false;
-        }
-
-        // dont show avatar if its a repeat of the same user
-        if (this.isRepeat()) {
-            return false;
-        }
-
-        return true;
-    },
-    userMode(user) {
-        let props = this.props;
-        return props.ml.buffer.userMode(user);
-    },
-    userModePrefix(user) {
-        let props = this.props;
-        return props.ml.buffer.userModePrefix(user);
-    },
+    return !!prevMessage &&
+        prevMessage.nick === message.nick &&
+        message.time - prevMessage.time < 60000 &&
+        prevMessage.type !== 'traffic' &&
+        message.type !== 'traffic' &&
+        message.type === prevMessage.type &&
+        message.day_num === prevMessage.day_num;
 };
 
-export default {
-    inject: {
-        components: {
-            default: {
-                UserAvatar,
-                MessageInfo,
-                AwayStatusIndicator,
-                MediaViewer,
-            },
-        },
-    },
-    props: {
-        ml: Object,
-        message: Object,
-        idx: Number,
-        append: Array,
-        prepend: Array,
-        buffer: Object,
-        m: {
-            default: function m() {
-                // vue uses this function to generate the prop. `this`==null Return our own function
-                return function n() {
-                    // Give our methods some props context before its function is called.
-                    // This is only safe because the function on the methods object is called on
-                    // the same js tick
-                    methods.props = this;
-                    return methods;
-                };
-            },
-        },
-    },
+const displayAvatar = (props) => {
+    // if there is no user attached hide the avatar
+    if (!props.message.user) {
+        return false;
+    }
+
+    // if its not a message hide the avatar
+    if (!isMessage(props.message)) {
+        return false;
+    }
+
+    // dont show avatars in server or special buffers
+    if (props.ml.buffer.isServer() || props.ml.buffer.isSpecial()) {
+        return false;
+    }
+
+    // dont show avatar if its a repeat of the same user
+    if (isRepeat(props)) {
+        return false;
+    }
+
+    return true;
 };
+
+const showRealName = (props) => {
+    // We dont have a user or users realname
+    if (!props.message.user || !props.message.user.realname) {
+        return false;
+    }
+
+    // Showing realname is not enabled
+    if (!props.ml.showRealNames) {
+        return false;
+    }
+
+    // Server does not support extended-join so realname would be inconsistent
+    let client = props.ml.buffer.getNetwork().ircClient;
+    if (!client.network.cap.isEnabled('extended-join')) {
+        return false;
+    }
+
+    // No point showing the realname if it's the same as the nick
+    if (props.message.user.nick.toLowerCase() === props.message.user.realname.toLowerCase()) {
+        return false;
+    }
+
+    // If the realname contains a URL it's most likely a clients website
+    if (urlRegex.test(props.message.user.realname)) {
+        return false;
+    }
+
+    return true;
+};
+
+const buildMessageLeft = (props, context, cache) => {
+    if (displayAvatar(props)) {
+        return [h(UserAvatar, {
+            'data-nick': cache.lcNick,
+            'user': props.message.user,
+            'network': props.ml.buffer.getNetwork(),
+            'message': props.message,
+        })];
+    }
+
+    return [];
+};
+
+const buildMessageTop = (props, context, cache) => {
+    const top = [];
+
+    if (props.message.nick) {
+        const style = {};
+
+        if (props.message.user) {
+            style.color = props.ml.userColour(props.message.user);
+        }
+
+        top.push(h('a', {
+            'class': {
+                'kiwi-messagelist-nick': true,
+                [`kiwi-messagelist-nick--mode-${cache.userMode}`]: cache.userMode,
+            },
+            'data-nick': cache.lcNick,
+            'onMouseover': () => (props.ml.hover_nick = cache.lcNick),
+            'onMouseout': () => (props.ml.hover_nick = ''),
+            style,
+        }, [
+            h('span', {
+                class: ['kiwi-messagelist-nick-prefix'],
+            }, [
+                createTextVNode(cache.userModePrefix),
+            ]),
+            createTextVNode(props.message.nick),
+        ]));
+    }
+
+    if (showRealName(props)) {
+        top.push(h('div', {
+            class: ['kiwi-messagelist-realname'],
+            onClick: () => props.ml.openUserBox(props.message.nick),
+            onMouseover: () => (props.ml.hover_nick = cache.lcNick),
+            onMouseout: () => (props.ml.hover_nick = ''),
+        }, [
+            createTextVNode(props.message.user.realname),
+        ]));
+    }
+
+    if (isMessage(props.message) && props.ml.showTimestamps) {
+        top.push(h('div', {
+            class: ['kiwi-messagelist-time'],
+            title: props.ml.formatTimeFull(props.message.time),
+        }, [
+            createTextVNode(props.ml.formatTime(props.message.time)),
+        ]));
+    }
+
+    return top;
+};
+
+const buildMessageBody = (props, context, cache) => {
+    if (props.message.bodyTemplate) {
+        return h(props.message.bodyTemplate, {
+            class: ['kiwi-messagelist-body'],
+            buffer: props.ml.buffer,
+            message: props.message,
+            idx: props.idx,
+            ml: props.ml,
+        });
+    }
+
+    return h('div', {
+        class: ['kiwi-messagelist-body'],
+        innerHTML: props.ml.formatMessage(props.message),
+    });
+};
+
+const buildMessageFooter = (props, context, cache) => {
+    const footer = [];
+
+    if (props.ml.message_info_open === props.message) {
+        footer.push(h(MessageInfo, {
+            message: props.message,
+            buffer: props.ml.buffer,
+            onClose: () => props.ml.toggleMessageInfo(),
+        }));
+    }
+
+    if (props.ml.shouldAutoEmbed && props.message.embed.payload) {
+        footer.push(h(MediaViewer, {
+            'url': props.message.embed.payload,
+            'show-pin': true,
+            'onClose': () => (props.message.embed.payload = ''),
+            'onPin': () => props.ml.openEmbedInPreview(props.message),
+        }));
+    }
+
+    return buildPluginSection('append')(props,context,cache).concat(footer);
+};
+
+const messageModern = (props, context) => {
+    const cache = {
+        isRepeat: isRepeat(props),
+        lcNick: (props.message.nick || '').toLowerCase(),
+        userMode: '',
+        userModePrefix: '',
+    };
+
+    if (props.message.user) {
+        cache.userMode = props.ml.buffer.userMode(props.message.user);
+        cache.userModePrefix = props.ml.buffer.userModePrefix(props.message.user);
+    }
+
+    return [h('div', {
+        'class': {
+            [cache.isRepeat
+                ? 'kiwi-messagelist-message--authorrepeat'
+                : 'kiwi-messagelist-message--authorfirst']: true,
+
+            [`kiwi-messagelist-message-${props.message.type}`]: true,
+
+            [`kiwi-messagelist-message-${props.message.type}-${props.message.type_extra}`]: props.message.type_extra,
+
+            'kiwi-messagelist-message--highlight': props.ml.isMessageHighlight(props.message),
+            'kiwi-messagelist-message--hover': props.ml.isHoveringOverMessage(props.message),
+            'kiwi-messagelist-message--unread': props.ml.buffer.last_read && props.message.time > props.ml.buffer.last_read,
+            'kiwi-messagelist-message--own': cache.lcNick === props.ml.ourNick.toLowerCase(),
+            'kiwi-messagelist-message--info-open': props.ml.message_info_open === props.message,
+            'kiwi-messagelist-message--blur': props.ml.message_info_open && props.ml.message_info_open !== props.message,
+            [`kiwi-messagelist-message--user-mode-${cache.userMode}`]: cache.userMode,
+
+            'kiwi-messagelist-message': true,
+            'kiwi-messagelist-message--modern': true,
+        },
+        'data-message-id': props.message.id,
+        'data-nick': cache.lcNick,
+        'onClick': (event) => props.ml.onMessageClick(event, props.message, true),
+        'onDblclick': (event) => props.ml.onMessageDblClick(event, props.message),
+    }, [
+        h('div', {
+            class: ['kiwi-messagelist-modern-left'],
+        }, buildMessageLeft(props, context, cache)),
+
+        h('div', {
+            class: ['kiwi-messagelist-modern-right'],
+        }, [
+            h('div', {
+                class: ['kiwi-messagelist-top'],
+            }, buildMessageTop(props, context, cache)),
+            ...buildPluginSection(prepend)(props,context,cache),
+            buildMessageBody(props, context, cache),
+            ...buildMessageFooter(props, context, cache),
+        ]),
+    ])];
+};
+
+messageModern.props = ['ml', 'idx', 'message'];
+
+export default messageModern;
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 
 .kiwi-messagelist-message--modern {
     border-left: 7px solid transparent;

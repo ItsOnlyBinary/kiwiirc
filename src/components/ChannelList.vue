@@ -5,21 +5,16 @@
                 <form class="u-form u-form--big kiwi-channellist-search" @submit.prevent>
                     <input v-model="search" :placeholder="$t('do_search')" class="u-input">
                     <a
-                        :class="{
-                            'u-button-primary': !isLoading,
-                            'u-button-secondary': isLoading,
-                        }"
-                        class="u-button kiwi-channellist-refresh"
+                        class="u-button u-button-primary kiwi-channellist-refresh"
                         @click="maybeUpdateList"
                     >
-                        <i v-if="!isLoading" class="fa fa-refresh" aria-hidden="true" />
-                        <i v-else class="fa fa-refresh fa-spin" aria-hidden="true" />
+                        <svg-icon icon="fa-solid fa-rotate" :spin="isLoading" />
                     </a>
                 </form>
                 <div v-if="list.length" class="kiwi-channellist-pagination">
-                    <a @click="prevPage"><i class="fa fa-step-backward" aria-hidden="true" /></a>
+                    <a @click="prevPage"><svg-icon icon="fa-solid fa-backward-step" /></a>
                     {{ page + 1 }} / {{ maxPages + 1 }}
-                    <a @click="nextPage"><i class="fa fa-step-forward" aria-hidden="true" /></a>
+                    <a @click="nextPage"><svg-icon icon="fa-solid fa-forward-step" /></a>
                 </div>
             </div>
             <div v-if="!isLoading && !noResults" class="kiwi-channellist-table">
@@ -30,7 +25,7 @@
                 >
                     <div
                         class="kiwi-channellist-users"
-                    >{{ channel.num_users || 0 }}</div>
+                    ><svg-icon icon="fa-solid fa-users" /> {{ channel.num_users || 0 }}</div>
                     <div
                         class="u-link kiwi-channellist-name"
                         @click="joinChannel(channel.channel)"
@@ -53,9 +48,9 @@
             <div v-else class="kiwi-channellist-info">{{ $t('channel_list_fetch') }}</div>
             <div class="kiwi-channellist-nav">
                 <div v-if="list.length" class="kiwi-channellist-pagination">
-                    <a @click="prevPage"><i class="fa fa-step-backward" aria-hidden="true" /></a>
+                    <a @click="prevPage"><svg-icon icon="fa-solid fa-backward-step" /></a>
                     {{ page + 1 }} / {{ maxPages + 1 }}
-                    <a @click="nextPage"><i class="fa fa-step-forward" aria-hidden="true" /></a>
+                    <a @click="nextPage"><svg-icon icon="fa-solid fa-forward-step" /></a>
                 </div>
             </div>
         </div>
@@ -226,8 +221,8 @@ export default {
     align-items: center;
 }
 
-.kiwi-channellist-nav .u-form .u-button-primary i,
-.kiwi-channellist-nav .u-form .u-button-secondary i {
+.kiwi-channellist-nav .u-form .u-button-primary svg,
+.kiwi-channellist-nav .u-form .u-button-secondary svg {
     margin-left: -2px;
 }
 
@@ -279,12 +274,6 @@ export default {
     padding: 0.3em;
     text-align: left;
     white-space: nowrap;
-}
-
-.kiwi-channellist-users::before {
-    font-family: fontAwesome, sans-serif;
-    padding-right: 0.4em;
-    content: '\f007';
 }
 
 .kiwi-channellist-name {

@@ -541,7 +541,7 @@ function clientMiddleware(state, network) {
             if (event.nick === client.user.nick) {
                 network.buffers.forEach((b) => {
                     if ((b.flags.redirect_to || '').toLowerCase() === event.channel.toLowerCase()) {
-                        state.$delete(b.flags, 'redirect_to');
+                        delete b.flags.redirect_to;
                         b.rename(event.channel);
                     }
                 });
@@ -1066,9 +1066,9 @@ function clientMiddleware(state, network) {
                     let modeChar = mode.mode.substr(1);
 
                     if (adding) {
-                        state.$set(buffer.modes, modeChar, mode.param);
+                        buffer.modes[modeChar] = mode.param;
                     } else if (!adding) {
-                        state.$delete(buffer.modes, modeChar);
+                        delete buffer.modes[modeChar];
                     }
 
                     modeStrs.push(mode.mode + (mode.param ? ' ' + mode.param : ''));
@@ -1107,6 +1107,48 @@ function clientMiddleware(state, network) {
             let buffer = network.bufferByName(event.target);
             let modeStrs = {};
             if (buffer) {
+                // Join all the same mode changes together so they can be shown on one
+                // line such as "prawnsalad sets +b on nick1, nick2"
+                event.modes.forEach((mode) => {
+                    modeStrs[mode.mode] = modeStrs[mode.mode] || [];
+
+                    // If this mode has a user prefix then we need to update the user object
+                    let prefix = _.find(network.ircClient.network.options.PREFIX, {
+                        mode: mode.mode[1],
+                    });
+
+                    if (prefix) {
+                        let user = state.getUser(network.id, mode.param);
+                        if (user) {
+                            let adding = mode.mode[0] === '+';
+                            let modes = user.buffers[buffer.id].modes;
+                            let modeIdx = modes.indexOf(prefix.mode);
+
+                            // Add or remove the mode from the users mode list
+                            if (adding && modeIdx === -1) {
+                                modes.push(prefix.mode);
+                            } else if (!adding && modeIdx > -1) {
+                                modes.splice(modeIdx, 1);
+                            }
+                        }
+
+                        modeStrs[mode.mode].push({ target: mode.param });
+                    } else {
+                        // Not a user prefix, add it as a channel mode
+                        // TODO: Why are these not appearing as the 'channel info' command?
+                        let adding = mode.mode[0] === '+';
+                        let modeChar = mode.mode.substr(1);
+
+                        if (adding) {
+                            buffer.modes[modeChar] = mode.param;
+                        } else if (!adding) {
+                            delete buffer.modes[modeChar];
+                        }
+
+                        modeStrs[mode.mode].push({ target: buffer.name, param: mode.param });
+                    }
+                });
+
                 // Mode -> locale ID mappings
                 // If a mode isn't found here, the local ID modes_other is used
                 const modeLocaleIds = {

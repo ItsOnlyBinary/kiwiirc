@@ -2,8 +2,10 @@
 
 /** @module */
 
+import * as Vue from 'vue';
+import { findIconDefinition, icon, library } from '@fortawesome/fontawesome-svg-core';
+
 import EventEmitter from 'eventemitter3';
-import Vue from 'vue';
 import JSON5 from 'json5';
 import _ from 'lodash';
 import { compareVersions } from 'compare-versions';
@@ -23,10 +25,14 @@ export default class GlobalApi extends EventEmitter {
         this.version = __VERSION__; // eslint-disable-line no-undef
         this.commithash = __COMMITHASH__; // eslint-disable-line no-undef
 
+        /** A reference to the Vue app instance */
+        this.app = null;
         /** A reference to the internal Vuejs instance */
         this.Vue = Vue;
         /** Expose JSON5 so that plugins can use the same config format */
         this.JSON5 = JSON5;
+        /** Expose font-awesome icon library functions */
+        this.svgIcons = { findIconDefinition, icon, library };
         /** The applications internal state */
         this.state = null;
         /** The applications ThemeManager */
@@ -175,7 +181,7 @@ export default class GlobalApi extends EventEmitter {
      * @param {object} args Optional arguments for this plugin { title: '', props: {} }
      */
     addUi(type, component, args = {}) {
-        const plugin = Misc.makePluginObject(nextPluginId++, component, args);
+        const plugin = Misc.makePluginObject(this.app, nextPluginId++, component, args);
 
         switch (type) {
         case 'input_tool':
@@ -231,7 +237,7 @@ export default class GlobalApi extends EventEmitter {
      * @param {Object} props Optional properties for the vue.js component
      */
     addTab(type, title, component, props) {
-        const plugin = Misc.makePluginObject(nextPluginId++, component, { props, title });
+        const plugin = Misc.makePluginObject(this.app, nextPluginId++, component, { props, title });
 
         switch (type) {
         case 'channel':
@@ -256,7 +262,7 @@ export default class GlobalApi extends EventEmitter {
      * @param {Object} props Optional properties the the vue.js component
      */
     addView(name, component, props) {
-        const plugin = Misc.makePluginObject(nextPluginId++, component, { props });
+        const plugin = Misc.makePluginObject(this.app, nextPluginId++, component, { props });
         this.tabs[name] = plugin;
     }
 
@@ -280,7 +286,7 @@ export default class GlobalApi extends EventEmitter {
      * @param {Object} props Optional properties for the vue.js component
      */
     showInSidebar(component, props) {
-        const plugin = Misc.makePluginObject(0, component, { props });
+        const plugin = Misc.makePluginObject(this.app, 0, component, { props });
         this.state.$emit('sidebar.component', plugin.component, plugin.props);
     }
 
@@ -290,7 +296,7 @@ export default class GlobalApi extends EventEmitter {
      * @param {Object} component The vue.js component object
      */
     addStartup(name, component) {
-        const plugin = Misc.makePluginObject(0, component);
+        const plugin = Misc.makePluginObject(this.app, 0, component);
         let startups = this.state.getStartups();
         startups[name] = plugin.component;
     }

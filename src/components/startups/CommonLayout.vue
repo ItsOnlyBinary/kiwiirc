@@ -18,9 +18,6 @@
                 v-html="infoContent"
             />
         </div>
-        <div class="kiwi-fontawesome-preload">
-            <i class="fa fa-spinner" aria-hidden="true" />
-        </div>
     </div>
 </template>
 

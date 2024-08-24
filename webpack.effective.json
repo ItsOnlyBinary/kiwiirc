@@ -1,0 +1,412 @@
+{
+    "mode": "production",
+    "context": "/home/topboy/Desktop/productivity/lou.network/kiwiirc",
+    "entry": {
+        "app": "./src/main.js"
+    },
+    "output": {
+        "path": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/dist",
+        "publicPath": "auto",
+        "filename": "static/js/[name].[contenthash:8].js",
+        "chunkFilename": "static/js/[name].[contenthash:8].js"
+    },
+    "resolve": {
+        "alias": {
+            "@": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/src",
+            "vue": "vue/dist/vue.esm-bundler.js"
+        },
+        "fallback": {
+            "stream": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/node_modules/stream-browserify/index.js"
+        },
+        "extensions": [
+            ".js",
+            ".jsx",
+            ".vue",
+            ".json"
+        ]
+    },
+    "resolveLoader": {
+        "modules": [
+            "/home/topboy/Desktop/productivity/lou.network/kiwiirc/node_modules",
+            "/home/topboy/Desktop/productivity/lou.network/kiwiirc/build/plugins/webpack"
+        ]
+    },
+    "performance": {
+        "maxEntrypointSize": 1677721.6,
+        "maxAssetSize": 1048576
+    },
+    "plugins": [
+        {
+            "definitions": {
+                "Buffer": [
+                    "buffer",
+                    "Buffer"
+                ]
+            }
+        },
+        {
+            "key": "ESLintWebpackPlugin",
+            "options": {
+                "cache": true,
+                "cacheLocation": "node_modules/.cache/eslint-webpack-plugin/.eslintcache",
+                "extensions": [
+                    ".ts",
+                    ".tsx",
+                    ".js",
+                    ".jsx",
+                    ".vue"
+                ],
+                "emitError": true,
+                "emitWarning": true,
+                "failOnError": true,
+                "resourceQueryExclude": []
+            }
+        },
+        {},
+        {
+            "options": {},
+            "logger": {},
+            "pathCache": {},
+            "fsOperations": 0,
+            "primed": false
+        },
+        {},
+        {},
+        {
+            "userOptions": {
+                "template": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/static/index.html",
+                "templateParameters": {},
+                "minify": false
+            },
+            "version": 5,
+            "options": {
+                "template": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/static/index.html",
+                "templateContent": false,
+                "templateParameters": {},
+                "filename": "index.html",
+                "publicPath": "auto",
+                "hash": false,
+                "inject": "head",
+                "scriptLoading": "defer",
+                "compile": true,
+                "favicon": false,
+                "minify": false,
+                "cache": true,
+                "showErrors": true,
+                "chunks": "all",
+                "excludeChunks": [],
+                "chunksSortMode": "auto",
+                "meta": {},
+                "base": false,
+                "title": "Webpack App",
+                "xhtml": false
+            }
+        },
+        {
+            "patterns": [
+                {
+                    "from": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/static",
+                    "to": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/dist/static",
+                    "toType": "dir",
+                    "globOptions": {
+                        "ignore": [
+                            ".DS_Store",
+                            "**/index.html",
+                            "**/config.local.json"
+                        ]
+                    },
+                    "info": {
+                        "minimized": true
+                    },
+                    "noErrorOnMissing": true
+                }
+            ],
+            "options": {}
+        },
+        {
+            "definitions": {
+                "__VERSION__": "\"2.0.0\"",
+                "__COMMITHASH__": "\"2785489c-modified\"",
+                "__VUE_OPTIONS_API__": "true",
+                "__VUE_PROD_DEVTOOLS__": "false",
+                "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false",
+                "process.env": {}
+            }
+        },
+        {
+            "compilationSuccessInfo": {},
+            "shouldClearConsole": true,
+            "formatters": [
+                null,
+                null,
+                null
+            ],
+            "transformers": [
+                null,
+                null,
+                null
+            ],
+            "previousEndTimes": {}
+        },
+        {
+            "_sortedModulesCache": {},
+            "options": {
+                "filename": "static/css/[name].[contenthash:8].css",
+                "ignoreOrder": false,
+                "runtime": true,
+                "chunkFilename": "static/css/[name].[contenthash:8].css"
+            },
+            "runtimeOptions": {
+                "linkType": "text/css"
+            }
+        },
+        {
+            "options": {
+                "test": {},
+                "algorithm": "gzip",
+                "compressionOptions": {
+                    "level": 9
+                },
+                "filename": "[path][base].gz",
+                "threshold": 10240,
+                "minRatio": 0.8,
+                "deleteOriginalAssets": false
+            }
+        },
+        {
+            "options": {
+                "test": {},
+                "algorithm": "brotliCompress",
+                "compressionOptions": {
+                    "params": {
+                        "1": 8
+                    }
+                },
+                "filename": "[path][base].br",
+                "threshold": 10240,
+                "minRatio": 0.8,
+                "deleteOriginalAssets": false
+            }
+        }
+    ],
+    "module": {
+        "rules": [
+            {
+                "test": {},
+                "use": [
+                    {
+                        "loader": "vue-loader",
+                        "options": {
+                            "transformAssetUrls": {
+                                "video": [
+                                    "src",
+                                    "poster"
+                                ],
+                                "source": "src",
+                                "img": "src",
+                                "image": [
+                                    "xlink:href",
+                                    "href"
+                                ],
+                                "use": [
+                                    "xlink:href",
+                                    "href"
+                                ],
+                                "object": "data"
+                            },
+                            "compilerOptions": {
+                                "comments": false
+                            }
+                        }
+                    },
+                    "exports-loader"
+                ]
+            },
+            {
+                "test": {},
+                "use": [
+                    "exports-loader",
+                    "babel-loader"
+                ]
+            },
+            {
+                "test": {},
+                "type": "asset",
+                "generator": {
+                    "filename": "static/img/[name].[contenthash:8][ext][query]"
+                }
+            },
+            {
+                "test": {},
+                "use": [
+                    "vue-loader",
+                    "svg-loader"
+                ]
+            },
+            {
+                "test": {},
+                "type": "asset",
+                "generator": {
+                    "filename": "static/media/[name].[contenthash:8][ext][query]"
+                }
+            },
+            {
+                "test": {},
+                "type": "asset",
+                "generator": {
+                    "filename": "static/fonts/[name].[contenthash:8][ext][query]"
+                }
+            },
+            {
+                "test": {},
+                "use": [
+                    {
+                        "loader": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/node_modules/mini-css-extract-plugin/dist/loader.js"
+                    },
+                    {
+                        "loader": "css-loader",
+                        "options": {
+                            "importLoaders": 2,
+                            "esModule": false
+                        }
+                    },
+                    {
+                        "loader": "postcss-loader",
+                        "options": {
+                            "postcssOptions": {
+                                "plugins": [
+                                    null
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "test": {},
+                "use": [
+                    {
+                        "loader": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/node_modules/mini-css-extract-plugin/dist/loader.js"
+                    },
+                    {
+                        "loader": "css-loader",
+                        "options": {
+                            "importLoaders": 2,
+                            "esModule": false
+                        }
+                    },
+                    {
+                        "loader": "postcss-loader",
+                        "options": {
+                            "postcssOptions": {
+                                "plugins": [
+                                    null
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "loader": "less-loader"
+                    }
+                ]
+            },
+            {
+                "test": {},
+                "use": [
+                    {
+                        "loader": "/home/topboy/Desktop/productivity/lou.network/kiwiirc/node_modules/mini-css-extract-plugin/dist/loader.js"
+                    },
+                    {
+                        "loader": "css-loader",
+                        "options": {
+                            "importLoaders": 2,
+                            "esModule": false
+                        }
+                    },
+                    {
+                        "loader": "postcss-loader",
+                        "options": {
+                            "postcssOptions": {
+                                "plugins": [
+                                    null
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "loader": "sass-loader"
+                    }
+                ]
+            }
+        ]
+    },
+    "optimization": {
+        "minimize": true,
+        "minimizer": [
+            {
+                "options": {
+                    "test": {},
+                    "extractComments": {
+                        "condition": false
+                    },
+                    "parallel": true,
+                    "minimizer": {
+                        "options": {
+                            "compress": {
+                                "booleans": true,
+                                "conditionals": true,
+                                "dead_code": true,
+                                "evaluate": true,
+                                "if_return": true,
+                                "sequences": true,
+                                "unused": true
+                            },
+                            "mangle": {
+                                "safari10": true
+                            },
+                            "format": {
+                                "comments": false
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "options": {
+                    "test": {},
+                    "parallel": true,
+                    "minimizer": {
+                        "options": {}
+                    }
+                }
+            }
+        ],
+        "moduleIds": "deterministic",
+        "splitChunks": {
+            "cacheGroups": {
+                "icons": {
+                    "name": "chunk-icons",
+                    "test": {},
+                    "minChunks": 1,
+                    "minSize": 0,
+                    "priority": -10,
+                    "chunks": "all",
+                    "reuseExistingChunk": true
+                },
+                "defaultVendors": {
+                    "name": "chunk-vendors",
+                    "test": {},
+                    "priority": -20,
+                    "chunks": "initial"
+                },
+                "common": {
+                    "name": "chunk-common",
+                    "minChunks": 2,
+                    "priority": -30,
+                    "chunks": "initial",
+                    "reuseExistingChunk": true
+                }
+            }
+        }
+    }
+}

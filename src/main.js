@@ -9,6 +9,7 @@ import VueVirtualScroller from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
 
 // fetch polyfill
 import 'whatwg-fetch';
@@ -45,9 +46,7 @@ import TransitionExpand from '@/components/utils/TransitionExpand';
 import AvailableLocales from '@/res/locales/available.json';
 import FallbackLocale from '@/../static/locales/dev.json';
 
-import SvgSpinner from '@/res/icons/ring-resize.svg';
-
-import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
+import SvgSpinner from './res/icons/ring-resize.svg';
 
 Object.assign(faConfig, {
     observeMutations: false,

@@ -1,5 +1,6 @@
 'kiwi public';
 
+// eslint-disable-next-line
 import callsite from 'callsite';
 
 const defaultLogger = makeLogger();

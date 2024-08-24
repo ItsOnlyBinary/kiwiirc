@@ -5,6 +5,7 @@ import { urlRegex } from '@/helpers/TextFormatting';
 import UserAvatar from './UserAvatar';
 import MessageInfo from './MessageInfo';
 import MediaViewer from './MediaViewer';
+import buildPluginSection from './utils/build-plugin-section';
 
 const messageTypes = ['privmsg', 'action', 'notice', 'message'];
 const isMessage = (message) => messageTypes.indexOf(message.type) > -1;
@@ -180,7 +181,7 @@ const buildMessageFooter = (props, context, cache) => {
         }));
     }
 
-    return buildPluginSection('append')(props,context,cache).concat(footer);
+    return buildPluginSection('append')(props, context, cache).concat(footer);
 };
 
 const messageModern = (props, context) => {
@@ -232,7 +233,7 @@ const messageModern = (props, context) => {
             h('div', {
                 class: ['kiwi-messagelist-top'],
             }, buildMessageTop(props, context, cache)),
-            ...buildPluginSection(prepend)(props,context,cache),
+            ...buildPluginSection('prepend')(props, context, cache),
             buildMessageBody(props, context, cache),
             ...buildMessageFooter(props, context, cache),
         ]),

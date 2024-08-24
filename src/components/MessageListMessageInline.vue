@@ -41,7 +41,7 @@ const buildInline = (props, context, cache) => {
         h('a', [
             createTextVNode(props.message.nick ? `${props.message.nick}:` : ''),
         ]),
-        ...buildPluginSection('prepend')(props, context, cache)
+        ...buildPluginSection('prepend')(props, context, cache),
     ]));
 
     inline.push(buildMessageBody(props, context, cache));
@@ -86,7 +86,7 @@ const buildMessageFooter = (props, context, cache) => {
         }));
     }
 
-    return buildPluginSection('append')(props,context,cache).concat(footer);
+    return buildPluginSection('append')(props, context, cache).concat(footer);
 };
 
 const messageInline = (props, context) => {

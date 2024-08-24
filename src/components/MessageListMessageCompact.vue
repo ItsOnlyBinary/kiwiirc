@@ -58,7 +58,7 @@ const buildMessageFooter = (props, context, cache) => {
         }));
     }
 
-    return buildPluginSection('append')(props,context,cache).concat(footer);
+    return buildPluginSection('append')(props, context, cache).concat(footer);
 };
 
 const messageCompact = (props, context) => {
@@ -146,7 +146,7 @@ const messageCompact = (props, context) => {
     }, messageChildren);
 };
 
-messageCompact.props = ['ml', 'append','prepend', 'message'];
+messageCompact.props = ['ml', 'append', 'prepend', 'message'];
 
 export default messageCompact;
 </script>

@@ -1109,7 +1109,7 @@ function clientMiddleware(state, network) {
             if (buffer) {
                 // Join all the same mode changes together so they can be shown on one
                 // line such as "prawnsalad sets +b on nick1, nick2"
-                event.modes.forEach((mode) => {
+                !historical && event.modes.forEach((mode) => {
                     modeStrs[mode.mode] = modeStrs[mode.mode] || [];
 
                     // If this mode has a user prefix then we need to update the user object
@@ -1199,9 +1199,9 @@ function clientMiddleware(state, network) {
                             let modeChar = mode.mode.substr(1);
 
                             if (adding) {
-                                state.$set(buffer.modes, modeChar, mode.param);
+                                buffer.modes[modeChar] = mode.param;
                             } else if (!adding) {
-                                state.$delete(buffer.modes, modeChar);
+                                delete buffer.modes[modeChar];
                             }
 
                             modeStrs[mode.mode].push({ target: buffer.name, param: mode.param });

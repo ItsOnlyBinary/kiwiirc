@@ -1,5 +1,5 @@
 /** @module */
-
+/* eslint-disable lines-between-class-members */
 import { reactive } from 'vue';
 import { def } from './common';
 import * as IrcClient from '../IrcClient';
@@ -86,7 +86,10 @@ export default class NetworkState {
     connect(...args) {
         this.ircClient.connect(...args);
     }
-
+    /**
+     * @param {string} name
+     * @returns {import('./BufferState').default}
+     */
     bufferByName(name) {
         return this.appState.getBufferByName(this.id, name);
     }

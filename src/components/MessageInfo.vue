@@ -48,20 +48,18 @@
                     </a>
                 </input-prompt>
             </div>
-            <template>
-                <component
-                    :is="plugin.component"
-                    v-for="plugin in pluginUiElements"
-                    :key="plugin.id"
-                    :plugin-props="{
-                        message: message,
-                        buffer: buffer
-                    }"
-                    v-bind="plugin.props"
-                    :buffer="buffer"
-                    :message="message"
-                />
-            </template>
+            <component
+                :is="plugin.component"
+                v-for="plugin in pluginUiElements"
+                :key="plugin.id"
+                :plugin-props="{
+                    message: message,
+                    buffer: buffer
+                }"
+                v-bind="plugin.props"
+                :buffer="buffer"
+                :message="message"
+            />
         </div>
     </div>
 </template>
@@ -81,7 +79,6 @@ export default {
     },
     computed: {
         showLinkPreviews() {
-            window.kiwi.log.debug('Plugins?', this.pluginUiElements);
             return this.$state.setting('buffers.show_link_previews');
         },
     },

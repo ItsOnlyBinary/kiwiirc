@@ -56,51 +56,44 @@
                                     then each message layout checks for a message.bodyTemplate
                                     custom component to apply only to the body area
                                 -->
-                                <div
-                                    :data-message-id="message.id"
-                                    v-if="false"
-                                    class="kiwi-messagelist-message unloaded"
+                                <component
+                                    :is="message.template"
+                                    v-if="message.render() && message.template"
+                                    v-bind="message.templateProps"
+                                    :buffer="buffer"
+                                    :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
+                                    :idx="filteredMessages.indexOf(message)"
+                                    :ml="thisMl"
                                 />
-                                <template v-else>
-                                    <component
-                                        :is="message.template"
-                                        v-if="message.render() && message.template"
-                                        v-bind="message.templateProps"
-                                        :buffer="buffer"
-                                        :message="message"
-                                        :prepend="messagePrependPlugins"
-                                        :append="messageAppendPlugins"
-                                        :idx="filteredMessages.indexOf(message)"
-                                        :ml="thisMl"
-                                    />
-                                    <message-list-message-modern
-                                        v-else-if="listType === 'modern'"
-                                        :message="message"
-                                        :prepend="messagePrependPlugins"
-                                        :append="messageAppendPlugins"
-                                        :idx="filteredMessages.indexOf(message)"
-                                        :buffer="buffer"
-                                        :ml="thisMl"
-                                    />
-                                    <message-list-message-inline
-                                        v-else-if="listType === 'inline'"
-                                        :message="message"
-                                        :prepend="messagePrependPlugins"
-                                        :append="messageAppendPlugins"
-                                        :buffer="buffer"
-                                        :idx="filteredMessages.indexOf(message)"
-                                        :ml="thisMl"
-                                    />
-                                    <message-list-message-compact
-                                        v-else-if="listType === 'compact'"
-                                        :message="message"
-                                        :prepend="messagePrependPlugins"
-                                        :append="messageAppendPlugins"
-                                        :idx="filteredMessages.indexOf(message)"
-                                        :buffer="buffer"
-                                        :ml="thisMl"
-                                    />
-                                </template>
+                                <message-list-message-modern
+                                    v-else-if="listType === 'modern'"
+                                    :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
+                                    :idx="filteredMessages.indexOf(message)"
+                                    :buffer="buffer"
+                                    :ml="thisMl"
+                                />
+                                <message-list-message-inline
+                                    v-else-if="listType === 'inline'"
+                                    :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
+                                    :buffer="buffer"
+                                    :idx="filteredMessages.indexOf(message)"
+                                    :ml="thisMl"
+                                />
+                                <message-list-message-compact
+                                    v-else-if="listType === 'compact'"
+                                    :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
+                                    :idx="filteredMessages.indexOf(message)"
+                                    :buffer="buffer"
+                                    :ml="thisMl"
+                                />
                             </div>
                         </template>
                     <!-- </remove-before-update> -->
@@ -295,22 +288,10 @@ export default {
     },
     mounted() {
         this.addCopyListeners();
-        this.observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach((e) => {
-                if (e?.target?.dataset?.messageId && e.isIntersecting) {
-                    this.$nextTick(() => this.tryRender(e.target));
-                }
-            });
-        }, {
-            root: this.$refs.scroller,
-            rootMargin: '0px',
-            threshold: 0.01,
-        });
         this.$nextTick(() => {
             this.scrollToBottom();
             // this.smooth_scroll = true;
         });
-
         // this watcher was moved here due to it firing before mounted() could scroll
         // to the bottom, this resulted in auto_scroll being set to false
         watch(() => this.buffer.message_count, () => {
@@ -322,14 +303,6 @@ export default {
             // previous check
             this.$nextTick(() => {
                 this.maybeScrollToBottom();
-                document.querySelectorAll('.kiwi-messagelist-message.unloaded').forEach((i) => {
-                    this.observer.observe(i);
-                    const percent = percentInView(i);
-                    window.kiwi.log.debug('Percent in view for', i, ':', percent);
-                    if (percent > 0.01) {
-                        this.tryRender(i);
-                    }
-                });
             });
         }, { deep: true });
 
@@ -346,19 +319,6 @@ export default {
         });
     },
     methods: {
-        tryRender(el) {
-            const msg = this.buffer.messagesObj.messages
-                .find((m) => m.id.toString() === el.dataset.messageId);
-            if (msg) {
-                window.kiwi.log.debug('rendered', el.dataset.messageId, this.buffer.messagesObj.messages.slice(), msg);
-                msg.seen = true;
-                this.observer.unobserve(el);
-                this.keepScroll(2);
-            } else {
-                window.kiwi.log.debug('couldnt render', el.dataset.messageId, this.buffer.messagesObj.messages.slice());
-                this.$nextTick(() => this.tryRender(el));
-            }
-        },
         isHoveringOverMessage(message) {
             return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();
         },

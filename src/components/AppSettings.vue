@@ -250,6 +250,7 @@ export default {
     },
     data: function data() {
         return {
+            state: 0,
             theme: '',
             customThemeUrl: '',
             pluginUiElements: GlobalApi.singleton().appSettingsPlugins,
@@ -306,10 +307,15 @@ export default {
         },
         settingLanguage: {
             get: function getSettingLanguage() {
+                // forgive me :'(
+                // eslint-disable-next-line
+                this.state;
                 return this.$state.setting('language') || '';
             },
             set: function setSettingLanguage(newVal) {
                 this.$state.setting('language', newVal || null);
+                this.$state.chgLang(newVal);
+                this.state = (this.state + 1) % 1024;
             },
         },
         messageLayouts() {

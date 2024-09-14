@@ -1,5 +1,5 @@
 /** @module */
-
+/* eslint-disable lines-between-class-members */
 import _ from 'lodash';
 import { reactive } from 'vue';
 import { def } from './common';
@@ -159,11 +159,15 @@ export default class BufferState {
             this.markAsRead(false);
         }
     }
-
+    /**
+     * @returns {import('./NetworkState').default}
+     */
     getNetwork() {
         return this.state.getNetwork(this.networkid);
     }
-
+    /**
+     * @returns {import('../Message').default[]}
+     */
     getMessages() {
         let bufMessages = _.find(this.messageDict, {
             networkid: this.networkid,

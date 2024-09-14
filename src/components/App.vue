@@ -40,6 +40,14 @@
                                 @close="$state.$emit('mediaviewer.hide', { source: 'user' });"
                             />
                         </template>
+                        <template #after>
+                            <div class="kiwi-messagelist-controls">
+                                <div ref="scrollToBottom" class="control scroll-to-bottom" @click="scrollToBottom">
+                                    <svg-icon icon="fa-solid fa-arrow-down" class="icon" />
+                                    Jump to Bottom
+                                </div>
+                            </div>
+                        </template>
                     </container>
                     <control-input
                         v-if="buffer.show_input"
@@ -318,6 +326,16 @@ export default {
 
             this.$state.ui.app_is_visible = newState;
         },
+        scrollToBottom() {
+            if (this.$state?.ml?.scrollToBottom instanceof Function) {
+                this.$state.ml.scrollToBottom();
+                setTimeout(() => {
+                    if (this.$refs.scrollToBottom) {
+                        this.$refs.scrollToBottom.classList.remove('active');
+                    }
+                }, 50);
+            }
+        },
         onKeyDown(event) {
             this.$state.$emit('document.keydown', event);
 
@@ -444,7 +462,40 @@ html, body, #kiwiirc {
        anyway. */
     height: 5%;
 }
+.kiwi-container-content {
+    position: relative;
+}
+.kiwi-messagelist-controls {
+    width: 100%;
+    position: absolute;
+    top: 90%;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+}
 
+.kiwi-messagelist-controls .control {
+    background: var(--brand-primary);
+    color: white;
+    padding: 4px;
+    border-radius: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border: 1px solid var(--brand-default-fg);
+}
+.kiwi-messagelist-controls .control.scroll-to-bottom .icon {
+    margin-right: 8px;
+}
+.kiwi-messagelist-controls .control.scroll-to-bottom {
+    opacity: 0;
+    margin-top: 64px;
+    transition: all ease-in-out 0.3s;
+}
+.kiwi-messagelist-controls .control.scroll-to-bottom.active {
+    opacity: 1;
+    margin-top: 0;
+    top: 90%;
+}
 .kiwi-main-mediaviewer {
     max-height: 70%;
     overflow: auto;

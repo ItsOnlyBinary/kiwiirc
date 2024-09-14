@@ -5,6 +5,7 @@
 */
 
 import { faAngleRight as fasAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
+import { faArrowDown as fasArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
 import { faArrowsRotate as fasArrowsRotate } from '@fortawesome/free-solid-svg-icons/faArrowsRotate';
 import { faBackwardStep as fasBackwardStep } from '@fortawesome/free-solid-svg-icons/faBackwardStep';
 import { faBan as fasBan } from '@fortawesome/free-solid-svg-icons/faBan';
@@ -56,6 +57,7 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 
 library.add(
     fasAngleRight,
+    fasArrowDown,
     fasArrowsRotate,
     fasBackwardStep,
     fasBan,

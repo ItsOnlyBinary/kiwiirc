@@ -137,22 +137,6 @@ let log = Logger.namespace('MessageList.vue');
 // If we're scrolled up more than this many pixels, don't auto scroll down to the bottom
 // of the message list
 const BOTTOM_SCROLL_MARGIN = 60;
-const intersection = (r1, r2) => {
-    const xOverlap = Math.max(0, Math.min(r1.x + r1.w, r2.x + r2.w) - Math.max(r1.x, r2.x));
-    const yOverlap = Math.max(0, Math.min(r1.y + r1.h, r2.y + r2.h) - Math.max(r1.y, r2.y));
-    const overlapArea = xOverlap * yOverlap;
-    return overlapArea;
-};
-const percentInView = (div) => {
-    const rect = div.getBoundingClientRect();
-
-    const dimension = { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
-    const viewport = { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
-    const divsize = dimension.w * dimension.h;
-    const overlap = intersection(dimension, viewport);
-    window.kiwi.log.debug({ rect, dimension, viewport, divsize, overlap });
-    return overlap / divsize;
-};
 export default {
     components: {
         MessageListMessageModern,
@@ -288,9 +272,23 @@ export default {
     },
     mounted() {
         this.addCopyListeners();
+        this.$state.ml = this;
         this.$nextTick(() => {
             this.scrollToBottom();
             // this.smooth_scroll = true;
+        });
+        const scrollToBottom = document.querySelector('.kiwi-messagelist-controls .control.scroll-to-bottom');
+        this.$el.addEventListener('scroll', () => {
+            if (this.$el.scrollHeight - this.$el.scrollTop >= BOTTOM_SCROLL_MARGIN) {
+                if (!scrollToBottom.classList.contains('active')) {
+                    scrollToBottom.classList.add('active');
+                    setTimeout(() => {
+                        scrollToBottom.classList.remove('active');
+                    }, 5000);
+                }
+            } else {
+                scrollToBottom.classList.contains('active') && scrollToBottom.classList.remove('active');
+            }
         });
         // this watcher was moved here due to it firing before mounted() could scroll
         // to the bottom, this resulted in auto_scroll being set to false

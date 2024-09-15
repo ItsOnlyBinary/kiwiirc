@@ -313,7 +313,7 @@ export default {
             }
         });
         this.listen(this.$state, 'messagelist.scrollto-bottom', () => {
-            this.maybeScrollToBottom();
+            this.scrollToBottom();
         });
         this.$state.$on('messageinfo.close', () => {
             this.message_info_open = null;

@@ -379,14 +379,12 @@ export default {
             this.$state.ui.app_is_visible = newState;
         },
         scrollToBottom() {
-            if (this.$state?.ml?.scrollToBottom instanceof Function) {
-                this.$state.$emit('messagelist.scrollto-bottom');
-                setTimeout(() => {
-                    if (this.$refs.scrollToBottom) {
-                        this.$refs.scrollToBottom.classList.remove('active');
-                    }
-                }, 50);
-            }
+            this.$state.$emit('messagelist.scrollto-bottom');
+            setTimeout(() => {
+                if (this.$refs.scrollToBottom) {
+                    this.$refs.scrollToBottom.classList.remove('active');
+                }
+            }, 50);
         },
         onKeyDown(event) {
             this.$state.$emit('document.keydown', event);

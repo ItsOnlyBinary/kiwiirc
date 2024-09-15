@@ -20,7 +20,7 @@
                     'kiwi-workspace--disconnected': network && network.state !== 'connected'
                 }"
                 class="kiwi-workspace"
-                @click="stateBrowserDrawOpen = false"
+                @click="hideStateBrowser()"
             >
                 <div class="kiwi-workspace-background" />
 
@@ -225,15 +225,40 @@ export default {
                 this.$state.clearNickColours();
             });
         },
+        hideStateBrowser() {
+            if (!this.stateBrowserDrawOpen) return;
+            if (this.$state.ui.is_touch) {
+                this.$state.history.go(-1);
+            } else {
+                this.stateBrowserDrawOpen = false;
+            }
+            this.$state.stateBrowserDrawOpen = this.stateBrowserDrawOpen;
+        },
+        showStateBrowser() {
+            if (this.stateBrowserDrawOpen) return;
+            if (this.$state.ui.is_touch) {
+                this.$state.history.push({
+                    enter: () => { this.stateBrowserDrawOpen = true; },
+                    leave: () => { this.stateBrowserDrawOpen = false; },
+                    query: {
+                        statebrowser: 'open',
+                    },
+                });
+            } else {
+                this.stateBrowserDrawOpen = true;
+            }
+            this.$state.stateBrowserDrawOpen = this.stateBrowserDrawOpen;
+        },
         initStateBrowser() {
             this.listen(this.$state, 'statebrowser.toggle', () => {
-                this.stateBrowserDrawOpen = !this.stateBrowserDrawOpen;
+                const setting = !this.stateBrowserDrawOpen;
+                setting ? this.showStateBrowser() : this.hideStateBrowser();
             });
             this.listen(this.$state, 'statebrowser.show', () => {
-                this.stateBrowserDrawOpen = true;
+                this.showStateBrowser();
             });
             this.listen(this.$state, 'statebrowser.hide', () => {
-                this.stateBrowserDrawOpen = false;
+                this.hideStateBrowser();
             });
         },
         initMediaviewer() {

@@ -15,8 +15,13 @@ export class History {
     }
 
     go(n) {
+        if (this.currentPage + n <= 0) {
+            this.setPage(0, true);
+            return;
+        }
         this.log('go', n);
-        return this.history.go(n);
+        this.log('source', new Error().stack);
+        this.history.go(n);
     }
 
     log(...args) {
@@ -28,22 +33,23 @@ export class History {
             // eslint-disable-next-line
             window.addEventListener('popstate', (e) => {
                 const page = e?.state?.page;
-                this.log('popstate', e);
-                if (page === undefined) {
-                    this.currentPage = 0;
-                    this.history.replaceState({}, '', this.baseUrl + '/');
-                    const state = getState();
-                    const net = state.getActiveNetwork();
-                    const buf = state.getActiveBuffer();
-                    const serverBuffer = net.serverBuffer();
-                    if (!state.activeComponent && buf === serverBuffer) {
-                        this.history.go();
-                        return;
-                    }
-                    state.$emit('active.component');
-                    state.setActiveBuffer(net.id, serverBuffer.name || '*', false);
-                    // e.preventDefault();
+                if (page === 0 && this.currentPage === 0) {
+                    this.history.go();
                     return;
+                }
+                this.log('popstate', e);
+                const state = getState();
+                const net = state.getActiveNetwork();
+                const buf = state.getActiveBuffer();
+                const serverBuffer = net.serverBuffer();
+                if (
+                    !state.stateBrowserDrawOpen &&
+                    !state.activeComponent &&
+                    buf === serverBuffer
+                ) {
+                    this.history.go();
+                } else if (page === undefined) {
+                    this.setPage(0, true);
                 }
                 this.setPage(page);
             });
@@ -51,13 +57,17 @@ export class History {
         }
     }
 
-    setPage(page) {
+    setPage(page, setUrl = false) {
         this.prepare();
+        this.log('source', new Error().stack);
         this.log('setting page', page);
         const previousHandler = this.handlers[this.currentPage];
         const handler = this.handlers[page];
         if (page !== undefined) {
             this.currentPage = page;
+        }
+        if (setUrl) {
+            this.doReplace(handler);
         }
         previousHandler && previousHandler.leave();
         handler && handler.enter();
@@ -101,7 +111,7 @@ export class History {
         this.history.pushState({
             page,
         }, '', url);
-        this.handlers.push({ enter, leave, path: '' + url });
+        this.handlers.push({ enter, leave, url });
         this.setPage(page);
     }
 
@@ -148,7 +158,7 @@ export class History {
             page,
         }, '', url);
         const previousHandler = this.handlers[page];
-        const handler = { enter, leave, path: '' + url };
+        const handler = { enter, leave, url };
         this.handlers[page] = handler;
         previousHandler && previousHandler.leave();
         handler.enter();

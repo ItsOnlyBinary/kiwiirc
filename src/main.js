@@ -361,7 +361,7 @@ function applyConfigObj(obj, target) {
 }
 function initHistory() {
     const state = getState();
-    state.history = new History(state.setting('baseUrl') || window.location);
+    state.history = new History(state.setting('baseUrl') || '' + window.location);
 }
 function loadPlugins() {
     return new Promise((resolve, reject) => {

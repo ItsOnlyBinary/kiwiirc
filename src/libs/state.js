@@ -357,8 +357,28 @@ function createNewState() {
             getActiveBuffer() {
                 return this.getBufferByName(this.ui.active_network, this.ui.active_buffer);
             },
-
-            setActiveBuffer(networkid, bufferName) {
+            setActiveBuffer(networkid, bufferName, useHistory = true) {
+                window.kiwi.log.debug('setting active buffer', bufferName);
+                if (this.history && useHistory) {
+                    const bufPathName = bufferName === '*' ? '' : bufferName;
+                    /**
+                     * @type {import('./History').History}
+                     */
+                    const history = this.history;
+                    const path = bufPathName.charAt(0) !== '#' ? '/' + bufPathName : '/';
+                    const hash = bufPathName.charAt(0) === '#' ? bufPathName : undefined;
+                    const fn = history.currentPage === 0 ? 'push' : 'replace';
+                    history[fn]({
+                        enter: () => this.doSetActiveBuffer(networkid, bufferName),
+                        leave: () => {},
+                        path,
+                        hash,
+                    });
+                } else {
+                    this.doSetActiveBuffer(networkid, bufferName);
+                }
+            },
+            doSetActiveBuffer(networkid, bufferName) {
                 if (!networkid) {
                     this.ui.active_network = 0;
                     this.ui.active_buffer = '';

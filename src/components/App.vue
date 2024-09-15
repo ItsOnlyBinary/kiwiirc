@@ -178,19 +178,46 @@ export default {
         },
         listenForActiveComponents() {
             this.listen(this.$state, 'active.component', (component, props) => {
-                this.activeComponent = null;
                 if (component) {
-                    this.activeComponentProps = props;
-                    this.activeComponent = component;
+                    this.activeComponent = null;
+                    this.$state.history.push({
+                        enter: () => {
+                            this.activeComponent = component;
+                            this.activeComponentProps = props;
+                        },
+                        leave: () => {
+                            this.activeComponent = null;
+                        },
+                        query: {
+                            view: '',
+                        },
+                    });
+                } else if (this.$state.history.currentPage) {
+                    // this.state.history.currentPage &&
+                    this.$state.history.go(-1);
+                } else {
+                    this.activeComponent = null;
                 }
+                this.$state.activeComponent = this.activeComponent;
             });
             this.listen(this.$state, 'active.component.toggle', (component, props) => {
                 if (component === this.activeComponent) {
-                    this.activeComponent = null;
+                    this.$state.history.go(-1);
                 } else if (component) {
-                    this.activeComponentProps = props;
-                    this.activeComponent = component;
+                    this.$state.history.push({
+                        enter: () => {
+                            this.activeComponent = component;
+                            this.activeComponentProps = props;
+                        },
+                        leave: () => {
+                            this.activeComponent = null;
+                        },
+                        query: {
+                            view: '',
+                        },
+                    });
                 }
+                this.$state.activeComponent = this.activeComponent;
             });
         },
         watchForThemes() {
@@ -328,7 +355,7 @@ export default {
         },
         scrollToBottom() {
             if (this.$state?.ml?.scrollToBottom instanceof Function) {
-                this.$state.ml.scrollToBottom();
+                this.$state.$emit('messagelist.scrollto-bottom');
                 setTimeout(() => {
                     if (this.$refs.scrollToBottom) {
                         this.$refs.scrollToBottom.classList.remove('active');
@@ -466,6 +493,7 @@ html, body, #kiwiirc {
     position: relative;
 }
 .kiwi-messagelist-controls {
+    pointer-events: none;
     width: 100%;
     position: absolute;
     top: 90%;
@@ -475,6 +503,7 @@ html, body, #kiwiirc {
 }
 
 .kiwi-messagelist-controls .control {
+    pointer-events: all;
     background: var(--brand-primary);
     color: white;
     padding: 4px;

@@ -312,6 +312,9 @@ export default {
                 this.maybeScrollToId(opt.id);
             }
         });
+        this.listen(this.$state, 'messagelist.scrollto-bottom', () => {
+            this.maybeScrollToBottom();
+        });
         this.$state.$on('messageinfo.close', () => {
             this.message_info_open = null;
         });

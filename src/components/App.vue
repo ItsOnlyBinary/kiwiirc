@@ -192,7 +192,7 @@ export default {
                             view: '',
                         },
                     });
-                } else if (this.$state.history.currentPage) {
+                } else if (this.activeComponent && this.$state.history.currentPage) {
                     // this.state.history.currentPage &&
                     this.$state.history.go(-1);
                 } else {

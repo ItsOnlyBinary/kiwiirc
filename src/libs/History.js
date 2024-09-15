@@ -43,13 +43,16 @@ export class History {
                 const buf = state.getActiveBuffer();
                 const serverBuffer = net.serverBuffer();
                 if (
-                    !state.stateBrowserDrawOpen &&
                     !state.activeComponent &&
+                    page < this.currentPage &&
                     buf === serverBuffer
                 ) {
+                    this.setPage(0, true);
                     this.history.go();
+                    return;
                 } else if (page === undefined) {
                     this.setPage(0, true);
+                    return;
                 }
                 this.setPage(page);
             });
@@ -73,6 +76,38 @@ export class History {
         handler && handler.enter();
     }
 
+    getUrl({
+        path,
+        query,
+        hash,
+    }) {
+        const url = new URL(this.baseUrl);
+        if (path) {
+            url.pathname = [
+                ...url.pathname.split('/'),
+                ...path.split('/'),
+            ].filter(Boolean).join('/');
+        } else {
+            url.pathname = window.location.pathname;
+        }
+        if (query) {
+            Object.entries(query).forEach((e) => {
+                url.searchParams.set(e[0], e[1].toString());
+            });
+        } else if (!path) {
+            url.search = window.location.search;
+        }
+        if (hash) {
+            url.hash = hash;
+        } else if (!path) {
+            url.hash = window.location.hash;
+        }
+        if (url.pathname.charAt(url.pathname.length - 1) !== '/') {
+            url.pathname += '/';
+        }
+        return url;
+    }
+
     push({
         enter,
         leave,
@@ -82,24 +117,7 @@ export class History {
     }) {
         // eslint-disable-next-line
         this.log('pushing.....', ...arguments);
-        const url = new URL(this.baseUrl);
-        if (path) {
-            url.pathname = [
-                ...url.pathname.split('/'),
-                ...path.split('/'),
-            ].filter(Boolean).join('/');
-        }
-        if (query) {
-            Object.entries(query).forEach((e) => {
-                url.searchParams.set(e[0], e[1].toString());
-            });
-        }
-        if (hash) {
-            url.hash = hash;
-        }
-        if (url.pathname.charAt(url.pathname.length - 1) !== '/') {
-            url.pathname += '/';
-        }
+        const url = this.getUrl({ path, query, hash });
         if ('' + url === '' + window.location) {
             this.doReplace({ enter, leave, url });
             return;
@@ -124,24 +142,7 @@ export class History {
     }) {
         // eslint-disable-next-line
         this.log('replacing.....', ...arguments);
-        const url = new URL(this.baseUrl);
-        if (path) {
-            url.pathname = [
-                ...url.pathname.split('/'),
-                ...path.split('/'),
-            ].filter(Boolean).join('/');
-        }
-        if (query) {
-            Object.entries(query).forEach((e) => {
-                url.searchParams.set(e[0], e[1].toString());
-            });
-        }
-        if (hash) {
-            url.hash = hash;
-        }
-        if (url.pathname.charAt(url.pathname.length - 1) !== '/') {
-            url.pathname += '/';
-        }
+        const url = this.getUrl({ path, query, hash });
         if ('' + url === '' + window.location) {
             return;
         }

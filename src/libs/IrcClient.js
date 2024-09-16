@@ -266,6 +266,7 @@ function clientMiddleware(state, network) {
 
             let serverBuffer = network.serverBuffer();
             state.addMessage(serverBuffer, {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: '',
@@ -345,6 +346,7 @@ function clientMiddleware(state, network) {
                 // Only add this message if it does not match the previous message
                 // Typing status messages can cause a spam of this error type
                 state.addMessageNoRepeat(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '*',
@@ -369,6 +371,7 @@ function clientMiddleware(state, network) {
                 }
 
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '',
@@ -471,6 +474,7 @@ function clientMiddleware(state, network) {
             });
 
             let message = {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: event.nick,
@@ -527,6 +531,7 @@ function clientMiddleware(state, network) {
             });
 
             state.addMessage(buffer, {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: event.nick,
@@ -588,6 +593,7 @@ function clientMiddleware(state, network) {
                 let typeExtra = (event.nick === client.user.nick) ? 'join_self' : 'join';
 
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: event.nick,
@@ -639,6 +645,7 @@ function clientMiddleware(state, network) {
                 let typeExtra = (isUserInvolved) ? 'kick_self' : 'kick';
 
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: event.nick,
@@ -686,6 +693,7 @@ function clientMiddleware(state, network) {
                 let typeExtra = (event.nick === client.user.nick) ? 'part_self' : 'part';
 
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: event.nick,
@@ -728,6 +736,7 @@ function clientMiddleware(state, network) {
                 let typeExtra = (event.nick === client.user.nick) ? 'quit_self' : 'quit';
 
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: event.nick,
@@ -765,6 +774,7 @@ function clientMiddleware(state, network) {
             }
 
             state.addMessage(buffer, {
+                ...event,
                 nick: '',
                 time: eventTime,
                 server_time: serverTime,
@@ -813,6 +823,7 @@ function clientMiddleware(state, network) {
             if (buffer && event.nick === client.user.nick) {
                 network.away = 'away';
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '*',
@@ -831,6 +842,7 @@ function clientMiddleware(state, network) {
             if (buffer && event.nick === client.user.nick) {
                 network.away = '';
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '*',
@@ -905,6 +917,7 @@ function clientMiddleware(state, network) {
                 text: event.motd,
             });
             state.addMessage(buffer, {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: '',
@@ -931,6 +944,7 @@ function clientMiddleware(state, network) {
             );
 
             let message = {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: '',
@@ -981,6 +995,7 @@ function clientMiddleware(state, network) {
                 }
 
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '',
@@ -1076,6 +1091,7 @@ function clientMiddleware(state, network) {
 
                 if (buffer.flags.requested_modes) {
                     state.addMessage(buffer, {
+                        ...event,
                         time: eventTime,
                         server_time: serverTime,
                         nick: '*',
@@ -1095,6 +1111,7 @@ function clientMiddleware(state, network) {
                     (new Date(event.created_at * 1000)).toLocaleString();
 
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '*',
@@ -1268,6 +1285,7 @@ function clientMiddleware(state, network) {
                         '';
 
                     state.addMessage(buffer, {
+                        ...event,
                         time: eventTime,
                         server_time: serverTime,
                         nick: '',
@@ -1343,6 +1361,7 @@ function clientMiddleware(state, network) {
                         text,
                     });
                     state.addMessage(serverBuffer, {
+                        ...event,
                         time: eventTime,
                         server_time: serverTime,
                         nick: '',
@@ -1377,6 +1396,7 @@ function clientMiddleware(state, network) {
                 }
 
                 state.addMessage(targetBuffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '',
@@ -1413,6 +1433,7 @@ function clientMiddleware(state, network) {
                 }
 
                 state.addMessage(targetBuffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '',
@@ -1451,6 +1472,7 @@ function clientMiddleware(state, network) {
 
             if (messageBody) {
                 state.addMessage(buffer, {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '',
@@ -1472,6 +1494,7 @@ function clientMiddleware(state, network) {
         if (command === 'help') {
             let buffer = state.getOrAddBufferByName(networkid, '*help');
             state.addMessage(buffer, {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: '',
@@ -1493,6 +1516,7 @@ function clientMiddleware(state, network) {
             });
 
             state.addMessage(buffer, {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: '',
@@ -1514,6 +1538,7 @@ function clientMiddleware(state, network) {
             });
             let buffer = state.getActiveBuffer();
             state.addMessage(buffer, {
+                ...event,
                 time: eventTime,
                 server_time: serverTime,
                 nick: '',
@@ -1546,6 +1571,7 @@ function clientMiddleware(state, network) {
 
             buffers.forEach((buffer) => {
                 state.addMessage(buffer, {
+                    ...event,
                     time: Date.now(),
                     nick: '',
                     message: messageBody,
@@ -1578,6 +1604,7 @@ function clientMiddleware(state, network) {
                 // Only add messages if the client is not going to disconnect on failure
                 buffers.forEach((buffer) => {
                     state.addMessage(buffer, {
+                        ...event,
                         time: Date.now(),
                         nick: '',
                         message: failMessage,
@@ -1630,6 +1657,7 @@ function clientMiddleware(state, network) {
                 });
 
                 let message = {
+                    ...event,
                     time: eventTime,
                     server_time: serverTime,
                     nick: '',

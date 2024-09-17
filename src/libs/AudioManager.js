@@ -30,6 +30,12 @@ export class AudioManager {
     watchForMessages(state) {
         state.$on('message.new', (event) => {
             let { message, buffer } = event;
+            const historical = message?.batch?.type === 'chathistory'
+                || (
+                    message.server_time &&
+                    message.server_time < (Date.now() - 60000)
+                );
+            if (historical) return;
             if (buffer.setting('mute_sound')) {
                 return;
             }

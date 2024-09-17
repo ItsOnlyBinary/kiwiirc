@@ -229,6 +229,14 @@ function clientMiddleware(state, network) {
         next();
     }
 
+    /**
+     *
+     * @param {string} command
+     * @param {any} event
+     * @param {import('irc-framework/src/client')} client
+     * @param {()=>void} next
+     * @returns
+     */
     function parsedEventsHandler(command, event, client, next) {
         // Trigger this event through the state object first. If it's been handled
         // somewhere else then we ignore it.
@@ -378,6 +386,19 @@ function clientMiddleware(state, network) {
                     message: message,
                 });
             }
+        }
+
+        if (command.toLowerCase() === 'standard reply') {
+            const {
+                description,
+            } = event;
+            const serverBuf = network.serverBuffer();
+            state.addMessage(serverBuf, {
+                ...event,
+                message: description,
+                nick: client.network.server,
+                type: 'server_message',
+            });
         }
 
         if (command.toLowerCase() === 'batch start chathistory' && client.chathistory) {

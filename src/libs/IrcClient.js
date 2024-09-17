@@ -398,6 +398,7 @@ function clientMiddleware(state, network) {
                 message: description,
                 nick: client.network.server,
                 type: 'server_message',
+                type_extra: event.reply_type.toLowerCase(),
             });
         }
 

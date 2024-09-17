@@ -8,6 +8,9 @@
 .kiwi-welcome-znc-error {
     border: 1px dashed var(--brand-error);
 }
+.kiwi-messagelist-message-server_message-fail {
+    background: var(--brand-error);
+}
 
 .kiwi-welcome-simple-form .u-submit {
     background-color: var(--brand-primary);
@@ -818,12 +821,12 @@
     color: var(--brand-primary);
 }
 
-.kiwi-messagelist-message--highlight {
+.kiwi-messagelist-message--highlight, .kiwi-messagelist-message-server_message-note {
     background-color: var(--brand-midtone);
 }
 
 /* Notice Message styling */
-.kiwi-messagelist-message-notice {
+.kiwi-messagelist-message-notice, .kiwi-messagelist-message-server_message-warn {
     background: #EFD1A4;
 }
 

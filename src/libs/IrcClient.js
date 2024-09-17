@@ -391,14 +391,21 @@ function clientMiddleware(state, network) {
         if (command.toLowerCase() === 'standard reply') {
             const {
                 description,
+                reply_type: replyType,
             } = event;
+            let messageBody = TextFormatting.formatText(
+                `server_message_${replyType.toLowerCase()}`,
+                {
+                    text: description,
+                },
+            );
             const serverBuf = network.serverBuffer();
             state.addMessage(serverBuf, {
                 ...event,
-                message: description,
+                message: messageBody,
                 nick: client.network.server,
                 type: 'server_message',
-                type_extra: event.reply_type.toLowerCase(),
+                type_extra: replyType.toLowerCase(),
             });
         }
 

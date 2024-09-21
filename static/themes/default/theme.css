@@ -8,6 +8,7 @@
     --brand-darktone: #969696;
     --brand-default-bg: #fff;
     --brand-default-fg: #22231f;
+    --comp-statebrowser-highlight: var(--brand-notice);
 
     /* Warning colors */
     --brand-notice: #f6c358;

@@ -18,6 +18,18 @@
                     v-else-if="buffer.isQuery() && awayNotifySupported()"
                     :network="network" :user="network.userByName(buffer.name)"
                 />{{ buffer.name }}
+                <component
+                    :is="plugin.component"
+                    v-for="plugin in pluginUiElements"
+                    :key="plugin.id"
+                    :plugin-props="{
+                        network: network,
+                        buffer: buffer
+                    }"
+                    v-bind="plugin.props"
+                    :buffer="buffer"
+                    :network="network"
+                />
             </div>
             <div class="kiwi-statebrowser-buffer-actions">
                 <div class="kiwi-statebrowser-channel-labels">
@@ -62,6 +74,7 @@
 
 <script>
 
+import GlobalApi from '@/libs/GlobalApi';
 import AwayStatusIndicator from './AwayStatusIndicator';
 
 export default {
@@ -79,6 +92,11 @@ export default {
                 this.activePrompt.type === 'buffer' &&
                 this.activePrompt.value === this.buffer);
         },
+    },
+    data() {
+        return {
+            pluginUiElements: GlobalApi.singleton().stateBrowserBufferPlugins,
+        };
     },
     methods: {
         isActiveBuffer() {

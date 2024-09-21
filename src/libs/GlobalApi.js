@@ -57,6 +57,7 @@ export default class GlobalApi extends EventEmitter {
         this.messagePrependPlugins = [];
         this.messageAppendPlugins = [];
         this.controlInputDockPlugins = [];
+        this.stateBrowserBufferPlugins = [];
         this.tabs = Object.create(null);
         this.isReady = false;
         /* eslint-disable no-underscore-dangle */
@@ -220,6 +221,9 @@ export default class GlobalApi extends EventEmitter {
             break;
         case 'message_append':
             this.messageAppendPlugins.push(plugin);
+            break;
+        case 'statebrowser_buffer':
+            this.stateBrowserBufferPlugins.push(plugin);
             break;
         default:
             break;

@@ -53,6 +53,7 @@ export default class Message {
         def(this, 'bodyTemplate', message.bodyTemplate || null);
         def(this, 'bodyTemplateProps', message.bodyTemplateProps || {});
         def(this, 'isHighlight', false);
+        def(this, 'ircMessage', message);
 
         // We don't want the user object to be enumerable
         def(this, 'user', user || null);

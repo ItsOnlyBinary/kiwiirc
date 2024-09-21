@@ -3,7 +3,7 @@
 import getState from './state';
 
 export class History {
-    constructor(baseUrl) {
+    constructor(baseURL) {
         /**
          * @type {{ enter: () => Promise<void>, leave: () => Promise<void>}[]}
          */
@@ -11,7 +11,7 @@ export class History {
         this.history = window.history;
         this.currentPage = 0;
         this.prepared = false;
-        this.baseUrl = baseUrl;
+        this.baseURL = baseURL;
     }
 
     go(n) {
@@ -81,7 +81,7 @@ export class History {
         query,
         hash,
     }) {
-        const url = new URL(this.baseUrl);
+        const url = new URL(this.baseURL);
         if (path) {
             url.pathname = [
                 ...url.pathname.split('/'),

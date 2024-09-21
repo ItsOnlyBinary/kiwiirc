@@ -18,11 +18,11 @@
     --brand-input-border: #000000;
     --brand-input-fg: #616161;
     --brand-input-bg: transparent;
-
+    --github-icon: url(https://github.githubassets.com/favicons/favicon-dark.png);
     /* Connection Indicator top */
     --comp-workspace-before-bg: var(--brand-primary);
     --comp-bg-kiwi-workspace--disconnected-after-bg: var(--brand-error);
-
+    --comp-statebrowser-highlight: var(--brand-default-fg) !important;
     /* Container Header */
     --comp-header-bg: var(--brand-default-bg);
     --comp-header-name-fg: var(--brand-default-fg);

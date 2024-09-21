@@ -3,6 +3,7 @@
         :key="'messagelist-' + buffer.name"
         ref="scroller"
         v-resizeobserver="onListResize"
+        :data-buffer="buffer.name"
         class="kiwi-messagelist"
         :class="{
             'kiwi-messagelist--smoothscroll': smooth_scroll,

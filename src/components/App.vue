@@ -55,6 +55,27 @@
                         :buffer="buffer"
                         :sidebar-state="sidebarState"
                     />
+                    <div
+                        class="kiwi-specialbuffer-controls"
+                        v-if="hasControls"
+                    >
+                        <pre hidden>
+                            {{ specialBufferControls }}
+                        </pre>
+                        <component
+                            :is="plugin.component"
+                            v-for="plugin in specialBufferControls"
+                            :key="plugin.id"
+                            :plugin-props="{
+                                buffer: buffer,
+                                network: network,
+                            }"
+                            v-bind="plugin.props"
+                            :network="network"
+                            :buffer="buffer"
+                            class="kiwi-controlinput-button"
+                        />
+                    </div>
                 </template>
                 <component
                     :is="fallbackComponent"
@@ -85,6 +106,7 @@ import AvatarCommon from '@/components/UserAvatarCommon';
 import * as Notifications from '@/libs/Notifications';
 import * as bufferTools from '@/libs/bufferTools';
 import useSidebarState from '@/libs/SidebarState';
+import GlobalApi from '@/libs/GlobalApi';
 import Logger from '@/libs/Logger';
 
 let log = Logger.namespace('App.vue');
@@ -116,9 +138,27 @@ export default {
             mediaviewerComponentProps: {},
             mediaviewerIframe: false,
             sidebarState: useSidebarState(),
+            plugins: {
+                specialBuffer: {
+                    controls: GlobalApi.singleton().specialBufferControls,
+                },
+            },
         };
     },
     computed: {
+        specialBufferControls() {
+            return this.hasControls &&
+                this.plugins.specialBuffer.controls[this.buffer.name.slice(1)];
+        },
+        hasControls() {
+            return this.buffer.isSpecial() &&
+                this
+                    .plugins
+                    .specialBuffer
+                    ?.controls
+                    ?.[this.buffer.name.slice(1)]
+                    ?.length;
+        },
         networks() {
             return this.$state.networks;
         },

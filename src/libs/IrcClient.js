@@ -123,6 +123,7 @@ export function create(state, network) {
 
         let buffer = state.getOrAddBufferByName(networkid, '*raw');
         state.addMessage(buffer, {
+            ...event,
             time: Date.now(),
             nick: '',
             message: (event.from_server ? '[S] ' : '[C] ') + event.line,
@@ -220,6 +221,7 @@ function clientMiddleware(state, network) {
 
             let buffer = network.serverBuffer();
             state.addMessage(buffer, {
+                ...event,
                 time: Date.now(),
                 nick: '',
                 message: event.command + ' ' + params.join(' '),

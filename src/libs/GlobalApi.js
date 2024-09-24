@@ -43,6 +43,7 @@ export default class GlobalApi extends EventEmitter {
         this.translationUrls = Object.create(null);
 
         this.controlInputPlugins = [];
+        this.specialBufferControls = {};
         this.stateBrowserPlugins = [];
         this.channelHeaderPlugins = [];
         this.queryHeaderPlugins = [];
@@ -226,6 +227,11 @@ export default class GlobalApi extends EventEmitter {
             this.stateBrowserBufferPlugins.push(plugin);
             break;
         default:
+            if (type.indexOf('buffer.special.controls.') === 0) {
+                const slug = type.split('.').pop();
+                this.specialBufferControls[slug] ??= [];
+                this.specialBufferControls[slug].push(plugin);
+            }
             break;
         }
     }

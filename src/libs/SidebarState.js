@@ -21,10 +21,37 @@ export default function useSidebarState() {
     const api = GlobalApi.singleton();
     api.on('sidebar.component', (component, props) => {
         resetSidebarState();
-        sidebarOpen.value = !!component;
-        activeComponent.value = component;
-        activeComponentProps.value = props || {};
-        sidebarSection.value = sidebarOpen.value ? 'component' : '';
+        const open = !!component;
+        const state = getState();
+        if (state.ui.is_touch) {
+            const leave = () => {
+                sidebarOpen.value = false;
+                activeComponent.value = null;
+                activeComponentProps.value = {};
+                sidebarSection.value = '';
+            };
+            if (open) {
+                state.history.push({
+                    enter: () => {
+                        sidebarOpen.value = true;
+                        activeComponent.value = component;
+                        activeComponentProps.value = props;
+                        sidebarSection.value = 'component';
+                    },
+                    leave,
+                    query: {
+                        sidebar: 'open',
+                    },
+                });
+            } else {
+                state.history.go(-1);
+            }
+        } else {
+            sidebarOpen.value = open;
+            activeComponent.value = component;
+            activeComponentProps.value = props || {};
+            sidebarSection.value = sidebarOpen.value ? 'component' : '';
+        }
     });
 
     // Allow forcing the sidebar open at startup

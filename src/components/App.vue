@@ -20,7 +20,7 @@
                     'kiwi-workspace--disconnected': network && network.state !== 'connected'
                 }"
                 class="kiwi-workspace"
-                @click="stateBrowserDrawOpen = false"
+                @click="hideStateBrowser()"
             >
                 <div class="kiwi-workspace-background" />
 
@@ -40,6 +40,14 @@
                                 @close="$state.$emit('mediaviewer.hide', { source: 'user' });"
                             />
                         </template>
+                        <template #after>
+                            <div class="kiwi-messagelist-controls">
+                                <div ref="scrollToBottom" class="control scroll-to-bottom" @click="scrollToBottom">
+                                    <svg-icon icon="fa-solid fa-arrow-down" class="icon" />
+                                    Jump to Bottom
+                                </div>
+                            </div>
+                        </template>
                     </container>
                     <control-input
                         v-if="buffer.show_input"
@@ -47,6 +55,27 @@
                         :buffer="buffer"
                         :sidebar-state="sidebarState"
                     />
+                    <div
+                        class="kiwi-specialbuffer-controls"
+                        v-if="hasControls"
+                    >
+                        <pre hidden>
+                            {{ specialBufferControls }}
+                        </pre>
+                        <component
+                            :is="plugin.component"
+                            v-for="plugin in specialBufferControls"
+                            :key="plugin.id"
+                            :plugin-props="{
+                                buffer: buffer,
+                                network: network,
+                            }"
+                            v-bind="plugin.props"
+                            :network="network"
+                            :buffer="buffer"
+                            class="kiwi-controlinput-button"
+                        />
+                    </div>
                 </template>
                 <component
                     :is="fallbackComponent"
@@ -77,6 +106,7 @@ import AvatarCommon from '@/components/UserAvatarCommon';
 import * as Notifications from '@/libs/Notifications';
 import * as bufferTools from '@/libs/bufferTools';
 import useSidebarState from '@/libs/SidebarState';
+import GlobalApi from '@/libs/GlobalApi';
 import Logger from '@/libs/Logger';
 
 let log = Logger.namespace('App.vue');
@@ -108,9 +138,27 @@ export default {
             mediaviewerComponentProps: {},
             mediaviewerIframe: false,
             sidebarState: useSidebarState(),
+            plugins: {
+                specialBuffer: {
+                    controls: GlobalApi.singleton().specialBufferControls,
+                },
+            },
         };
     },
     computed: {
+        specialBufferControls() {
+            return this.hasControls &&
+                this.plugins.specialBuffer.controls[this.buffer.name.slice(1)];
+        },
+        hasControls() {
+            return this.buffer.isSpecial() &&
+                this
+                    .plugins
+                    .specialBuffer
+                    ?.controls
+                    ?.[this.buffer.name.slice(1)]
+                    ?.length;
+        },
         networks() {
             return this.$state.networks;
         },
@@ -170,19 +218,46 @@ export default {
         },
         listenForActiveComponents() {
             this.listen(this.$state, 'active.component', (component, props) => {
-                this.activeComponent = null;
                 if (component) {
-                    this.activeComponentProps = props;
-                    this.activeComponent = component;
+                    this.activeComponent = null;
+                    this.$state.history.push({
+                        enter: () => {
+                            this.activeComponent = component;
+                            this.activeComponentProps = props;
+                        },
+                        leave: () => {
+                            this.activeComponent = null;
+                        },
+                        query: {
+                            view: '',
+                        },
+                    });
+                } else if (this.activeComponent && this.$state.history.currentPage) {
+                    // this.state.history.currentPage &&
+                    this.$state.history.go(-1);
+                } else {
+                    this.activeComponent = null;
                 }
+                this.$state.activeComponent = this.activeComponent;
             });
             this.listen(this.$state, 'active.component.toggle', (component, props) => {
                 if (component === this.activeComponent) {
-                    this.activeComponent = null;
+                    this.$state.history.go(-1);
                 } else if (component) {
-                    this.activeComponentProps = props;
-                    this.activeComponent = component;
+                    this.$state.history.push({
+                        enter: () => {
+                            this.activeComponent = component;
+                            this.activeComponentProps = props;
+                        },
+                        leave: () => {
+                            this.activeComponent = null;
+                        },
+                        query: {
+                            view: '',
+                        },
+                    });
                 }
+                this.$state.activeComponent = this.activeComponent;
             });
         },
         watchForThemes() {
@@ -190,15 +265,40 @@ export default {
                 this.$state.clearNickColours();
             });
         },
+        hideStateBrowser() {
+            if (!this.stateBrowserDrawOpen) return;
+            if (this.$state.ui.is_touch) {
+                this.$state.history.go(-1);
+            } else {
+                this.stateBrowserDrawOpen = false;
+            }
+            this.$state.stateBrowserDrawOpen = this.stateBrowserDrawOpen;
+        },
+        showStateBrowser() {
+            if (this.stateBrowserDrawOpen) return;
+            if (this.$state.ui.is_touch) {
+                this.$state.history.push({
+                    enter: () => { this.stateBrowserDrawOpen = true; },
+                    leave: () => { this.stateBrowserDrawOpen = false; },
+                    query: {
+                        statebrowser: 'open',
+                    },
+                });
+            } else {
+                this.stateBrowserDrawOpen = true;
+            }
+            this.$state.stateBrowserDrawOpen = this.stateBrowserDrawOpen;
+        },
         initStateBrowser() {
             this.listen(this.$state, 'statebrowser.toggle', () => {
-                this.stateBrowserDrawOpen = !this.stateBrowserDrawOpen;
+                const setting = !this.stateBrowserDrawOpen;
+                setting ? this.showStateBrowser() : this.hideStateBrowser();
             });
             this.listen(this.$state, 'statebrowser.show', () => {
-                this.stateBrowserDrawOpen = true;
+                this.showStateBrowser();
             });
             this.listen(this.$state, 'statebrowser.hide', () => {
-                this.stateBrowserDrawOpen = false;
+                this.hideStateBrowser();
             });
         },
         initMediaviewer() {
@@ -317,6 +417,14 @@ export default {
             }
 
             this.$state.ui.app_is_visible = newState;
+        },
+        scrollToBottom() {
+            this.$state.$emit('messagelist.scrollto-bottom');
+            setTimeout(() => {
+                if (this.$refs.scrollToBottom) {
+                    this.$refs.scrollToBottom.classList.remove('active');
+                }
+            }, 50);
         },
         onKeyDown(event) {
             this.$state.$emit('document.keydown', event);
@@ -444,7 +552,42 @@ html, body, #kiwiirc {
        anyway. */
     height: 5%;
 }
+.kiwi-container-content {
+    position: relative;
+}
+.kiwi-messagelist-controls {
+    pointer-events: none;
+    width: 100%;
+    position: absolute;
+    top: 90%;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+}
 
+.kiwi-messagelist-controls .control {
+    pointer-events: all;
+    background: var(--brand-primary);
+    color: white;
+    padding: 4px;
+    border-radius: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border: 1px solid var(--brand-default-fg);
+}
+.kiwi-messagelist-controls .control.scroll-to-bottom .icon {
+    margin-right: 8px;
+}
+.kiwi-messagelist-controls .control.scroll-to-bottom {
+    opacity: 0;
+    margin-top: 64px;
+    transition: all ease-in-out 0.3s;
+}
+.kiwi-messagelist-controls .control.scroll-to-bottom.active {
+    opacity: 1;
+    margin-top: 0;
+    top: 90%;
+}
 .kiwi-main-mediaviewer {
     max-height: 70%;
     overflow: auto;

@@ -5,6 +5,7 @@ import { urlRegex } from '@/helpers/TextFormatting';
 import UserAvatar from './UserAvatar';
 import MessageInfo from './MessageInfo';
 import MediaViewer from './MediaViewer';
+import buildPluginSection from './utils/build-plugin-section';
 
 const messageTypes = ['privmsg', 'action', 'notice', 'message'];
 const isMessage = (message) => messageTypes.indexOf(message.type) > -1;
@@ -180,7 +181,7 @@ const buildMessageFooter = (props, context, cache) => {
         }));
     }
 
-    return footer;
+    return buildPluginSection('append')(props, context, cache).concat(footer);
 };
 
 const messageModern = (props, context) => {
@@ -232,14 +233,14 @@ const messageModern = (props, context) => {
             h('div', {
                 class: ['kiwi-messagelist-top'],
             }, buildMessageTop(props, context, cache)),
-
+            ...buildPluginSection('prepend')(props, context, cache),
             buildMessageBody(props, context, cache),
             ...buildMessageFooter(props, context, cache),
         ]),
     ])];
 };
 
-messageModern.props = ['ml', 'idx', 'message'];
+messageModern.props = ['ml', 'append', 'prepend', 'message'];
 
 export default messageModern;
 </script>
@@ -373,7 +374,9 @@ export default messageModern;
 .kiwi-messagelist-message-error .kiwi-messagelist-body {
     margin-bottom: 0;
 }
-
+.kiwi-messagelist-body-prepend-addons {
+    color: initial;
+}
 @media screen and (max-width: 769px) {
     .kiwi-messagelist-message--modern .kiwi-messagelist-modern-left {
         width: 10px;

@@ -4,10 +4,15 @@
     border: 1px solid var(--brand-midtone);
 }
 
+.kiwi-messagelist-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
 .kiwi-welcome-simple-error,
 .kiwi-welcome-znc-error {
     border: 1px dashed var(--brand-error);
 }
+
 
 .kiwi-welcome-simple-form .u-submit {
     background-color: var(--brand-primary);
@@ -18,7 +23,12 @@
 .kiwi-welcome-simple .help a {
     color: var(--brand-default-fg);
 }
-
+.kiwi-messagelist-addons {
+    line-height: 0;
+}
+.kiwi-messagelist-message.unloaded {
+    min-height: 64px;
+}
 .kiwi-welcome-simple .help a:hover {
     color: var(--brand-primary-hover);
 }
@@ -210,7 +220,7 @@
     background-color: var(--brand-default-bg);
 }
 
-.kiwi-controlinput-command-warn .fa-triangle-exclamation {
+.kiwi-controlinput-command-warn .fa-exclamation-triangle {
     color: var(--brand-error);
 }
 
@@ -379,7 +389,7 @@
     background-color: rgba(127, 127, 127, 0.5);
 }
 
-.kiwi-sidebar-settings-access-table > div {
+.kiwi-sidebar-settings-access-table>div {
     border-bottom-color: var(--comp-border);
 }
 
@@ -504,7 +514,9 @@
     border-bottom: 1px solid var(--brand-shadow);
     color: var(--comp-statebrowser-fg);
 }
-
+.kiwi-statebrowser-channel-name {
+    display: flex;
+}
 .kiwi-statebrowser-channel .kiwi-statebrowser-channel-name {
     color: var(--comp-statebrowser-fg);
 }
@@ -568,6 +580,24 @@
 
 .kiwi-statebrowser-network-status {
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* Icon before the network in network list */
+.kiwi-statebrowser-network-name::before {
+    content: '\f233';
+    font-family: fontAwesome, Helvetica, Arial, Verdana, Tahoma, sans-serif;
+    margin-right: 2px;
+    font-weight: 100;
+    text-decoration: none;
+}
+
+/* Icons in the Channel List */
+.kiwi-statebrowser-channel[data-name^="*"]::before {
+    content: '\f006';
+}
+
+.kiwi-statebrowser-channel[data-name="#help"]::before {
+    content: '\f059';
 }
 
 .kiwi-statebrowser-channel::before {
@@ -737,12 +767,20 @@
     color: var(--brand-primary);
 }
 
-.kiwi-networksettings .kiwi-customserver-tls path {
-    fill: var(--brand-primary);
+.kiwi-networksettings .kiwi-customserver-tls {
+    color: var(--brand-midtone);
 }
 
-.kiwi-networksettings .kiwi-customserver-tls--enabled path {
-    fill: var(--brand-error);
+.kiwi-networksettings .kiwi-customserver-tls--enabled {
+    color: var(--brand-primary);
+}
+
+.kiwi-networksettings .kiwi-customserver-tls--enabled .kiwi-customserver-tls-lock {
+    color: var(--brand-primary);
+}
+
+.kiwi-networksettings .kiwi-customserver-tls-minus {
+    color: var(--brand-error);
 }
 
 .kiwi-networksettings-error {
@@ -763,6 +801,12 @@
 .kiwi-networksettings .kiwi-networksettings-server-types .kiwi-network-type-button.kiwi-networksettings-server-type-active {
     background: var(--brand-primary);
     color: var(--brand-default-bg);
+}
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .kiwi-networksettings .u-form span {
@@ -790,6 +834,24 @@
     color: var(--brand-primary);
 }
 
+@media screen and (height < 800px) {
+
+    .kiwi-controlinput-inner {
+        padding-bottom: 24px;
+    }
+}
+
+/* .kiwi-header {
+    margin-right: 0;
+    position: sticky;
+    width: 100%;
+    top: 0;
+} */
+
+/* .kiwi-messagelist-message--text>div {
+    display: flex;
+} */
+
 /* ---- Message list - ( MessageList.vue ) ---- */
 .kiwi-messagelist {
     scrollbar-color: #9e9e9e transparent;
@@ -805,12 +867,17 @@
     font-size: 0.9em;
 }
 
-.kiwi-messagelist-seperator > span {
+.kiwi-messagelist-seperator>span {
     background: var(--brand-default-bg);
 }
 
+.kiwi-messagelist-message {
+    transition: background-color ease-out 0.5s;
+}
+
 .kiwi-messagelist-message--info-open,
-.kiwi-messagelist-message--authorrepeat.kiwi-messagelist-message--info-open {
+.kiwi-messagelist-message--authorrepeat.kiwi-messagelist-message--info-open,
+.kiwi-messagelist-message.attention {
     background: var(--brand-midtone);
 }
 
@@ -818,12 +885,12 @@
     color: var(--brand-primary);
 }
 
-.kiwi-messagelist-message--highlight {
+.kiwi-messagelist-message--highlight, .kiwi-messagelist-message-server_message-note {
     background-color: var(--brand-midtone);
 }
 
 /* Notice Message styling */
-.kiwi-messagelist-message-notice {
+.kiwi-messagelist-message-notice,.kiwi-messagelist-message-server_message-warn {
     background: #EFD1A4;
 }
 
@@ -880,6 +947,17 @@
 .kiwi-messagelist-message-traffic-part .kiwi-nick::before,
 .kiwi-messagelist-message-traffic-part_self .kiwi-nick::before {
     color: var(--brand-error);
+}
+.kiwi-messagelist-message-server_message-fail {
+    background: var(--brand-error);
+    color: var(--brand-default-bg) !important;
+}
+.kiwi-messagelist-message-server_message-fail * {
+    color: var(--brand-default-bg) !important;
+}
+.inline,
+.inline * {
+    white-space: nowrap;
 }
 
 /* ---- Modern Layout Styling ---- */
@@ -939,7 +1017,7 @@
     border-top: 1px solid var(--brand-midtone);
 }
 
-.kiwi-header-topic > div {
+.kiwi-header-topic>div {
     color: var(--brand-default-fg);
 }
 

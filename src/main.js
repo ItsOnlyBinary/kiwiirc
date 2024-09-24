@@ -7,8 +7,8 @@ import i18nextHTTP from 'i18next-http-backend';
 import VueI18Next from 'i18next-vue';
 import VueVirtualScroller from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
-
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
 
 // fetch polyfill
 import 'whatwg-fetch';
@@ -45,9 +45,8 @@ import TransitionExpand from '@/components/utils/TransitionExpand';
 import AvailableLocales from '@/res/locales/available.json';
 import FallbackLocale from '@/../static/locales/dev.json';
 
-import SvgSpinner from '@/res/icons/ring-resize.svg';
-
-import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
+import SvgSpinner from './res/icons/ring-resize.svg';
+import { History } from './libs/History';
 
 Object.assign(faConfig, {
     observeMutations: false,
@@ -316,6 +315,7 @@ function loadApp() {
     (configObj ? configLoader.loadFromObj(configObj) : configLoader.loadFromUrl(configFile))
         .then(applyConfig)
         .then(initState)
+        .then(initHistory)
         .then(initInputCommands)
         .then(initLocales)
         .then(initThemes)
@@ -359,7 +359,10 @@ function applyConfigObj(obj, target) {
         }
     });
 }
-
+function initHistory() {
+    const state = getState();
+    state.history = new History(state.setting('baseURL') || '' + window.location);
+}
 function loadPlugins() {
     return new Promise((resolve, reject) => {
         let plugins = getState().settings.plugins || [];
@@ -500,15 +503,16 @@ function initLocales() {
         }
     };
     setDefaultLanguage();
-
-    // Update the language if the setting changes.
-    watch(getState().settingComputed('language'), (lang) => {
+    const chgLang = (lang) => {
         if (!lang && !getState().setting('language')) {
             setDefaultLanguage();
         } else {
             i18next.changeLanguage(lang || getState().setting('language') || 'en-us');
         }
-    });
+    };
+    getState().chgLang = chgLang;
+    // Update the language if the setting changes.
+    watch(getState().settingComputed('language'), chgLang);
 }
 
 async function initState() {

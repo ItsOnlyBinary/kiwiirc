@@ -1,8 +1,10 @@
 'kiwi public';
 
+// eslint-disable-next-line
+import callsite from 'callsite';
+
 const defaultLogger = makeLogger();
 export default defaultLogger;
-
 function makeLogger(label, rootLogger) {
     function logger(...args) {
         logger.info(...args);
@@ -12,10 +14,24 @@ function makeLogger(label, rootLogger) {
     logger.LEVEL_INFO = 1;
     logger.LEVEL_ERROR = 0;
     logger.level = logger.LEVEL_ERROR;
-
+    logger.source = false;
+    function getSrc() {
+        /**
+         * @type {import('callsite')}
+         */
+        const stack = callsite();
+        const entry = stack[2];
+        const line = entry?.getLineNumber?.();
+        const column = entry?.getColumnNumber?.();
+        return [entry?.getFileName?.()?.split?.('/').pop?.() || '<anonymous>', line, column].filter(Boolean).join(':');
+    }
     function logLevel(compareLevel) {
         let l = rootLogger || logger;
         return l.level >= compareLevel;
+    }
+    function logSource() {
+        const l = rootLogger || logger;
+        return l.source;
     }
 
     logger.debug = function logDebug(...args) {
@@ -23,6 +39,7 @@ function makeLogger(label, rootLogger) {
             if (label) {
                 args[0] = `[${label}] DEBUG ${args[0]}`;
             }
+            if (logSource()) args.unshift(getSrc());
             window.console.log(...args);
         }
     };
@@ -32,6 +49,7 @@ function makeLogger(label, rootLogger) {
             if (label) {
                 args[0] = `[${label}] INFO ${args[0]}`;
             }
+            if (logSource()) args.unshift(getSrc());
             window.console.log(...args);
         }
     };
@@ -41,7 +59,7 @@ function makeLogger(label, rootLogger) {
             if (label) {
                 args[0] = `[${label}] ERROR ${args[0]}`;
             }
-
+            if (logSource()) args.unshift(getSrc());
             window.console.error(...args);
         }
     };
@@ -57,7 +75,12 @@ function makeLogger(label, rootLogger) {
     logger.setLevel = function setLevel(newLevel) {
         logger.level = newLevel;
     };
-
+    logger.enableSourceLogging = function enableSourceLogging() {
+        logger.source = true;
+    };
+    logger.disableSourceLogging = function enableSourceLogging() {
+        logger.source = false;
+    };
     logger.namespace = function namespace(newLabel) {
         let l = newLabel;
         if (label) {

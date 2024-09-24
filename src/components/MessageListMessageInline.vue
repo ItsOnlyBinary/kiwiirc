@@ -1,6 +1,7 @@
 <script>
 import { h, createTextVNode } from 'vue';
 
+import buildPluginSection from './utils/build-plugin-section';
 import MessageInfo from './MessageInfo';
 import MediaViewer from './MediaViewer';
 
@@ -40,6 +41,7 @@ const buildInline = (props, context, cache) => {
         h('a', [
             createTextVNode(props.message.nick ? `${props.message.nick}:` : ''),
         ]),
+        ...buildPluginSection('prepend')(props, context, cache),
     ]));
 
     inline.push(buildMessageBody(props, context, cache));
@@ -84,7 +86,7 @@ const buildMessageFooter = (props, context, cache) => {
         }));
     }
 
-    return footer;
+    return buildPluginSection('append')(props, context, cache).concat(footer);
 };
 
 const messageInline = (props, context) => {
@@ -128,7 +130,7 @@ const messageInline = (props, context) => {
         ...buildMessageFooter(props, context, cache),
     ]);
 };
-messageInline.props = ['ml', 'idx', 'message'];
+messageInline.props = ['ml', 'append', 'prepend', 'message'];
 
 export default messageInline;
 </script>
@@ -208,7 +210,9 @@ export default messageInline;
 .kiwi-messagelist-message--text.kiwi-messagelist-message--unread {
     opacity: 1;
 }
-
+.kiwi-messagelist-body-prepend-addons {
+    color: initial;
+}
 .kiwi-messagelist-message--text .kiwi-messagelist-message-traffic .kiwi-messagelist-nick {
     display: none;
 }

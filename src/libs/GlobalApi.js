@@ -43,6 +43,7 @@ export default class GlobalApi extends EventEmitter {
         this.translationUrls = Object.create(null);
 
         this.controlInputPlugins = [];
+        this.specialBufferControls = {};
         this.stateBrowserPlugins = [];
         this.channelHeaderPlugins = [];
         this.queryHeaderPlugins = [];
@@ -53,6 +54,11 @@ export default class GlobalApi extends EventEmitter {
         this.appSettingsPlugins = [];
         this.serverViewPlugins = [];
         this.aboutBufferPlugins = [];
+        this.messageInfoPlugins = [];
+        this.messagePrependPlugins = [];
+        this.messageAppendPlugins = [];
+        this.controlInputDockPlugins = [];
+        this.stateBrowserBufferPlugins = [];
         this.tabs = Object.create(null);
         this.isReady = false;
         /* eslint-disable no-underscore-dangle */
@@ -180,8 +186,12 @@ export default class GlobalApi extends EventEmitter {
         const plugin = Misc.makePluginObject(this.app, nextPluginId++, component, args);
 
         switch (type) {
+        case 'input_tool':
         case 'input':
             this.controlInputPlugins.push(plugin);
+            break;
+        case 'input_dock':
+            this.controlInputDockPlugins.push(plugin);
             break;
         case 'browser':
             this.stateBrowserPlugins.push(plugin);
@@ -204,7 +214,24 @@ export default class GlobalApi extends EventEmitter {
         case 'about_buffer':
             this.aboutBufferPlugins.push(plugin);
             break;
+        case 'message_info':
+            this.messageInfoPlugins.push(plugin);
+            break;
+        case 'message_prepend':
+            this.messagePrependPlugins.push(plugin);
+            break;
+        case 'message_append':
+            this.messageAppendPlugins.push(plugin);
+            break;
+        case 'statebrowser_buffer':
+            this.stateBrowserBufferPlugins.push(plugin);
+            break;
         default:
+            if (type.indexOf('buffer.special.controls.') === 0) {
+                const slug = type.split('.').pop();
+                this.specialBufferControls[slug] ??= [];
+                this.specialBufferControls[slug].push(plugin);
+            }
             break;
         }
     }

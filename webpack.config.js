@@ -5,7 +5,7 @@ const devConfig = require('./build/configs/dev');
 const prodConfig = require('./build/configs/prod');
 
 module.exports = (env, argv) => {
-    const isDev = env.WEBPACK_SERVE;
+    const isDev = env.NODE_ENV === 'development' || env.WEBPACK_SERVE;
     let config = {
         mode: isDev ? 'development' : 'production',
     };

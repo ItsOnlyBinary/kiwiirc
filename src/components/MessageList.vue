@@ -3,6 +3,7 @@
         :key="'messagelist-' + buffer.name"
         ref="scroller"
         v-resizeobserver="onListResize"
+        :data-buffer="buffer.name"
         class="kiwi-messagelist"
         :class="{
             'kiwi-messagelist--smoothscroll': smooth_scroll,
@@ -52,31 +53,46 @@
                                         ''
                                 ]"
                             >
+                                <!-- message.template is checked first for a custom component,
+                                    then each message layout checks for a message.bodyTemplate
+                                    custom component to apply only to the body area
+                                -->
                                 <component
                                     :is="message.template"
                                     v-if="message.render() && message.template"
                                     v-bind="message.templateProps"
                                     :buffer="buffer"
                                     :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
                                     :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
                                 />
                                 <message-list-message-modern
                                     v-else-if="listType === 'modern'"
                                     :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
                                     :idx="filteredMessages.indexOf(message)"
+                                    :buffer="buffer"
                                     :ml="thisMl"
                                 />
                                 <message-list-message-inline
                                     v-else-if="listType === 'inline'"
                                     :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
+                                    :buffer="buffer"
                                     :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
                                 />
                                 <message-list-message-compact
                                     v-else-if="listType === 'compact'"
                                     :message="message"
+                                    :prepend="messagePrependPlugins"
+                                    :append="messageAppendPlugins"
                                     :idx="filteredMessages.indexOf(message)"
+                                    :buffer="buffer"
                                     :ml="thisMl"
                                 />
                             </div>
@@ -92,7 +108,6 @@
                     <LoadingAnimation />
                 </div>
             </transition>
-
             <buffer-key
                 v-if="shouldRequestChannelKey"
                 :buffer="buffer"
@@ -108,6 +123,7 @@
 import { watch } from 'vue';
 import strftime from 'strftime';
 import Logger from '@/libs/Logger';
+import GlobalApi from '@/libs/GlobalApi';
 import * as bufferTools from '@/libs/bufferTools';
 import MessageListMessageCompact from './MessageListMessageCompact';
 import MessageListMessageModern from './MessageListMessageModern';
@@ -122,7 +138,6 @@ let log = Logger.namespace('MessageList.vue');
 // If we're scrolled up more than this many pixels, don't auto scroll down to the bottom
 // of the message list
 const BOTTOM_SCROLL_MARGIN = 60;
-
 export default {
     components: {
         MessageListMessageModern,
@@ -140,9 +155,14 @@ export default {
             chathistoryAvailable: true,
             hover_nick: '',
             message_info_open: null,
+            maintainScroll: false,
             timeToClose: false,
             startClosing: false,
+            messagePrependPlugins: GlobalApi.singleton().messagePrependPlugins,
+            messageAppendPlugins: GlobalApi.singleton().messageAppendPlugins,
             selectedMessages: Object.create(null),
+            seen: Object.create(null),
+            observer: null,
         };
     },
     computed: {
@@ -253,12 +273,24 @@ export default {
     },
     mounted() {
         this.addCopyListeners();
-
+        this.$state.ml = this;
         this.$nextTick(() => {
             this.scrollToBottom();
             // this.smooth_scroll = true;
         });
-
+        const scrollToBottom = document.querySelector('.kiwi-messagelist-controls .control.scroll-to-bottom');
+        this.$el.addEventListener('scroll', () => {
+            if (this.$el.scrollHeight - this.$el.scrollTop >= BOTTOM_SCROLL_MARGIN) {
+                if (!scrollToBottom.classList.contains('active')) {
+                    scrollToBottom.classList.add('active');
+                    setTimeout(() => {
+                        scrollToBottom.classList.remove('active');
+                    }, 5000);
+                }
+            } else {
+                scrollToBottom.classList.contains('active') && scrollToBottom.classList.remove('active');
+            }
+        });
         // this watcher was moved here due to it firing before mounted() could scroll
         // to the bottom, this resulted in auto_scroll being set to false
         watch(() => this.buffer.message_count, () => {
@@ -276,11 +308,16 @@ export default {
         this.listen(this.$state, 'mediaviewer.opened', () => {
             this.$nextTick(this.maybeScrollToBottom.apply(this));
         });
-
         this.listen(this.$state, 'messagelist.scrollto', (opt) => {
             if (opt && opt.id) {
                 this.maybeScrollToId(opt.id);
             }
+        });
+        this.listen(this.$state, 'messagelist.scrollto-bottom', () => {
+            this.scrollToBottom();
+        });
+        this.$state.$on('messageinfo.close', () => {
+            this.message_info_open = null;
         });
     },
     methods: {
@@ -379,7 +416,18 @@ export default {
             }
             return '';
         },
+        keepScroll(hacklevel = 2) {
+            const self = this;
+            this.maintainScroll = {
+                resistance: hacklevel,
+                release() {
+                    this.resistance--;
+                    if (!this.resistance) self.maintainScroll = null;
+                },
+            };
+        },
         openUserBox(nick) {
+            this.keepScroll(2);
             let user = this.$state.getUser(this.buffer.networkid, nick);
             if (user) {
                 this.$state.$emit('userbox.show', user, {
@@ -456,7 +504,7 @@ export default {
                 return;
             }
 
-            if (this.$state.ui.is_touch && this.$state.setting('buffers.show_message_info')) {
+            if ((this.$state.ui.is_touch || this.$state.setting('buffers.show_message_info_desktop')) && this.$state.setting('buffers.show_message_info')) {
                 if (this.canShowInfoForMessage(message) && event.target.nodeName === 'A') {
                     // We show message info boxes on touch screen devices so that the user has an
                     // option to preview the links or do other stuff.
@@ -500,6 +548,10 @@ export default {
             this.maybeScrollToBottom();
         },
         scrollToBottom() {
+            if (this.maintainScroll) {
+                this.maintainScroll.release();
+                return;
+            }
             this.$el.scrollTop = this.$el.scrollHeight;
         },
         maybeScrollToBottom() {

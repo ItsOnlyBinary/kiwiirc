@@ -1,6 +1,6 @@
 <script>
 import { h, createTextVNode } from 'vue';
-
+import buildPluginSection from './utils/build-plugin-section';
 import AwayStatusIndicator from './AwayStatusIndicator';
 import MessageInfo from './MessageInfo';
 import MediaViewer from './MediaViewer';
@@ -20,6 +20,7 @@ const isRepeat = (props) => {
         message.day_num === prevMessage.day_num;
 };
 
+const buildMessageHeader = buildPluginSection('prepend');
 const buildMessageBody = (props, context, cache) => {
     if (props.message.bodyTemplate) {
         return h(props.message.bodyTemplate, {
@@ -57,7 +58,7 @@ const buildMessageFooter = (props, context, cache) => {
         }));
     }
 
-    return footer;
+    return buildPluginSection('append')(props, context, cache).concat(footer);
 };
 
 const messageCompact = (props, context) => {
@@ -113,7 +114,7 @@ const messageCompact = (props, context) => {
         'onMouseout': () => (props.ml.hover_nick = ''),
         style,
     }, nickChildren));
-
+    messageChildren.push(...buildMessageHeader(props, context, cache));
     messageChildren.push(buildMessageBody(props, context, cache));
     messageChildren.push(...buildMessageFooter(props, context, cache));
 
@@ -145,7 +146,7 @@ const messageCompact = (props, context) => {
     }, messageChildren);
 };
 
-messageCompact.props = ['ml', 'idx', 'message'];
+messageCompact.props = ['ml', 'append', 'prepend', 'message'];
 
 export default messageCompact;
 </script>

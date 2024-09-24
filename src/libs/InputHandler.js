@@ -119,6 +119,7 @@ export default class InputHandler {
 
         // Plugins may tap into this event to handle a command themselves
         this.state.$emit('input.command.' + command, eventObj, command, params);
+        this.state.$emit('input.command.*', eventObj, command, params);
         if (eventObj.handled) {
             return;
         }
@@ -128,7 +129,7 @@ export default class InputHandler {
         }
 
         if (!eventObj.handled) {
-            network.ircClient.raw(line);
+            network.ircClient.raw(rawLine);
         }
     }
 }
@@ -197,6 +198,7 @@ function handleMessage(type, event, command, line) {
             nick: network.nick,
             message: messageBody,
             type: type,
+            tags: event.tags,
         };
 
         this.state.addMessage(buffer, newMessage);
@@ -208,7 +210,7 @@ function handleMessage(type, event, command, line) {
         notice: 'notice',
     };
     let fnName = fnNames[type] || 'say';
-    network.ircClient[fnName](bufferName, message);
+    network.ircClient[fnName](bufferName, message, event.tags);
 }
 
 inputCommands.msg = function inputCommandMsg(event, command, line) {

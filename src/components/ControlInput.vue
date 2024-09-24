@@ -62,6 +62,19 @@
                 </div>
                 <typing-users-list v-if="buffer.setting('share_typing')" :buffer="buffer" />
                 <div class="kiwi-controlinput-input-wrap">
+                    <component
+                        :is="plugin.component"
+                        v-for="plugin in pluginUiElements.dock"
+                        :key="plugin.id"
+                        :plugin-props="{
+                            buffer: buffer,
+                            controlinput: self,
+                        }"
+                        v-bind="plugin.props"
+                        :network="network"
+                        :buffer="buffer"
+                        :controlinput="self"
+                    />
                     <irc-input
                         ref="input"
                         :placeholder="$t('input_placeholder')"
@@ -121,7 +134,7 @@
                         </div>
                         <component
                             :is="plugin.component"
-                            v-for="plugin in pluginUiElements"
+                            v-for="plugin in pluginUiElements.tools"
                             :key="plugin.id"
                             :plugin-props="{
                                 buffer: buffer,
@@ -129,6 +142,7 @@
                             }"
                             v-bind="plugin.props"
                             :network="network"
+                            :controlinput="self"
                             :buffer="buffer"
                             class="kiwi-controlinput-button"
                         />
@@ -187,7 +201,10 @@ export default {
             autocomplete_filtering: true,
             active_tool: null,
             active_tool_props: {},
-            pluginUiElements: GlobalApi.singleton().controlInputPlugins,
+            pluginUiElements: {
+                tools: GlobalApi.singleton().controlInputPlugins,
+                dock: GlobalApi.singleton().controlInputDockPlugins,
+            },
             showPlugins: false,
             showCommandWarning: false,
             current_input_value: '',
@@ -212,17 +229,15 @@ export default {
             return this.$state.ui.is_touch || this.$state.setting('showSendButton');
         },
         shouldShowEmojiPicker() {
-            return (
-                this.$state.setting('forceShowEmojiPicker') ||
-                (this.$state.setting('showEmojiPicker') && !this.$state.ui.is_touch)
-            );
+            return this.$state.setting('forceShowEmojiPicker') ||
+                        (this.$state.setting('showEmojiPicker') && !this.$state.ui.is_touch);
         },
         shouldShowColorPicker() {
             return this.$state.setting('showColorPicker');
         },
         shouldShowTools() {
             if (
-                this.pluginUiElements.length ||
+                this.pluginUiElements.tools.length ||
                 this.shouldShowEmojiPicker ||
                 this.shouldShowColorPicker
             ) {
@@ -231,7 +246,7 @@ export default {
             return false;
         },
         shouldShowToolsInline() {
-            let toolCount = this.pluginUiElements.length;
+            let toolCount = this.pluginUiElements.tools.length;
             if (this.shouldShowEmojiPicker) {
                 toolCount++;
             }

@@ -20,10 +20,13 @@ function render(blocks, renderEmoticons) {
         // a
         let style = '';
         let classes = '';
+        let decoration = [];
 
         Object.keys(block.styles).forEach((s) => {
             if (s === 'underline') {
-                style += 'text-decoration:underline;';
+                decoration.push('underline');
+            } else if (s === 'strikethrough') {
+                decoration.push('line-through');
             } else if (s === 'bold') {
                 style += 'font-weight:bold;';
             } else if (s === 'italic') {
@@ -38,6 +41,10 @@ function render(blocks, renderEmoticons) {
                 classes += `irc-bg-colour-${block.styles[s]} `;
             }
         });
+
+        if (decoration.length) {
+            style += `text-decoration:${decoration.join(' ')};`;
+        }
 
         let content;
         switch (block.type) {

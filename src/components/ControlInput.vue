@@ -62,7 +62,7 @@
                 </div>
                 <typing-users-list v-if="buffer.setting('share_typing')" :buffer="buffer" />
                 <div class="kiwi-controlinput-input-wrap">
-                    <irc-input
+                    <new-irc-input
                         ref="input"
                         :placeholder="$t('input_placeholder')"
                         class="kiwi-controlinput-input"
@@ -73,6 +73,7 @@
                         @click="closeToolsPlugins"
                         @focus="focusChanged"
                         @blur="focusChanged"
+                        @autocompleteEnded="onAutocompleteCancel"
                     />
                 </div>
                 <div
@@ -109,13 +110,15 @@
                             v-if="shouldShowColorPicker"
                             class="kiwi-controlinput-button"
                             @click.prevent="onToolClickTextStyle"
+                            @mousedown.prevent
                         >
-                            <svg-icon icon="fa-solid fa-circle-half-stroke" />
+                            <svg-icon icon="fa-solid fa-palette" />
                         </div>
                         <div
                             v-if="shouldShowEmojiPicker"
                             class="kiwi-controlinput-button"
                             @click.prevent="onToolClickEmoji"
+                            @mousedown.prevent
                         >
                             <svg-icon icon="fa-regular fa-face-smile" />
                         </div>
@@ -151,11 +154,12 @@ import { markRaw } from 'vue';
 
 import * as Misc from '@/helpers/Misc';
 import * as TextFormatting from '@/helpers/TextFormatting';
-import * as EmojiProvider from '@/libs/EmojiProvider';
 import * as settingTools from '@/libs/settingTools';
 
+import NewIrcInput from '@/components/utils/NewIrcInput';
 import autocompleteCommands from '@/res/autocompleteCommands';
 import GlobalApi from '@/libs/GlobalApi';
+import html2irc from '@/helpers/Html2Irc';
 import AutoComplete from './AutoComplete';
 import ToolTextStyle from './inputtools/TextStyle';
 import ToolEmoji from './inputtools/Emoji';
@@ -165,6 +169,7 @@ import TypingUsersList from './TypingUsersList';
 
 export default {
     components: {
+        NewIrcInput,
         AutoComplete,
         AwayStatusIndicator,
         SelfUser,
@@ -272,8 +277,9 @@ export default {
     },
     watch: {
         history_pos(newVal) {
-            let val = this.history[this.history_pos];
-            this.$refs.input.setValue(val || '');
+            // let val = this.history[this.history_pos];
+            // this.$refs.input.setValue(val || '');
+            // TODO history
         },
         buffer() {
             if (!this.$state.setting('buffers.shared_input')) {
@@ -320,7 +326,7 @@ export default {
                 return;
             }
 
-            this.$refs.input.focus();
+            this.$refs.input.focus(ev);
         });
 
         this.listen(this.$state, 'input.insertnick', (nick) => {
@@ -335,12 +341,16 @@ export default {
                 val += ' ';
             }
 
-            this.$refs.input.insertText(val);
+            // TODO text insertion
+            console.log('input.insertnick', val);
+            // this.$refs.input.insertText(val);
         });
 
         this.listen(this.$state, 'input.tool', (toolComponent) => {
             this.toggleInputTool(toolComponent);
         });
+
+        window.enable = this.enabled;
     },
     mounted() {
         this.inputRestore();
@@ -360,12 +370,13 @@ export default {
             this.maybeHidePlugins();
         },
         inputRestore() {
-            let currentInput = this.$state.setting('buffers.shared_input') ?
-                this.$state.ui.current_input :
-                this.buffer.current_input;
+            // let currentInput = this.$state.setting('buffers.shared_input') ?
+            //     this.$state.ui.current_input :
+            //     this.buffer.current_input;
 
-            this.$refs.input.reset(currentInput, this.keep_focus);
-            this.$refs.input.selectionToEnd();
+            // TODO history
+            // this.$refs.input.reset(currentInput, this.keep_focus);
+            // this.$refs.input.selectionToEnd();
         },
         toggleSelfUser() {
             if (this.networkState === 'connected') {
@@ -403,26 +414,35 @@ export default {
             }
         },
         toggleBold() {
-            this.$refs.input.toggleBold();
+            this.$refs.input.toggleStyle('bold');
         },
         toggleItalic() {
-            this.$refs.input.toggleItalic();
+            this.$refs.input.toggleStyle('italic');
         },
         toggleUnderline() {
-            this.$refs.input.toggleUnderline();
+            this.$refs.input.toggleStyle('underline');
         },
         onAutocompleteCancel() {
+            if (this.autocomplete_open) {
+                this.$refs.input.cancelAutocomplete();
+            }
             this.autocomplete_open = false;
         },
         onAutocompleteTemp(selectedValue, selectedItem) {
-            if (!this.autocomplete_filtering) {
-                this.$refs.input.setCurrentWord(selectedValue);
-            }
+            console.log('autocompleteTemp', selectedValue);
+            this.$refs.input.updateAutocomplete(selectedItem);
         },
-        onAutocompleteSelected(selectedValue, selectedItem) {
+        onAutocompleteSelected(selectedValue, selectedItem, wasSpaceTriggered) {
+            console.log('autocompleteSelected');
             let word = selectedValue;
             if (word.length > 0) {
-                this.$refs.input.setCurrentWord(word);
+                this.$refs.input.finaliseAutocomplete(
+                    selectedItem,
+                    this.network,
+                    !wasSpaceTriggered,
+                );
+            } else {
+                this.$refs.input.cancelAutocomplete();
             }
             this.autocomplete_open = false;
         },
@@ -446,36 +466,13 @@ export default {
                 this.$refs.autocomplete.selectCurrentItem();
             }
 
-            if (event.key === 'Enter' && (
-                (event.altKey && !event.shiftKey && !event.metaKey && !event.ctrlKey) ||
-                (event.shiftKey && !event.altKey && !event.metaKey && !event.ctrlKey)
-            )) {
-                // Add new line when shift+enter or alt+enter is pressed
-                event.preventDefault();
-                this.$refs.input.insertText('\n');
-            } else if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey && !event.altKey) {
                 // Send message when enter is pressed
                 event.preventDefault();
                 this.submitForm();
             } else if (event.key === 'Escape' && this.showCommandWarning) {
                 // Close command warning if the user presses escape
                 this.showCommandWarning = false;
-            } else if (event.key === ' ') {
-                // Hitting space after just typing an ascii emoji will get it replaced with
-                // its image
-                if (this.$state.setting('buffers.show_emoticons')) {
-                    let currentWord = this.$refs.input.getCurrentWord(true);
-                    let emojis = EmojiProvider.getEmojis(currentWord.word);
-                    if (emojis.length) {
-                        event.preventDefault();
-                        this.$refs.input.setCurrentWord('', false, true);
-                        this.$refs.input.addImg(
-                            emojis[0].ascii,
-                            emojis[0].url,
-                            emojis[0].imgProps,
-                        );
-                    }
-                }
             } else if (event.key === 'ArrowUp') {
                 // Up
                 if (this.$refs.input.getCaretIdx() > 0) {
@@ -487,7 +484,7 @@ export default {
                 this.historyBack();
             } else if (event.key === 'ArrowDown') {
                 // Down
-                let end = this.$refs.input.getRawText().replace(/\r?\n/g, '').length;
+                let end = this.$refs.input.getText().replace(/\r?\n/g, '').length;
                 if (this.$refs.input.getCaretIdx() < end) {
                     // not at the end of input, allow normal input behaviour
                     return;
@@ -506,9 +503,9 @@ export default {
             ) {
                 // Tab and no other keys as tab+other is often a keyboard shortcut
                 // Tab key was just pressed, start general auto completion
-                let currentWord = this.$refs.input.getCurrentWord();
+                let currentWord = this.$refs.input.getWord();
                 let currentToken = currentWord.word.substr(0, currentWord.position);
-                let inputText = this.$refs.input.getRawText();
+                let inputText = this.$refs.input.getText();
 
                 let items = [];
                 if (inputText.indexOf('/set') === 0) {
@@ -520,6 +517,7 @@ export default {
                     });
                 }
 
+                // TODO make this work
                 this.openAutoComplete(items);
                 this.autocomplete_filter = currentToken;
 
@@ -546,13 +544,14 @@ export default {
             }
         },
         inputKeyUp(event) {
-            let inputVal = this.$refs.input.getRawText();
-            let currentWord = this.$refs.input.getCurrentWord();
+            let inputVal = this.$refs.input.getText();
+            let currentWord = this.$refs.input.getWord();
             let currentToken = currentWord.word.substr(0, currentWord.position);
             let autocompleteTokens = this.$state.setting('autocompleteTokens');
 
             if (event.key === 'Escape' && this.autocomplete_open) {
                 this.autocomplete_open = false;
+                this.$refs.input.cancelAutocomplete();
             } else if (this.autocomplete_open && currentToken === '') {
                 this.autocomplete_open = false;
             } else if (this.autocomplete_open) {
@@ -564,15 +563,21 @@ export default {
                 }
             } else if (currentToken === '@' && autocompleteTokens.includes('@')) {
                 // Just typed @ so start the nick auto completion
-                this.openAutoComplete(this.buildAutoCompleteItems({ users: true }));
+                const items = this.buildAutoCompleteItems({ users: true });
+                this.$refs.input.createAutocomplete();
+                this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
             } else if (inputVal === '/' && autocompleteTokens.includes('/')) {
                 // Just typed / so start the command auto completion
-                this.openAutoComplete(this.buildAutoCompleteItems({ commands: true }));
+                const items = this.buildAutoCompleteItems({ commands: true });
+                this.$refs.input.createAutocomplete();
+                this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
             } else if (currentToken === '#' && autocompleteTokens.includes('#')) {
                 // Just typed # so start the command auto completion
-                this.openAutoComplete(this.buildAutoCompleteItems({ buffers: true }));
+                const items = this.buildAutoCompleteItems({ buffers: true });
+                this.$refs.input.createAutocomplete();
+                this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
             } else if (
                 event.key === 'Tab'
@@ -601,17 +606,21 @@ export default {
             }
         },
         submitForm() {
-            let rawInput = this.$refs.input.getValue();
+            this.$refs.input.lock();
+            let rawInput = this.$refs.input.getHTML();
             if (!rawInput) {
                 if (!this.has_focus && this.keep_focus) {
                     // Maybe triggered by the send button on empty input,
                     // put focus back into the input
                     this.$refs.input.focus();
                 }
+                this.$refs.input.unlock();
                 return;
             }
 
-            let ircText = this.$refs.input.buildIrcText();
+            console.log('raw', JSON.stringify(rawInput));
+            let ircText = html2irc(rawInput);
+            console.log('irc', JSON.stringify(ircText));
 
             // Show a warning if a command is preceded by spaces
             let warnExpectedCommand = this.$state.setting('buffers.warn_expected_command');
@@ -623,17 +632,21 @@ export default {
 
                 if (hasPrecedingSpace) {
                     this.showCommandWarning = true;
+                    this.$refs.input.unlock();
                     return;
                 }
             }
 
+            this.$refs.input.getState();
+
             this.$state.$emit('input.raw', ircText);
 
-            this.historyAdd(rawInput);
+            // this.historyAdd(rawInput);
 
-            this.$refs.input.reset('', this.keep_focus);
+            this.$refs.input.resetState(true);
 
             this.stopTyping(false);
+            this.$refs.input.unlock();
         },
         historyAdd(rawInput) {
             // Add to history, keeping the history trimmed to the last 50 entries
@@ -642,8 +655,8 @@ export default {
             this.history_pos = this.history.length;
         },
         historyBack() {
-            let rawText = this.$refs.input.getRawText();
-            let rawInput = this.$refs.input.getValue();
+            let rawText = this.$refs.input.getText();
+            let rawInput = this.$refs.input.getHTML();
             if (rawText.trim() && this.history_pos === this.history.length) {
                 this.historyAdd(rawInput);
                 this.history_pos--;
@@ -689,6 +702,7 @@ export default {
                     let item = {
                         text: user.nick,
                         type: 'user',
+                        user,
                     };
                     return item;
                 });
@@ -697,6 +711,9 @@ export default {
                     userList.push({
                         text: this.buffer.name,
                         type: 'user',
+                        user: this.buffer.users.find(
+                            (user) => user.key === this.buffer.name.toUpperCase()
+                        ),
                     });
                 }
 
@@ -710,6 +727,7 @@ export default {
                         bufferList.push({
                             text: buffer.name,
                             type: 'buffer',
+                            buffer,
                         });
                     }
                 });
@@ -791,7 +809,7 @@ export default {
                 this.lastTypingTime = 0;
             }
 
-            this.$refs.input.getRawText().trim() ?
+            this.$refs.input.getText().trim() ?
                 this.network.ircClient.typing.pause(this.buffer.name) :
                 this.network.ircClient.typing.stop(this.buffer.name, sendStop);
         },
@@ -1019,6 +1037,12 @@ export default {
     cursor: pointer;
     justify-content: center;
     align-items: center;
+    position: relative;
+
+    .kiwi-controlinput-button-clicker {
+        position: absolute;
+        inset: 0;
+    }
 
     svg {
         font-size: 20px;

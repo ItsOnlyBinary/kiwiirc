@@ -420,6 +420,13 @@ export default {
     }
 }
 
+@supports (font-size: round(nearest, 90%, 1px)) and (line-height: round(nearest, 1.6em, 1px)) {
+    .kiwi-wrap {
+        font-size:  #{'round(nearest, 90%, 1px)'};
+        line-height:  #{'round(nearest, 1.6em, 1px)'};
+    }
+}
+
 /* .kiwi-workspace has ::before and ::after 4px above itself for the connection status */
 .kiwi-workspace {
     position: relative;

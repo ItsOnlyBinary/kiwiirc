@@ -5,7 +5,7 @@
                 v-for="(text, eCode) in emojis"
                 :key="eCode"
                 :style="{ 'background-image': `url(${location}${eCode})` }"
-                :data-code="text"
+                :data-ascii="text"
                 class="kiwi-inputtool-emoji-emoji"
                 @click="onImgClick"
             />
@@ -17,7 +17,7 @@
 'kiwi public';
 
 import _ from 'lodash';
-import * as Misc from '@/helpers/Misc';
+import * as EmojiProvider from '@/libs/EmojiProvider.js';
 
 export default {
     props: ['ircinput'],
@@ -40,12 +40,8 @@ export default {
     },
     methods: {
         onImgClick: function onImgClick(event) {
-            let url = window.getComputedStyle(event.target, null)
-                .getPropertyValue('background-image');
-
-            url = Misc.extractURL(url);
-            let code = event.target.dataset.code;
-            this.ircinput.addImg(code, url);
+            const [emoji] = EmojiProvider.getEmojis(event.target.dataset.ascii);
+            this.ircinput.addEmoji(emoji);
         },
     },
 };

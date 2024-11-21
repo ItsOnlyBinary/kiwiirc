@@ -64,8 +64,8 @@ module.exports = (env, argv, config) => {
         },
 
         performance: {
-            maxEntrypointSize: 1.6 * utils.MiB,
-            maxAssetSize: 1 * utils.MiB,
+            maxEntrypointSize: 1.8 * utils.MiB,
+            maxAssetSize: 1.2 * utils.MiB,
         },
 
         plugins: [

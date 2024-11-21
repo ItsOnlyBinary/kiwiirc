@@ -34,7 +34,6 @@ import { configTemplates } from '@/res/configTemplates';
 import InputConfirm from '@/components/utils/InputConfirm';
 import InputPrompt from '@/components/utils/InputPrompt';
 import InputText from '@/components/utils/InputText';
-import IrcInput from '@/components/utils/IrcInput';
 import TabbedView from '@/components/utils/TabbedView';
 import TransitionExpand from '@/components/utils/TransitionExpand';
 
@@ -77,7 +76,6 @@ app.component('SvgIcon', FontAwesomeIcon);
 app.component('InputConfirm', InputConfirm);
 app.component('InputPrompt', InputPrompt);
 app.component('InputText', InputText);
-app.component('IrcInput', IrcInput);
 app.component('TabbedView', TabbedView);
 app.component('TabbedTab', TabbedView.Tab);
 app.component('TransitionExpand', TransitionExpand);

@@ -100,8 +100,9 @@ export default {
                 colour = Colours.rgb2hex(rgbObj);
             }
 
-            let code = event.target.dataset.code;
-            this.ircinput.setColour(code, colour);
+            // let code = event.target.dataset.code;
+            // this.ircinput.setColour(code, colour);
+            this.ircinput.applyStyleText({ color: colour }, false);
         },
         onResetClick: function onResetClick() {
             this.ircinput.resetStyles();

@@ -62,14 +62,13 @@
                 </div>
                 <typing-users-list v-if="buffer.setting('share_typing')" :buffer="buffer" />
                 <div class="kiwi-controlinput-input-wrap">
-                    <irc-input
+                    <new-irc-input
                         ref="input"
                         :placeholder="$t('input_placeholder')"
                         class="kiwi-controlinput-input"
                         wrap="off"
                         @input="inputUpdate"
                         @keydown="inputKeyDown($event)"
-                        @keyup="inputKeyUp($event)"
                         @click="closeToolsPlugins"
                         @focus="focusChanged"
                         @blur="focusChanged"
@@ -154,6 +153,7 @@ import * as TextFormatting from '@/helpers/TextFormatting';
 import * as EmojiProvider from '@/libs/EmojiProvider';
 import * as settingTools from '@/libs/settingTools';
 
+import NewIrcInput from '@/components/utils/NewIrcInput';
 import autocompleteCommands from '@/res/autocompleteCommands';
 import GlobalApi from '@/libs/GlobalApi';
 import AutoComplete from './AutoComplete';
@@ -165,6 +165,7 @@ import TypingUsersList from './TypingUsersList';
 
 export default {
     components: {
+        NewIrcInput,
         AutoComplete,
         AwayStatusIndicator,
         SelfUser,
@@ -341,6 +342,8 @@ export default {
         this.listen(this.$state, 'input.tool', (toolComponent) => {
             this.toggleInputTool(toolComponent);
         });
+
+        window.enable = this.enabled;
     },
     mounted() {
         this.inputRestore();
@@ -360,12 +363,12 @@ export default {
             this.maybeHidePlugins();
         },
         inputRestore() {
-            let currentInput = this.$state.setting('buffers.shared_input') ?
-                this.$state.ui.current_input :
-                this.buffer.current_input;
+            // let currentInput = this.$state.setting('buffers.shared_input') ?
+            //     this.$state.ui.current_input :
+            //     this.buffer.current_input;
 
-            this.$refs.input.reset(currentInput, this.keep_focus);
-            this.$refs.input.selectionToEnd();
+            // this.$refs.input.reset(currentInput, this.keep_focus);
+            // this.$refs.input.selectionToEnd();
         },
         toggleSelfUser() {
             if (this.networkState === 'connected') {
@@ -600,8 +603,8 @@ export default {
                 this.autocomplete_filter = currentToken;
             }
         },
-        submitForm() {
-            let rawInput = this.$refs.input.getValue();
+        async submitForm() {
+            let rawInput = await this.$refs.input.getValue();
             if (!rawInput) {
                 if (!this.has_focus && this.keep_focus) {
                     // Maybe triggered by the send button on empty input,

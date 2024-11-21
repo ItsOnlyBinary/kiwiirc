@@ -129,7 +129,8 @@ export default {
 
                 this.$el.scrollTop = el.offsetTop - (el.getBoundingClientRect().height * 2);
             });
-
+        },
+        selectedItem() {
             this.tempCurrentItem();
         },
         filter() {
@@ -160,7 +161,9 @@ export default {
                 if (!this.selectedItem) {
                     this.cancel();
                 } else {
-                    this.selectCurrentItem();
+                    this.selectCurrentItem(
+                        event.key === ' '
+                    );
                     if (event.key === 'Enter') {
                         event.preventDefault();
                     }
@@ -237,12 +240,12 @@ export default {
         },
         tempCurrentItem() {
             let item = this.selectedItem;
-            if (!item) {
-                return;
-            }
-            this.$emit('temp', item.value || item.text, item);
+            // if (!item) {
+            //     return;
+            // }
+            this.$emit('temp', item ? item.value || item.text : '', item);
         },
-        selectCurrentItem() {
+        selectCurrentItem(wasSpaceTriggered) {
             let item = this.selectedItem;
             let value = '';
 
@@ -250,7 +253,7 @@ export default {
                 value = item.value || item.text;
             }
 
-            this.$emit('selected', value, item);
+            this.$emit('selected', value, item, wasSpaceTriggered);
         },
         cancel() {
             this.$emit('cancel');

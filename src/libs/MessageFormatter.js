@@ -130,7 +130,7 @@ tokens['`'] = {
         }
 
         // Backticks may be part of a word or NICK so only consider it a codeblock if
-        // it's at the start of a scentence or comes after a space
+        // it's at the start of a sentence or comes after a space
         if (pos > 0 && inp[pos - 1] !== ' ') {
             return -1;
         }
@@ -215,6 +215,23 @@ tokens['\x1F'] = {
     },
 };
 
+// Strikethrough
+tokens['\x1E'] = {
+    token: '\x1E',
+    extra: false,
+    fn: function parseToken(inp, pos, block, prevBlock, openToks) {
+        if (openToks[this.token]) {
+            delete block.styles.strikethrough;
+            openToks[this.token] = null;
+        } else {
+            openToks[this.token] = true;
+            block.styles.strikethrough = true;
+        }
+
+        return null;
+    },
+};
+
 // Clear all styles
 tokens['\x0F'] = {
     token: '\x0F',
@@ -271,6 +288,24 @@ tokens['\x03'] = {
         delete block.styles.color;
         delete block.styles.background;
 
+        return null;
+    },
+};
+
+// Hex Colour (unimplemented)
+tokens['\x04'] = {
+    token: '\x04',
+    extra: false,
+    fn: function parseToken(inp, pos, block, prevBlock, openToks) {
+        return null;
+    },
+};
+
+// Monospace (unimplemented)
+tokens['\x11'] = {
+    token: '\x11',
+    extra: false,
+    fn: function parseToken(inp, pos, block, prevBlock, openToks) {
         return null;
     },
 };

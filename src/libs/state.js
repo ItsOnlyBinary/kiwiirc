@@ -748,6 +748,10 @@ function createNewState() {
                 return user;
             },
 
+            getUserById(userID) {
+                this.networks.find((network) => network.users.find((user) => user.id === userID));
+            },
+
             // Modify a networks user array without hitting vues reactive system until fn()
             // has completed. Good for making large changes in bulk
             usersTransaction(networkid, fn) {

@@ -56,6 +56,9 @@ export default {
         toggle: Boolean,
     },
     m: methods,
+    beforeUnmount() {
+        console.log('beforeUnmount');
+    },
 };
 </script>
 

@@ -3,9 +3,10 @@
 /** @module */
 
 import _ from 'lodash';
-import { defineComponent, markRaw } from 'vue';
+import { createVNode, defineComponent, markRaw, render } from 'vue';
 import strftime from 'strftime';
 import PluginWrapper from '@/components/utils/PluginWrapper';
+import GlobalApi from '@/libs/GlobalApi';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import { urlRegex } from './TextFormatting';
 
@@ -431,7 +432,9 @@ export function makePluginObject(app, pluginId, componentOrElement, args = {}) {
         if (componentOrElement.__vue__ && !window.kiwi_deprecations_vueEl) {
             window.kiwi_deprecations_vueEl = true;
             // eslint-disable-next-line no-console
-            console.warn('deprecated component.$el added to plugin api, please switch to just passing the vue.js component object');
+            console.warn(
+                'deprecated component.$el added to plugin api, please switch to just passing the vue.js component object'
+            );
         }
         plugin.component = markRaw(PluginWrapper);
         plugin.props = Object.assign(plugin.props, {
@@ -499,4 +502,69 @@ export function strCompare(a, b) {
     return a > b ?
         1 :
         -1;
+}
+
+export function mountComponent(component, props, el) {
+    const app = GlobalApi.singleton().app;
+    let vNode = createVNode(component, props);
+    let element = el ?? document.createElement('div');
+
+    /* eslint-disable no-underscore-dangle */
+    if (app && app._context) {
+        vNode.appContext = app._context;
+    }
+    /* eslint-enable no-underscore-dangle */
+
+    render(vNode, element);
+    const destroy = () => {
+        if (element) {
+            render(null, element);
+        }
+        vNode = null;
+        element = null;
+    };
+
+    return { vNode, destroy, element };
+}
+
+export function useTimeouts() {
+    const activeTimeouts = Object.create(null);
+
+    const createTimeout = () => {
+        let currentTimeoutID = null;
+
+        const startTimeout = (callback, delay, ...args) => {
+            if (currentTimeoutID !== null) {
+                cancelTimeout();
+            }
+
+            currentTimeoutID = setTimeout(() => {
+                cancelTimeout();
+                callback();
+            }, delay, ...args);
+
+            activeTimeouts[currentTimeoutID] = cancelTimeout;
+        };
+
+        const cancelTimeout = () => {
+            if (currentTimeoutID !== null) {
+                clearTimeout(currentTimeoutID);
+                delete activeTimeouts[currentTimeoutID];
+                currentTimeoutID = null;
+            }
+        };
+
+        startTimeout.cancel = cancelTimeout;
+
+        return startTimeout;
+    };
+
+    const cancelAllTimeouts = () => {
+        Object.values(activeTimeouts).forEach((cancelTimeout) => cancelTimeout());
+    };
+
+    return {
+        create: createTimeout,
+        cancelAll: cancelAllTimeouts,
+    };
 }

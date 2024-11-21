@@ -8,10 +8,11 @@ function makeLogger(label, rootLogger) {
         logger.info(...args);
     }
 
-    logger.LEVEL_DEBUG = 2;
-    logger.LEVEL_INFO = 1;
+    logger.LEVEL_DEBUG = 4;
+    logger.LEVEL_INFO = 3;
+    logger.LEVEL_WARN = 1;
     logger.LEVEL_ERROR = 0;
-    logger.level = logger.LEVEL_ERROR;
+    logger.level = logger.LEVEL_WARN;
 
     function logLevel(compareLevel) {
         let l = rootLogger || logger;
@@ -23,7 +24,7 @@ function makeLogger(label, rootLogger) {
             if (label) {
                 args[0] = `[${label}] DEBUG ${args[0]}`;
             }
-            window.console.log(...args);
+            window.console.debug(...args);
         }
     };
 
@@ -33,6 +34,16 @@ function makeLogger(label, rootLogger) {
                 args[0] = `[${label}] INFO ${args[0]}`;
             }
             window.console.log(...args);
+        }
+    };
+
+    logger.warn = function logError(...args) {
+        if (logLevel(logger.LEVEL_WARN)) {
+            if (label) {
+                args[0] = `[${label}] WARN ${args[0]}`;
+            }
+
+            window.console.warn(...args);
         }
     };
 

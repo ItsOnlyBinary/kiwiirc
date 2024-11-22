@@ -10,7 +10,7 @@
         }"
         @click.self="onListClick"
     >
-        <div v-resizeobserver="onListResize">
+        <div v-if="showMessages" v-resizeobserver="onListResize">
             <div
                 v-if="shouldShowChathistoryTools"
                 class="kiwi-messagelist-scrollback"
@@ -56,6 +56,7 @@
                                     :is="message.template"
                                     v-if="message.render() && message.template"
                                     v-bind="message.templateProps"
+                                    :key="'templ' + message.id"
                                     :buffer="buffer"
                                     :message="message"
                                     :idx="filteredMessages.indexOf(message)"
@@ -63,18 +64,21 @@
                                 />
                                 <message-list-message-modern
                                     v-else-if="listType === 'modern'"
+                                    :key="'moder' + message.id"
                                     :message="message"
                                     :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
                                 />
                                 <message-list-message-inline
                                     v-else-if="listType === 'inline'"
+                                    :key="'inlin' + message.id"
                                     :message="message"
                                     :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
                                 />
                                 <message-list-message-compact
                                     v-else-if="listType === 'compact'"
+                                    :key="'compa' + message.id"
                                     :message="message"
                                     :idx="filteredMessages.indexOf(message)"
                                     :ml="thisMl"
@@ -100,6 +104,7 @@
             />
         </div>
     </div>
+    <div v-if="showOverlay" class="kiwi-messagelist-overlay" />
 </template>
 
 <script>
@@ -143,6 +148,8 @@ export default {
             timeToClose: false,
             startClosing: false,
             selectedMessages: Object.create(null),
+            showMessages: false,
+            showOverlay: true,
         };
     },
     computed: {
@@ -252,6 +259,18 @@ export default {
         },
     },
     mounted() {
+        if (!this.showMessages) {
+            setTimeout(() => {
+                this.showMessages = true;
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                    // this.smooth_scroll = true;
+                });
+            }, 0);
+            // this.$nextTick(() => {
+            //     this.showMessages = true;
+            // });
+        }
         this.addCopyListeners();
 
         this.$nextTick(() => {
@@ -282,6 +301,13 @@ export default {
                 this.maybeScrollToId(opt.id);
             }
         });
+    },
+    updated() {
+        if (this.showMessages && this.showOverlay) {
+            setTimeout(() => {
+                this.showOverlay = false;
+            }, 0);
+        }
     },
     methods: {
         isHoveringOverMessage(message) {
@@ -432,8 +458,9 @@ export default {
                 return;
             }
 
-            let url = event.target.getAttribute('data-url');
-            if (url && isLink) {
+            let linkElement = event.target.closest('a[data-url]');
+            if (linkElement) {
+                let url = linkElement.getAttribute('data-url');
                 if (this.$state.setting('buffers.inline_link_auto_previews')) {
                     message.embed.type = 'url';
                     message.embed.payload = url;
@@ -467,7 +494,7 @@ export default {
             }
         },
         checkScrollingState() {
-            let el = this.$el;
+            let el = this.$refs.scroller;
             let scrolledUpByPx = el.scrollHeight - (el.offsetHeight + el.scrollTop);
 
             // We need to know at this point (before the DOM has updated with new messages) if we
@@ -500,7 +527,11 @@ export default {
             this.maybeScrollToBottom();
         },
         scrollToBottom() {
-            this.$el.scrollTop = this.$el.scrollHeight;
+            // This is triggered from a $nextTick, ensure scroller still exists
+            if (!this.$refs.scroller) {
+                return;
+            }
+            this.$refs.scroller.scrollTop = this.$refs.scroller.scrollHeight;
         },
         maybeScrollToBottom() {
             if (this.auto_scroll) {
@@ -508,7 +539,11 @@ export default {
             }
         },
         maybeScrollToId(id, position = 'middle') {
-            let msgEl = this.$el.querySelector('.kiwi-messagelist-message[data-message-id="' + id + '"]');
+            // This is triggered from a $nextTick, ensure scroller still exists
+            if (!this.$refs.scroller) {
+                return;
+            }
+            let msgEl = this.$refs.scroller.querySelector('.kiwi-messagelist-message[data-message-id="' + id + '"]');
             if (!msgEl) {
                 return;
             }
@@ -533,17 +568,17 @@ export default {
         getSelectedMessages() {
             let sel = document.getSelection();
             let r = sel.getRangeAt(0);
-            let messageEls = [...this.$el.querySelectorAll('.kiwi-messagelist-message')];
+            let messageEls = [...this.$refs.scroller.querySelectorAll('.kiwi-messagelist-message')];
             let selectedMessageEls = messageEls.filter((el) => r.intersectsNode(el));
             return selectedMessageEls;
         },
         restrictTextSelection() { // Prevents the selection cursor escaping the message list.
             document.querySelector('body').classList.add('kiwi-unselectable');
-            this.$el.style.userSelect = 'text';
+            this.$refs.scroller.style.userSelect = 'text';
         },
         unrestrictTextSelection() { // Allows all page elements to be selected again.
             document.querySelector('body').classList.remove('kiwi-unselectable');
-            this.$el.style.userSelect = 'auto';
+            this.$refs.scroller.style.userSelect = 'auto';
         },
         removeSelections(removeNative = false) {
             this.selectedMessages = Object.create(null);
@@ -582,7 +617,7 @@ export default {
             let selectionChangeOff = null;
 
             this.listen(document, 'selectstart', (e) => {
-                if (!this.$el.contains(e.target)) {
+                if (!this.$refs.scroller.contains(e.target)) {
                     // Selected elsewhere on the page
                     copyData = '';
                     this.removeSelections();
@@ -603,7 +638,7 @@ export default {
             });
 
             let onSelectionChange = (e) => {
-                if (!this.$el) {
+                if (!this.$refs.scroller) {
                     return true;
                 }
 
@@ -613,7 +648,7 @@ export default {
 
                 if (!selection
                 || !selection.anchorNode
-                || !selection.anchorNode.parentNode.closest('.' + this.$el.className)) {
+                || !selection.anchorNode.parentNode.closest('.' + this.$refs.scroller.className)) {
                     this.unrestrictTextSelection();
                     this.removeSelections();
                     return true;
@@ -800,10 +835,18 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 .kiwi-messagelist-body {
     min-height: 0;
     text-align: left;
-    line-height: 1.5em;
     font-size: 1.05em;
     margin: 0;
     padding: 0;
+}
+
+@supports (font-size: round(up, 1.05em, 1px)) and (line-height: round(up, 1.5em, 1px)) {
+    .kiwi-messagelist-message {
+        line-height: ~'round(up, 1.5em, 1px)';
+    }
+    .kiwi-messagelist-body {
+        font-size: ~'round(up, 1.05em, 1px)';
+    }
 }
 
 /* Channel messages - e.g 'server on #testing22 ' message and such */
@@ -907,9 +950,14 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 
 /** Displaying an emoji in a message */
 .kiwi-messagelist-emoji {
-    width: 1.3em;
+    height: 1.05em;
     display: inline-block;
     vertical-align: middle;
+}
+
+.kiwi-messagelist-emoji--single {
+    animation: 0.1s ease-in-out 0s 1 emoji-in;
+    height: 2em;
 }
 
 @keyframes emoji-in {
@@ -922,9 +970,13 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     }
 }
 
-.kiwi-messagelist-emoji--single {
-    animation: 0.1s ease-in-out 0s 1 emoji-in;
-    font-size: 2em;
+@supports (width: round(up, 1.3em, 1px)) {
+    .kiwi-messagelist-emoji {
+        height: ~'round(up, 1.05em, 1px)';
+    }
+    .kiwi-messagelist-emoji--single {
+        height: ~'round(up, 2em, 1px)';
+    }
 }
 
 /** Message structure */
@@ -1029,6 +1081,14 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 .kiwi-messagelist-joinloadertrans-enter-active,
 .kiwi-messagelist-joinloadertrans-leave-active {
     transition: height 0.5s, opacity 0.5s;
+}
+
+.kiwi-messagelist-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 @media screen and (max-width: 700px) {

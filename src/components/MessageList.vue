@@ -10,7 +10,7 @@
         }"
         @click.self="onListClick"
     >
-        <div v-resizeobserver="onListResize">
+        <div v-if="showMessages" v-resizeobserver="onListResize">
             <div
                 v-if="shouldShowChathistoryTools"
                 class="kiwi-messagelist-scrollback"
@@ -56,6 +56,7 @@
                                     :is="message.template"
                                     v-if="message.render() && message.template"
                                     v-bind="message.templateProps"
+                                    :key="'templ' + message.id"
                                     :buffer="buffer"
                                     :message="message"
                                     :ml="thisMl"
@@ -66,6 +67,7 @@
                                 />
                                 <message-list-message-modern
                                     v-else-if="listType === 'modern'"
+                                    :key="'moder' + message.id"
                                     :message="message"
                                     :ml="thisMl"
                                     :is-unread="isUnread(message)"
@@ -75,6 +77,7 @@
                                 />
                                 <message-list-message-inline
                                     v-else-if="listType === 'inline'"
+                                    :key="'inlin' + message.id"
                                     :message="message"
                                     :ml="thisMl"
                                     :is-unread="isUnread(message)"
@@ -84,6 +87,7 @@
                                 />
                                 <message-list-message-compact
                                     v-else-if="listType === 'compact'"
+                                    :key="'compa' + message.id"
                                     :message="message"
                                     :ml="thisMl"
                                     :is-unread="isUnread(message)"
@@ -279,6 +283,18 @@ export default {
         );
     },
     mounted() {
+        if (!this.showMessages) {
+            setTimeout(() => {
+                this.showMessages = true;
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                    // this.smooth_scroll = true;
+                });
+            }, 0);
+            // this.$nextTick(() => {
+            //     this.showMessages = true;
+            // });
+        }
         this.addCopyListeners();
 
         this.$nextTick(() => {
@@ -309,6 +325,13 @@ export default {
                 this.maybeScrollToId(opt.id);
             }
         });
+    },
+    updated() {
+        if (this.showMessages && this.showOverlay) {
+            setTimeout(() => {
+                this.showOverlay = false;
+            }, 0);
+        }
     },
     methods: {
         isUnread(message) {

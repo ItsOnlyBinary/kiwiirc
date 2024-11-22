@@ -112,6 +112,7 @@ export default {
 .u-input-text-inputs {
     display: flex;
     position: relative;
+    align-items: center;
 }
 
 .u-input-text input,
@@ -155,12 +156,11 @@ input[type='password'].u-form-input-plaintext {
     transition: opacity 0.2s;
     position: absolute;
     right: 7px;
-    top: 9px;
 }
 
 .u-form--big .u-input-text-plaintext {
     line-height: 40px;
-    top: 6px;
+    top: 16px;
 }
 
 .u-input-text-plaintext--active,

@@ -415,6 +415,31 @@ export default {
     opacity: 1;
 }
 
+.kiwi-header-option-nicklist {
+    position: relative;
+
+    svg {
+        height: 22px;
+    }
+}
+
+.kiwi-header-option-nicklist .kiwi-stack {
+    position: absolute;
+    bottom: 4px;
+    padding: 2px 3px 1px 3px;
+    background-color: white;
+    transition: background-color 0.3s;
+
+    > * {
+        top: 1px;
+    }
+}
+
+.kiwi-header-option-nicklist.kiwi-header-option--active .kiwi-stack,
+.kiwi-header-option-nicklist.kiwi-header-option a:hover .kiwi-stack {
+    background-color: var(--brand-primary);
+}
+
 /* The not joined button */
 .kiwi-header-notjoined {
     border-radius: 0;

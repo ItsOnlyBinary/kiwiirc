@@ -42,6 +42,7 @@ module.exports = (env, argv, config) => {
             publicPath: 'auto',
             filename: outputFileName,
             chunkFilename: outputFileName,
+            crossOriginLoading: 'anonymous',
         },
 
         resolve: {
@@ -87,6 +88,7 @@ module.exports = (env, argv, config) => {
                     NODE_ENV: env.NODE_ENV,
                 },
                 minify: false,
+                inject: false,
             }),
             new CopyPlugin({
                 patterns: [

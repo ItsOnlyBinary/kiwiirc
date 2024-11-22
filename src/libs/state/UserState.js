@@ -29,6 +29,8 @@ export default class UserState {
 
         const thisReactive = reactive(this);
 
+        this.reactive = thisReactive;
+
         // Whois details are non-enumerable properties (vues $watch won't cover these properties)
         // watch hasWhois to know when this data is populated
         def(this, 'whois', {
@@ -64,7 +66,7 @@ export default class UserState {
 
     get avatar() {
         if (!this.avatarCache) {
-            this.avatar = { small: '', large: '' };
+            this.avatarCache = { small: '', large: '' };
             getState().$emit('user.avatar.create', { user: this });
         }
         return this.avatarCache;

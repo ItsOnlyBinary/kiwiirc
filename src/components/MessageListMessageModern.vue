@@ -49,13 +49,13 @@ const displayAvatar = (props) => {
 };
 
 const showRealName = (props) => {
-    // We dont have a user or users realname
-    if (!props.message.user || !props.message.user.realname) {
+    // Showing realname is not enabled
+    if (!props.ml.showRealNames) {
         return false;
     }
 
-    // Showing realname is not enabled
-    if (!props.ml.showRealNames) {
+    // We dont have a user or users realname
+    if (!props.message.user || !props.message.user.realname) {
         return false;
     }
 
@@ -184,6 +184,7 @@ const buildMessageFooter = (props, context, cache) => {
 };
 
 const messageModern = (props, context) => {
+    // console.log('rendering', props.message.id);
     const cache = {
         isRepeat: isRepeat(props),
         lcNick: (props.message.nick || '').toLowerCase(),

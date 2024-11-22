@@ -26,6 +26,10 @@
             padding: 4px 0 0 0;
         }
     </style>
+<% for (let index in htmlWebpackPlugin.files.css) { %>
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.files.css[index] %>" /><% } %>
+<% for (let index in htmlWebpackPlugin.files.js) { %>
+    <script defer src="<%= htmlWebpackPlugin.files.js[index] %>"></script><% } %>
 </head>
 <body>
     <noscript>

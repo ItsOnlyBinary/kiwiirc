@@ -14,10 +14,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
             node-version: '18.x'
-            cache: 'yarn'
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: yarn --frozen-lockfile --non-interactive --prefer-offline
+        run: yarn up @kiwiirc/eslint-plugin@./build/plugins/eslint-rules
+
+      - name: Install dependencies
+        run: yarn --immutable
 
       - name: Test
         run: yarn test

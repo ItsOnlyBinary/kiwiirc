@@ -9,6 +9,7 @@ import VueVirtualScroller from 'vue-virtual-scroller';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
 
 // fetch polyfill
 import 'whatwg-fetch';
@@ -47,9 +48,8 @@ import FallbackLocale from '@/../static/locales/dev.json';
 
 import SvgSpinner from '@/res/icons/ring-resize.svg';
 
-import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
-
 Object.assign(faConfig, {
+    // Disable fontawesome's watching of the dom
     observeMutations: false,
 });
 

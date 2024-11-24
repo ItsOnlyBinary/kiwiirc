@@ -1,6 +1,6 @@
 /** @module */
 
-import { reactive } from 'vue';
+import { nextTick, reactive } from 'vue';
 import { def } from './common';
 import * as IrcClient from '../IrcClient';
 
@@ -127,7 +127,7 @@ export default class NetworkState {
         this.appState.setActiveBuffer(this.id, this.serverBuffer().name);
         // Hacky, but the server buffer component listens for events to switch
         // between tabs
-        setImmediate(() => {
+        nextTick(() => {
             this.appState.$emit('server.tab.show', tabName || 'settings');
         });
     }

@@ -40,7 +40,7 @@
                     <server-view :network="network" />
                 </template>
                 <template v-else>
-                    <message-list :buffer="buffer" :key="buffer.id" />
+                    <message-list :key="buffer.id" :buffer="buffer" />
                     <sidebar
                         v-if="!buffer.isSpecial()"
                         :network="network"

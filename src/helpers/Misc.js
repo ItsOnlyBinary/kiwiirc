@@ -368,7 +368,7 @@ export function dedotObject(confObj, _place) {
  */
 export function replaceObjectProps(target, source) {
     Object.keys(target).forEach((prop) => delete target[prop]);
-    Object.keys(source).forEach((prop) => { target[prop] = source[prop]; });
+    Object.keys(source).forEach((prop) => target[prop] = source[prop]);
 }
 
 /**
@@ -469,7 +469,7 @@ export function hasUnmatchedTrailingBracket(str) {
 
 // This provides a better sort for numbered nicks but does not work on ios9
 let intlCollator;
-if (global.Intl) {
+if (Intl && typeof Intl.Collator === 'function') {
     intlCollator = new Intl.Collator({}, { numeric: true });
 }
 

@@ -120,7 +120,7 @@ import MessageListMessageInline from './MessageListMessageInline';
 import LoadingAnimation from './LoadingAnimation';
 import BufferKey from './BufferKey';
 
-require('@/libs/polyfill/Element.closest');
+import '@/libs/polyfill/Element.closest';
 
 let log = Logger.namespace('MessageList.vue');
 

@@ -16,7 +16,6 @@ const registerTab = inject('register-tab');
 
 // The name property should be static and none changing,
 // if the text needs to change then the header should
-// eslint-disable-next-line vue/no-setup-props-destructure
 const { isActive } = registerTab({
     name: props.name,
     header: toRef(props, 'header'),

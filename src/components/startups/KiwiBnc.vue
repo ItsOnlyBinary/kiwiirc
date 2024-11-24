@@ -81,7 +81,7 @@ export default {
                 bncnet.ircClient.off('close', onClose);
             };
 
-            let onRegistered = async() => {
+            let onRegistered = async () => {
                 cleanUpEvents();
 
                 let bncNetworks = await bncnet.ircClient.bnc.getNetworks();

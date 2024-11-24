@@ -166,7 +166,7 @@ function writeIfChanged(file, _data) {
     fs.writeFileSync(file, data);
 }
 
-function getFiles(sourceDir) {
+function getFiles(src) {
     const files = [];
 
     const readDir = (dirPath) => fs.readdirSync(dirPath).forEach((name) => {
@@ -174,7 +174,7 @@ function getFiles(sourceDir) {
         fs.lstatSync(entry).isDirectory() ? readDir(entry) : files.push(entry);
     });
 
-    readDir(sourceDir);
+    readDir(src);
 
     return files.filter(
         (file) => (fileRegex.test(file) && file !== outputFile)

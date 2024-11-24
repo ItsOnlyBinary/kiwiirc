@@ -212,7 +212,7 @@
 <script>
 'kiwi public';
 
-import * as ipRegex from 'ip-regex';
+import ipRegex from 'ip-regex';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import * as IrcdDiffs from '@/helpers/IrcdDiffs';
 import * as Misc from '@/helpers/Misc';

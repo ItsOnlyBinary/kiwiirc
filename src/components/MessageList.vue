@@ -259,7 +259,7 @@ export default {
         },
     },
     mounted() {
-        console.log('mounted');
+        // console.log('mounted');
         if (!this.showMessages) {
             setTimeout(() => {
                 this.showMessages = true;
@@ -304,7 +304,7 @@ export default {
         });
     },
     updated() {
-        console.log('updated');
+        // console.log('updated');
         if (this.showMessages && this.showOverlay) {
             setTimeout(() => {
                 this.showOverlay = false;

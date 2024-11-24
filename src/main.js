@@ -43,10 +43,10 @@ import IrcInput from '@/components/utils/IrcInput';
 import TabbedView from '@/components/utils/TabbedView';
 import TransitionExpand from '@/components/utils/TransitionExpand';
 
+import SvgSpinner from '@/res/icons/ring-resize.svg';
+
 import AvailableLocales from '@/res/locales/available.json';
 import FallbackLocale from '@/../static/locales/dev.json';
-
-import SvgSpinner from '@/res/icons/ring-resize.svg';
 
 Object.assign(faConfig, {
     // Disable fontawesome's watching of the dom

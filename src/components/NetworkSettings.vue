@@ -494,10 +494,10 @@ export default {
         width: 100%;
     }
 
-    span {
+    .u-input-text-c {
         position: absolute;
-        right: 2px;
-        top: 6px;
+        right: 5px;
+        top: 0;
     }
 }
 

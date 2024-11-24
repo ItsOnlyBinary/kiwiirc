@@ -206,9 +206,8 @@ const toggleAway = () => {
     font-family: Roboto;
     font-style: normal;
     font-weight: 900;
-    src: url('../res/fonts/Roboto-Black.woff2') format('woff2'),
-         url('../res/fonts/Roboto-Black.woff') format('woff')
-         url('../res/fonts/Roboto-Black.ttf') format('truetype');
+    src: url('@/res/fonts/Roboto-Black.woff2') format('woff2'),
+         url('@/res/fonts/Roboto-Black.ttf') format('truetype');
     font-display: auto;
 }
 

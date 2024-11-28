@@ -13,7 +13,7 @@ export function matchEmoji(word) {
         match: word,
         type: 'emoji',
         meta: {
-            emoji: emojis[0].code,
+            emoji: emojis[0],
         },
     }];
 }
@@ -23,10 +23,9 @@ export function blockToHtml(block, isSingle, showEmoticons) {
         return block.content;
     }
 
-    const emojiLocation = getState().setting('emojiLocation');
     const emoji = block.meta.emoji;
     const classes = 'kiwi-messagelist-emoji' + (isSingle ? ' kiwi-messagelist-emoji--single' : '');
-    const src = `${emojiLocation}${emoji}`;
+    const src = emoji.url;
 
     return `<img class="${classes}" src="${src}" alt="${escape(block.content)}" title="${escape(block.content)}" />`;
 }
@@ -39,8 +38,27 @@ export function getEmojis(word) {
     }
     return [{
         ascii: word,
-        code: emojiList[word],
+        code: emojiList[word].split('.')[0],
         url: emojiLocation + emojiList[word],
+        ircValue: word,
+        // imgProps allows setting properties of <img>
+    }];
+}
+
+export function getEmojiFromUnified(unifiedID) {
+    const emojiList = getState().setting('emojis');
+    const emojiLocation = getState().setting('emojiLocation');
+    const [emojiWord, emojiFile] = Object.entries(emojiList).find(
+        ([key, value]) => value.split('.')[0] === unifiedID
+    );
+    if (!emojiWord) {
+        return [];
+    }
+    return [{
+        ascii: emojiWord,
+        code: emojiFile.split('.')[0],
+        url: emojiLocation + emojiFile,
+        ircValue: emojiWord,
         // imgProps allows setting properties of <img>
     }];
 }

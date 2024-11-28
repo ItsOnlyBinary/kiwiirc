@@ -5,7 +5,7 @@ module.exports = {
         'stylelint-config-recommended',
         'stylelint-config-recommended-vue',
         'stylelint-config-standard-scss',
-        'stylelint-config-recommended-scss',
+        // 'stylelint-config-recommended-scss',
         'stylelint-config-recess-order',
     ],
     overrides: [
@@ -48,6 +48,7 @@ module.exports = {
         ],
         'scss/double-slash-comment-empty-line-before': null,
         'scss/double-slash-comment-whitespace-inside': null,
+        'scss/no-global-function-names': null,
         'selector-class-pattern': null,
         'shorthand-property-no-redundant-values': null,
 

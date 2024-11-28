@@ -132,13 +132,13 @@ export default {
 /* Remove spinners from input numbers */
 .u-input-text input[type='number'] {
     /* For Firefox */
-    -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .u-input-text input[type='number']::-webkit-inner-spin-button,
 .u-input-text input[type='number']::-webkit-outer-spin-button {
     /* For webkit browsers like Safari and Chrome */
-    -webkit-appearance: none;
+    appearance: none;
     margin: 0;
 }
 

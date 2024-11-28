@@ -108,13 +108,15 @@
                             v-if="shouldShowColorPicker"
                             class="kiwi-controlinput-button"
                             @click.prevent="onToolClickTextStyle"
+                            @mousedown.prevent
                         >
-                            <svg-icon icon="fa-solid fa-circle-half-stroke" />
+                            <svg-icon icon="fa-solid fa-palette" />
                         </div>
                         <div
                             v-if="shouldShowEmojiPicker"
                             class="kiwi-controlinput-button"
                             @click.prevent="onToolClickEmoji"
+                            @mousedown.prevent
                         >
                             <svg-icon icon="fa-regular fa-face-smile" />
                         </div>
@@ -156,6 +158,7 @@ import * as settingTools from '@/libs/settingTools';
 import NewIrcInput from '@/components/utils/NewIrcInput';
 import autocompleteCommands from '@/res/autocompleteCommands';
 import GlobalApi from '@/libs/GlobalApi';
+import html2irc from '@/helpers/Html2Irc';
 import AutoComplete from './AutoComplete';
 import ToolTextStyle from './inputtools/TextStyle';
 import ToolEmoji from './inputtools/Emoji';
@@ -406,13 +409,13 @@ export default {
             }
         },
         toggleBold() {
-            this.$refs.input.toggleBold();
+            this.$refs.input.toggleStyle('bold');
         },
         toggleItalic() {
-            this.$refs.input.toggleItalic();
+            this.$refs.input.toggleStyle('italic');
         },
         toggleUnderline() {
-            this.$refs.input.toggleUnderline();
+            this.$refs.input.toggleStyle('underline');
         },
         onAutocompleteCancel() {
             this.autocomplete_open = false;
@@ -449,14 +452,7 @@ export default {
                 this.$refs.autocomplete.selectCurrentItem();
             }
 
-            if (event.key === 'Enter' && (
-                (event.altKey && !event.shiftKey && !event.metaKey && !event.ctrlKey) ||
-                (event.shiftKey && !event.altKey && !event.metaKey && !event.ctrlKey)
-            )) {
-                // Add new line when shift+enter or alt+enter is pressed
-                event.preventDefault();
-                this.$refs.input.insertText('\n');
-            } else if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey && !event.altKey) {
                 // Send message when enter is pressed
                 event.preventDefault();
                 this.submitForm();
@@ -603,8 +599,8 @@ export default {
                 this.autocomplete_filter = currentToken;
             }
         },
-        async submitForm() {
-            let rawInput = await this.$refs.input.getValue();
+        submitForm() {
+            let rawInput = this.$refs.input.getValue();
             if (!rawInput) {
                 if (!this.has_focus && this.keep_focus) {
                     // Maybe triggered by the send button on empty input,
@@ -614,7 +610,9 @@ export default {
                 return;
             }
 
-            let ircText = this.$refs.input.buildIrcText();
+            console.log('raw', JSON.stringify(rawInput));
+            let ircText = html2irc(rawInput);
+            console.log('irc', JSON.stringify(ircText));
 
             // Show a warning if a command is preceded by spaces
             let warnExpectedCommand = this.$state.setting('buffers.warn_expected_command');
@@ -1022,6 +1020,12 @@ export default {
     cursor: pointer;
     justify-content: center;
     align-items: center;
+    position: relative;
+
+    .kiwi-controlinput-button-clicker {
+        position: absolute;
+        inset: 0;
+    }
 
     svg {
         font-size: 20px;

@@ -89,8 +89,6 @@ select {
 .u-form input[type='checkbox'],
 .u-form input[type='radio'] {
     float: left;
-    -webkit-appearance: none;
-    -moz-appearance: none;
     appearance: none;
     width: 20px;
     height: 20px;

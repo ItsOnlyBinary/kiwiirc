@@ -90,6 +90,9 @@ export const configTemplates = {
             // auto_request_history: all/channels/queries/none
             auto_request_history: 'channels',
         },
+        input: {
+            showAwayStatus: true,
+        },
         avatars: {
             away_status_position: 1,
             initials_length: 1,

@@ -69,6 +69,7 @@
                         wrap="off"
                         @input="inputUpdate"
                         @keydown="inputKeyDown($event)"
+                        @keyup="inputKeyUp($event)"
                         @click="closeToolsPlugins"
                         @focus="focusChanged"
                         @blur="focusChanged"
@@ -419,16 +420,23 @@ export default {
         },
         onAutocompleteCancel() {
             this.autocomplete_open = false;
+            this.$refs.input.cancelAutocomplete();
         },
         onAutocompleteTemp(selectedValue, selectedItem) {
-            if (!this.autocomplete_filtering) {
-                this.$refs.input.setCurrentWord(selectedValue);
-            }
+            console.log('autocompleteTemp', selectedValue);
+            this.$refs.input.updateAutocomplete(selectedItem);
         },
-        onAutocompleteSelected(selectedValue, selectedItem) {
+        onAutocompleteSelected(selectedValue, selectedItem, wasSpaceTriggered) {
+            console.log('autocompleteSelected');
             let word = selectedValue;
             if (word.length > 0) {
-                this.$refs.input.setCurrentWord(word);
+                this.$refs.input.autocompleteFinalise(
+                    selectedItem,
+                    this.network,
+                    wasSpaceTriggered,
+                );
+            } else {
+                this.$refs.input.cancelAutocomplete();
             }
             this.autocomplete_open = false;
         },
@@ -552,6 +560,7 @@ export default {
 
             if (event.key === 'Escape' && this.autocomplete_open) {
                 this.autocomplete_open = false;
+                this.$refs.input.cancelAutocomplete();
             } else if (this.autocomplete_open && currentToken === '') {
                 this.autocomplete_open = false;
             } else if (this.autocomplete_open) {
@@ -563,15 +572,21 @@ export default {
                 }
             } else if (currentToken === '@' && autocompleteTokens.includes('@')) {
                 // Just typed @ so start the nick auto completion
-                this.openAutoComplete(this.buildAutoCompleteItems({ users: true }));
+                const items = this.buildAutoCompleteItems({ users: true });
+                this.$refs.input.getAutocompleteNode();
+                this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
             } else if (inputVal === '/' && autocompleteTokens.includes('/')) {
                 // Just typed / so start the command auto completion
-                this.openAutoComplete(this.buildAutoCompleteItems({ commands: true }));
+                const items = this.buildAutoCompleteItems({ commands: true });
+                this.$refs.input.getAutocompleteNode();
+                this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
             } else if (currentToken === '#' && autocompleteTokens.includes('#')) {
                 // Just typed # so start the command auto completion
-                this.openAutoComplete(this.buildAutoCompleteItems({ buffers: true }));
+                const items = this.buildAutoCompleteItems({ buffers: true });
+                this.$refs.input.getAutocompleteNode();
+                this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
             } else if (
                 event.key === 'Tab'
@@ -690,6 +705,7 @@ export default {
                     let item = {
                         text: user.nick,
                         type: 'user',
+                        user,
                     };
                     return item;
                 });
@@ -698,6 +714,9 @@ export default {
                     userList.push({
                         text: this.buffer.name,
                         type: 'user',
+                        user: this.buffer.users.find(
+                            (user) => user.key === this.buffer.name.toUpperCase()
+                        ),
                     });
                 }
 
@@ -711,6 +730,7 @@ export default {
                         bufferList.push({
                             text: buffer.name,
                             type: 'buffer',
+                            buffer,
                         });
                     }
                 });

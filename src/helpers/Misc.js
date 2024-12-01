@@ -3,9 +3,10 @@
 /** @module */
 
 import _ from 'lodash';
-import { defineComponent, markRaw } from 'vue';
+import { createVNode, defineComponent, markRaw, render } from 'vue';
 import strftime from 'strftime';
 import PluginWrapper from '@/components/utils/PluginWrapper';
+import GlobalApi from '@/libs/GlobalApi';
 import * as TextFormatting from '@/helpers/TextFormatting';
 import { urlRegex } from './TextFormatting';
 
@@ -424,4 +425,27 @@ export function strCompare(a, b) {
     return a > b ?
         1 :
         -1;
+}
+
+export function mountComponent(component, props, el) {
+    const app = GlobalApi.singleton().app;
+    let vNode = createVNode(component, props);
+    let element = el ?? document.createElement('div');
+
+    /* eslint-disable no-underscore-dangle */
+    if (app && app._context) {
+        vNode.appContext = app._context;
+    }
+    /* eslint-enable no-underscore-dangle */
+
+    render(vNode, element);
+    const destroy = () => {
+        if (element) {
+            render(null, element);
+        }
+        vNode = null;
+        element = null;
+    };
+
+    return { vNode, destroy, element };
 }

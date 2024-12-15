@@ -16,7 +16,7 @@ function def(target, key, value) {
 }
 
 export default class Message {
-    constructor(message, user) {
+    constructor(message, user, network) {
         // instance_num is a running number for all messages created within Kiwi. Used to order
         // messages if the message time is the same.
         def(this, 'instance_num', nextId++);
@@ -55,6 +55,7 @@ export default class Message {
 
         // We don't want the user object to be enumerable
         def(this, 'user', user || null);
+        Object.defineProperty(this, 'network', { value: network });
 
         Vue.observable(this);
     }
@@ -106,6 +107,7 @@ export default class Message {
         let userList = buffer.users;
 
         let blocks = parseMessage(
+            this.network,
             this.message,
             {
                 extras: !buffer.isSpecial() && useExtraFormatting && this.type === 'privmsg',

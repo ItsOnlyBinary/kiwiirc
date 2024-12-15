@@ -202,7 +202,8 @@ export default {
                 && this.buffer.setting('show_topic_in_header');
         },
         formattedTopic() {
-            let blocks = parseMessage(this.buffer.topic, { extras: false });
+            let network = this.buffer.getNetwork();
+            let blocks = parseMessage(network, this.buffer.topic, { extras: false });
             let content = toHtml(blocks);
             return content;
         },

@@ -5,7 +5,7 @@ import { trim } from 'lodash';
 import * as EmojiProvider from '@/libs/EmojiProvider';
 import * as Misc from '@/helpers/Misc';
 import formatIrcMessage, { createNewBlock } from '@/libs/MessageFormatter';
-import { urlRegex, channelRegex } from '@/helpers/TextFormatting';
+import { urlRegex } from '@/helpers/TextFormatting';
 
 /**
  * Receives a message, parses its irc blocks, and then finds urls, users, channels and emoji. Each
@@ -20,10 +20,10 @@ import { urlRegex, channelRegex } from '@/helpers/TextFormatting';
  * @param {Array} userList List of users to find within the message
  * @returns An array of blocks, where each special content will be extracted into a separate block.
  */
-export default function parseMessage(message, formatOpts = {}, userList = null) {
+export default function parseMessage(network, message, formatOpts = {}, userList = null) {
     const blocks = formatIrcMessage(message, formatOpts);
     let formatedBlocks = blocks.reduce(
-        (acc, block, i) => acc.concat(processBlock(block, userList)),
+        (acc, block, i) => acc.concat(processBlock(network, block, userList)),
         []
     );
 
@@ -36,7 +36,7 @@ export default function parseMessage(message, formatOpts = {}, userList = null) 
  * @param {Object} userList List of users to find within the message
  * @returns An array of blocks, where each special content will be extracted into a separate block.
  */
-function processBlock(block, userList) {
+function processBlock(network, block, userList) {
     const wordsRegex = /\S+/g;
 
     let wordMatch;
@@ -57,7 +57,7 @@ function processBlock(block, userList) {
         word = wordMatch[0];
 
         const matches =
-            matchChannel(word) ||
+            matchChannel(network, word) ||
             matchUrl(word) ||
             matchUser(word, userList) ||
             EmojiProvider.matchEmoji(word);
@@ -94,7 +94,8 @@ function processBlock(block, userList) {
  * @param {String} word Word to be searched for channels.
  * @returns {object} Object with the matched channel, index within the word, and block.
  */
-function matchChannel(word) {
+function matchChannel(network, word) {
+    const channelRegex = network.channelRegex;
     const channelMatch = channelRegex.exec(word);
     // matches the groups (spaces before)(prefix)(channel)(suffix punctuation)
 

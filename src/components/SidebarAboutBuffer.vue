@@ -139,7 +139,7 @@ export default {
             return this.buffer || {};
         },
         formattedTopic() {
-            let blocks = parseMessage(this.b.topic || '', { extras: false });
+            let blocks = parseMessage(this.network, this.b.topic || '', { extras: false });
             let content = toHtml(blocks);
             return content;
         },

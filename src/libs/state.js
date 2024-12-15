@@ -577,8 +577,9 @@ function createNewState() {
                     return;
                 }
 
+                let network = buffer.getNetwork();
                 let user = this.getUser(buffer.networkid, message.nick);
-                let bufferMessage = new Message(message, user);
+                let bufferMessage = new Message(message, user, network);
                 if (user && user.ignore) {
                     bufferMessage.ignore = true;
                 }
@@ -600,7 +601,6 @@ function createNewState() {
                     includeAsActivity = true;
                 }
 
-                let network = buffer.getNetwork();
                 let isNewMessage = message.time >= buffer.last_read;
                 let isHighlight = !network || buffer.isRaw() ?
                     false :

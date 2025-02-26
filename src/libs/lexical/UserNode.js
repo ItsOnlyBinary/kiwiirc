@@ -28,39 +28,28 @@ export class UserNode extends TextNode {
         element.contentEditable = false;
         if (this.user instanceof UserState) {
             element.style.color = this.user.getColour();
-        }
 
-        if (getState().setting('input.showAwayStatus')) {
-            const awayStatus = mountComponent(
-                AwayStatusIndicator,
-                {
-                    network: this.network,
-                    user: this.user,
-                },
-            );
-            element.prepend(awayStatus.vNode.el);
+            if (this.network && getState().setting('input.showAwayStatus')) {
+                const awayStatus = mountComponent(
+                    AwayStatusIndicator,
+                    {
+                        network: this.network,
+                        user: this.user,
+                    },
+                );
+                element.prepend(awayStatus.vNode.el);
+            }
         }
-
         return element;
     }
 
-    // canInsertTextBefore() {
-    //     return false;
-    // }
-
-    // canInsertTextAfter() {
-    //     return false;
-    // }
-
-    // isUnmergeable() {
-    //     return true;
-    // }
-
-    static importJSON(serializedNode) {
-        const user = getState().getUserById(serializedNode.user.id) ?? {
-            nick: serializedNode.user.nick,
+    static importJSON(serialisedNode) {
+        const state = getState();
+        const network = state.getNetwork(serialisedNode.network.id);
+        const user = state.getUserById(serialisedNode.user.id) ?? {
+            nick: serialisedNode.user.nick,
         };
-        return $createUserNode(user);
+        return $createUserNode(network, user);
     }
 
     exportJSON() {

@@ -2,7 +2,6 @@ import { $getRoot } from 'lexical';
 
 export function $getAllNodes() {
     const rootNode = $getRoot();
-    console.log('rootNode', rootNode);
     const allNodes = [];
 
     const traverseNodes = (node) => {

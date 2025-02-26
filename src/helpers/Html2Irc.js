@@ -6,12 +6,16 @@ import Logger from '@/libs/Logger';
 const log = Logger.namespace('Html2Irc');
 
 const EMOJI_NODE_CLASS = 'emoji-node';
+const CODE_NODE_CLASS = 'code-node';
 
 const varColourRegexp = /^var\(--irc-colour-(\d+)\)$/;
 const endsWithFgColourRegexp = /\x03\d+$/;
 const endsWithResetColourRegexp = /\x03$/;
 const startsWithCommaDecimalRegexp = /^,\d+/;
 const startsWithDecimalRegexp = /^\d+/;
+const trailingSpacesRegex = /(\s+)$/;
+const leadingSpacesRegex = /^(\03(?:\d{2},\d{2}|\d{2})?|[\x02\x1d\x1f\x1e\x11\x0f])+(\s+)/;
+// const spaceAfterColoursRegexp = /(\03(?:\d{2},\d{2}|\d{2})?|[\x02\x1d\x1f\x1e\x11\x0f])(\s+)/g;
 
 const defaultIrcStyle = {
     fg: null,
@@ -29,6 +33,9 @@ export default function html2irc(source) {
 
     const openTags = [];
     let checkSpace = false;
+    let previousTag = '';
+    // let nextStyleChange = '';
+
     const parser = new htmlparser.Parser({
         onopentag: (name, attribs) => {
             if (name === 'br') {
@@ -36,7 +43,7 @@ export default function html2irc(source) {
             }
 
             if (attribs.class === EMOJI_NODE_CLASS) {
-                openTags.push('emoji-span');
+                openTags.push('emoji');
                 const emoji = attribs['data-code'];
                 if (!emoji) {
                     return;
@@ -52,6 +59,19 @@ export default function html2irc(source) {
             const style = getStyleObjectFromCSS(attribs.style || '');
             const ircStyle = style2IrcStyle(style);
             const ircStyleDiff = getIrcStyleDiff(currentIrcStyle, ircStyle);
+            const styleChange = ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff);
+
+            if (attribs.class === CODE_NODE_CLASS) {
+                openTags[openTags.length - 1] = 'code';
+                const match = trailingSpacesRegex.exec(ircText);
+                console.log('match', match);
+                if (match) {
+                    ircText = ircText.replace(trailingSpacesRegex, `${styleChange}$1`);
+                } else {
+                    ircText += `${styleChange} `;
+                }
+                checkSpace = true;
+            }
 
             if (!Object.keys(ircStyleDiff).length) {
                 // No changes needed
@@ -64,7 +84,7 @@ export default function html2irc(source) {
         },
         ontext: (text) => {
             const tag = openTags.slice(-1)[0];
-            if (tag === 'emoji-span') {
+            if (tag === 'emoji') {
                 return;
             }
 
@@ -75,6 +95,16 @@ export default function html2irc(source) {
                 ircText += '\u2008';
             }
 
+            let newText = text;
+            if (previousTag === 'code') {
+                const match = leadingSpacesRegex.exec(newText);
+                if (match) {
+                    newText = newText.replace(leadingSpacesRegex, '$2$1');
+                } else if (newText[0] !== ' ') {
+                    newText = ' ' + newText;
+                }
+            }
+
             if (checkSpace) {
                 checkSpace = false;
                 const needSpace = ircText.slice(0) !== ' ';
@@ -83,10 +113,10 @@ export default function html2irc(source) {
                 }
             }
 
-            ircText += text;
+            ircText += newText;
         },
         onclosetag: (name) => {
-            openTags.pop();
+            previousTag = openTags.pop();
         },
     }, {
         decodeEntities: true,
@@ -99,8 +129,8 @@ export default function html2irc(source) {
         log.error(`openTags is not empty [length=${openTags.length}]`);
     }
 
-    log.warn('test warn');
-    log.error('test error');
+    // Ensure colour codes are after spaces
+    // ircText = ircText.replace(spaceAfterColoursRegexp, '$1$2');
     return ircText;
 }
 
@@ -135,6 +165,9 @@ function ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff) {
 
     if (ircStyleDiff.hasOwnProperty('fg')) {
         if (ircStyleDiff.fg) {
+            if (currentIrcStyle.bg && !ircStyleDiff.bg) {
+                ircCodes += '\x03';
+            }
             ircCodes += `\x03${ircStyleDiff.fg}`;
 
             if (ircStyleDiff.bg) {
@@ -145,7 +178,9 @@ function ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff) {
         }
     } else if (ircStyleDiff.hasOwnProperty('bg')) {
         if (!ircStyleDiff.bg && currentIrcStyle.fg) {
-            ircCodes += `\x03${currentIrcStyle.fg}`;
+            ircCodes += `\x03\x03${currentIrcStyle.fg}`;
+        } else if (ircStyleDiff.bg && currentIrcStyle.fg) {
+            ircCodes += `\x03${currentIrcStyle.fg},${ircStyleDiff.bg}`;
         }
     }
 

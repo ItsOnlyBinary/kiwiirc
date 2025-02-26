@@ -1,472 +1,698 @@
 <template>
     <div
-        ref="editor"
+        ref="editor-div"
         class="kiwi-ircinput-editor"
         contenteditable="true"
         role="textbox"
         spellcheck="true"
         :placeholder="placeholder"
         :class="{ 'kiwi--focus': hasFocus, 'kiwi--empty': isEmpty }"
-        @focus="onFocus"
         @blur="onBlur"
+        @click="emit('click', $event)"
+        @focus="onFocus"
+        @input="onInput"
+        @beforeinput="onBeforeInput"
+        @keydown="onKeyDown($event);emit('keydown', $event)"
+        @keyup="onKeyUp($event);emit('keyup', $event)"
     />
 </template>
 
-<script>
+<script setup>
+/* eslint "sort-imports": ["error", { "allowSeparatedGroups": true }] */
+/* eslint-disable no-unused-vars */
 import {
-    createEditor,
-    $getSelection,
+    $createParagraphNode,
+    $createTextNode,
     $getRoot,
+    $getSelection,
     $setSelection,
+    COMMAND_PRIORITY_NORMAL,
+    CONTROLLED_TEXT_INSERTION_COMMAND,
+    KEY_DOWN_COMMAND,
+    KEY_ENTER_COMMAND,
     ParagraphNode,
     RootNode,
-    $createParagraphNode,
-    KEY_ENTER_COMMAND,
-    COMMAND_PRIORITY_NORMAL,
-    $createTextNode,
+    createEditor,
 } from 'lexical';
-import { registerPlainText } from '@lexical/plain-text';
-import { mergeRegister } from '@lexical/utils';
-
-import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import { $patchStyleText, $selectAll, getStyleObjectFromCSS } from '@lexical/selection';
-import { markRaw } from 'vue';
+import { markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef } from 'vue';
+import { $generateHtmlFromNodes } from '@lexical/html';
+import { mergeRegister } from '@lexical/utils';
+import { registerPlainText } from '@lexical/plain-text';
 
-import { EmojiNode, $createEmojiNode } from '@/libs/lexical/EmojiNode';
 import { $createAutocompleteNode, AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
-import { $getAllNodes } from '@/libs/lexical/helpers';
+import { $createCodeNode, CodeNode } from '@/libs/lexical/CodeNode';
+import { $createEmojiNode, EmojiNode } from '@/libs/lexical/EmojiNode';
 import { $createUserNode, UserNode } from '@/libs/lexical/UserNode';
+import { $getAllNodes } from '@/libs/lexical/helpers';
+import { registerCode } from '@/libs/lexical/CodePlugin';
+import { registerEmoji } from '@/libs/lexical/EmojiPlugin';
+
+import { useTimeouts } from '@/helpers/Misc';
 
 import Logger from '@/libs/Logger';
 
 const log = Logger.namespace('IrcInput');
 
-const resetStyles = {
+const defaultStyle = {
     'color': null,
     'background-color': null,
-    '--kiwi-irc-fg': null,
-    '--kiwi-irc-bg': null,
     'font-weight': null,
     'font-style': null,
     'text-decoration': null,
 };
 
+const { placeholder } = defineProps({
+    placeholder: {
+        type: String,
+        default: '',
+    },
+});
+
+const emit = defineEmits([
+    'blur',
+    'click',
+    'focus',
+    'input',
+    'keydown',
+    'keyup',
+    'textInput',
+    'autocompleteEnded',
+]);
+
+let activeAutocompleteID = 0;
 let nextAutocompleteID = 0;
 
-export default {
-    props: ['placeholder'],
-    emits: ['focus', 'blur'],
-    data() {
-        return {
-            editor: null,
-            listeners: [],
-            hasFocus: false,
-            isEmpty: true,
-            activeAutocompleteID: null,
+let editor = null;
+const editorConfig = {
+    nodes: [AutocompleteNode, EmojiNode, UserNode, CodeNode],
+};
+const editorElement = useTemplateRef('editor-div');
+const editorListeners = [];
 
-            current_el: null,
-            current_el_pos: 0,
-            current_anchor: null,
+const currentStyle = reactive(Object.assign({}, defaultStyle));
+const hasFocus = ref(false);
+const isEmpty = ref(true);
 
-            currentStyle: {},
-        };
-    },
-    mounted() {
-        const config = {
-            // theme: {
-            // },
-            onError: this.onError,
-            nodes: [EmojiNode, AutocompleteNode, UserNode],
-        };
+const timeoutManager = useTimeouts();
+const focusTimeout = timeoutManager.create();
+const blurTimeout = timeoutManager.create();
 
-        this.editor = markRaw(createEditor(config));
-        this.editor.setRootElement(this.$refs.editor);
+onMounted(() => {
+    editor = markRaw(createEditor({ ...editorConfig, onError }));
+    editor.setRootElement(editorElement.value);
+    editor.update(() => {
+        const paragraphNode = $createParagraphNode();
+        $getRoot().append(paragraphNode);
+        paragraphNode.selectEnd();
+    });
 
-        // Register Plugins
-        mergeRegister(registerPlainText(this.editor));
+    // Register Plugins
+    mergeRegister(
+        registerPlainText(editor),
+        registerEmoji(editor),
+        ...registerCode(editor),
+    );
 
-        const enterListener = this.editor.registerCommand(
+    // Register Listeners
+    editorListeners.push(
+        editor.registerCommand(
             KEY_ENTER_COMMAND,
+            // Ignore enter unless it also includes shift or alt
             (event) => !event.shiftKey && !event.altKey,
             COMMAND_PRIORITY_NORMAL
-        );
+        ),
+        // editor.registerCommand(
+        //     CONTROLLED_TEXT_INSERTION_COMMAND,
+        //     onInsert,
+        //     COMMAND_PRIORITY_NORMAL
+        // ),
+        editor.registerCommand(
+            KEY_DOWN_COMMAND,
+            editorKeyDown,
+            COMMAND_PRIORITY_NORMAL,
+        ),
+    );
 
-        this.listeners.push(enterListener);
-
-        const updateListener = this.editor.registerUpdateListener(({ editorState }) => {
-            // The latest EditorState can be found as `editorState`.
-            // To read the contents of the EditorState, use the following API:
-            console.log('update');
-            const updatesNeeded = editorState.read(() => {
-                this.isEmpty = !$getRoot().getTextContent();
-                const selection = $getSelection();
-
-                if (selection) {
-                    this.current_anchor = selection.anchor;
-                    const nodes = selection.getNodes();
-
-                    if (
-                        selection.isCollapsed() &&
-                        nodes.length === 1 &&
-                        nodes[0].getType() === 'autocomplete' &&
-                        selection.anchor.offset !== nodes[0].getTextContent().length
-                    ) {
-                        return { autocomplete: true };
-                    }
-
-                    if (
-                        selection.isCollapsed() &&
-                        nodes.length === 1 &&
-                        nodes[0].getType() === 'text'
-                    ) {
-                        const parent = nodes[0].getParent();
-                        console.log('maybe', parent?.getType());
-                    }
-
-                    console.log('nodes', nodes);
-
-                    let style = null;
-                    if (nodes.length && !selection.isCollapsed()) {
-                        const node = selection.isBackward() ? nodes[nodes.length - 1] : nodes[0];
-                        style = getStyleObjectFromCSS(node.getStyle());
-                    } else {
-                        style = getStyleObjectFromCSS(selection.style);
-                    }
-
-                    this.currentStyle = style;
-
-                    console.log('style', style);
-                }
-
-                // console.log('html', $generateHtmlFromNodes(this.editor));
-                console.log('update read', selection);
-                return false;
-            });
-
-            if (!updatesNeeded) {
-                return;
-            }
-
-            this.editor.update(() => {
-                const selection = $getSelection();
-                const nodes = selection.getNodes();
-
-                if (updatesNeeded.autocomplete) {
-                    nodes[0].selectEnd();
-                }
-            });
-        });
-
-        this.listeners.push(updateListener);
-        console.log('mounted', this.editor);
-    },
-    beforeUnmount() {
-        this.listeners.forEach((listener) => listener());
-    },
-    methods: {
-        onBlur(event) {
-            // workaround for chromium failing to pass focus when
-            // placeholder is removed
-            // the blur is so this cannot be fired before onFocus
-            this.setTimeout(() => (this.hasFocus = false), 0);
-            this.$emit('blur', event);
-        },
-        onFocus(event) {
-            // workaround for chromium failing to pass focus when
-            // placeholder is removed
-            this.setTimeout(() => (this.hasFocus = true), 0);
-            this.$emit('focus', event);
-        },
-        focus() {
-            console.log('focus');
-            this.$refs.editor.focus();
-            this.editor.focus();
-        },
-        onError(event) {
-            console.error('onError', event);
-        },
-        applyTextStyle(styles) {
-            console.log('applyTextStyle', styles);
-            Object.entries(styles).forEach(([key, value]) => {
-                if (this.currentStyle[key] !== value) {
-                    return;
-                }
-
-                styles[key] = null;
-
-                if (key === 'color') {
-                    // we can not have a background colour without a foreground
-                    styles['background-color'] = null;
-                }
-            });
-            this.setStyle(styles);
-        },
-        setStyle(styles) {
-            console.log('setStyle', styles);
-            this.$refs.editor.focus();
-            this.editor.update(() => {
-                const selection = $getSelection();
-                if (selection !== null) {
-                    $patchStyleText(selection, styles);
-                }
-            });
-        },
-        toggleStyle(key) {
-            const styles = {};
-
-            if (key === 'bold') {
-                styles['font-weight'] = this.currentStyle['font-weight'] === 'bold' ? null : 'bold';
-            } else if (key === 'italic') {
-                styles['font-style'] =
-                    this.currentStyle['font-style'] === 'italic' ? null : 'italic';
-            } else if (key === 'underline' || key === 'strikethrough') {
-                const prop = key === 'underline' ? 'underline' : 'line-through';
-                const decor = this.currentStyle['text-decoration']
-                    ? this.currentStyle['text-decoration'].split(' ')
-                    : [];
-                const index = decor.indexOf(prop);
-                if (index > -1) {
-                    decor.splice(index, 1);
-                } else {
-                    decor.push(prop);
-                }
-                styles['text-decoration'] = decor.length ? decor.join(' ') : null;
-            }
-            this.setStyle(styles);
-        },
-        clearStyles() {
-            this.setStyle(resetStyles);
-        },
-        resetStyles() {
-            this.editor.update(() => {
-                const selection = $getSelection();
-                const allSelection = selection.clone();
-                $selectAll(allSelection);
-                $patchStyleText(allSelection, resetStyles);
-                $patchStyleText(selection, resetStyles);
-                $setSelection(selection);
-            });
-        },
-        reset(rawHTML, shouldFocus) {
-            const currentStyle = Object.apply({}, this.currentStyle);
-            const currentFocus = document.activeElement;
-
-            this.focus();
-
-            this.editor.update(() => {
-                const root = $getRoot();
-                root.clear();
-
-                if (rawHTML) {
-                    const parser = new DOMParser();
-                    const dom = parser.parseFromString(rawHTML, 'text/html');
-                    const node = $generateNodesFromDOM(dom);
-                    root.append(node);
-                    root.selectEnd();
-                } else {
-                    const selection = $getSelection();
-                    $patchStyleText(selection, currentStyle);
-                }
-
-                if (!shouldFocus && currentFocus && currentFocus !== this.$refs.editor) {
-                    currentFocus.focus();
-                }
-            });
-        },
-        getRawText() {
-            return this.editor.read(() => $getRoot().getTextContent());
-        },
-        addEmoji(emoji) {
-            this.editor.update(() => {
-                const createOnRoot = (appendNode) => {
-                    const paragraph = $createParagraphNode();
-                    paragraph.append(appendNode);
-                    $getRoot().append(paragraph);
-                    appendNode.selectEnd();
-                };
-
-                const emojiNode = $createEmojiNode(emoji);
-
+    let insideAutocomplete = false;
+    editorListeners.push(
+        editor.registerUpdateListener(({ editorState }) => {
+            const requiredUpdates = editorState.read(() => {
+                isEmpty.value = !$getRoot().getTextContent();
                 const selection = $getSelection();
                 if (!selection) {
-                    createOnRoot(emojiNode);
-                    return;
+                    return null;
                 }
-
-                if (!selection.isCollapsed()) {
-                    console.log('collapsing selection');
-                    selection.removeText();
-                }
-
+                console.log('selection update', selection);
                 const nodes = selection.getNodes();
-                console.log('nodes', nodes);
-                const node = nodes[0];
-                if (node instanceof RootNode) {
-                    createOnRoot(emojiNode);
-                } else if (node instanceof ParagraphNode) {
-                    node.clear();
-                    node.append(emojiNode);
-                } else if (!node.isSimpleText()) {
-                    node.insertAfter(emojiNode);
-                } else {
-                    const offset = selection.anchor.offset;
-                    const splitNodes = node.splitText(offset, offset);
 
-                    splitNodes[0].insertAfter(emojiNode);
+                if (selection.isCollapsed() && nodes[0].getType() === 'autocomplete') {
+                    insideAutocomplete = true;
+
+                    if (selection.anchor.offset !== nodes[0].getTextContent().length) {
+                        // Move cursor to end of autocomplete
+                        return { autocomplete: true };
+                    }
+                } else if (insideAutocomplete) {
+                    insideAutocomplete = false;
+                    emit('autocompleteEnded');
                 }
 
-                emojiNode.selectEnd();
-            });
-        },
-        getAutocompleteNode() {
-            if (this.activeAutocompleteID) {
-                log.error('new autocomplete id overwrote existing');
-            }
-            this.activeAutocompleteID = ++nextAutocompleteID;
-            this.editor.update(() => {
-                const selection = $getSelection();
-                const node = selection.getNodes()[0];
-                const offset = selection.anchor.offset;
-
-                let targetNode;
-                if (offset === 1) {
-                    [targetNode] = node.splitText(offset - 1, offset);
+                let style = null;
+                if (nodes.length && !selection.isCollapsed()) {
+                    const node = selection.isBackward() ? nodes[nodes.length - 1] : nodes[0];
+                    style = getStyleObjectFromCSS(node.getStyle());
                 } else {
-                    [, targetNode] = node.splitText(offset - 1, offset);
+                    if (nodes[0].getType() === 'code' && selection.style) {
+                        return { codeStyle: true };
+                    }
+                    style = getStyleObjectFromCSS(selection.style);
                 }
 
-                const autocompleteNode = $createAutocompleteNode(
-                    targetNode.getTextContent(),
-                    null,
-                    this.activeAutocompleteID
-                );
-                console.log('ac node', offset, targetNode, autocompleteNode);
-                targetNode.replace(autocompleteNode);
+                Object.assign(currentStyle, defaultStyle, style);
+
+                return null;
             });
-        },
-        updateAutocomplete(value) {
-            if (!this.activeAutocompleteID) {
-                log.error('no autocomplete id to update');
+
+            if (!requiredUpdates) {
                 return;
             }
-            console.log('updateAutocomplate', this.activeAutocompleteID, value);
-            this.editor.update(() => {
-                const autocompleteNode = $getAllNodes().find(
-                    (node) => node.id === this.activeAutocompleteID
-                );
-                if (!autocompleteNode) {
-                    console.error('Could not find node to update', this.activeAutocompleteID);
-                }
-                console.log('updateAutocomplete', autocompleteNode);
-                autocompleteNode.setSuggestion(value);
-            });
-        },
-        cancelAutocomplete() {
-            this.editor.update(() => {
-                const autocompleteNode = $getAllNodes().find(
-                    (node) => node.id === this.activeAutocompleteID
-                );
-                if (!autocompleteNode) {
-                    console.error('Could not find node to cancel', this.activeAutocompleteID);
-                }
 
-                console.log('cancelAutocomplete', autocompleteNode);
-                const textNode = $createTextNode(autocompleteNode.getTextContent());
-                autocompleteNode.replace(textNode);
-            });
-
-            this.activeAutocompleteID = null;
-        },
-        autocompleteFinalise(item, network, noSpace) {
-            this.editor.update(() => {
-                const autocompleteNode = $getAllNodes().find(
-                    (node) => node.id === this.activeAutocompleteID
-                );
-                if (!autocompleteNode) {
-                    console.error('Could not find node to update', this.activeAutocompleteID);
-                }
-                console.log('autocompleteFinalise', autocompleteNode);
-
-                let finalNode;
-                if (item.type === 'user') {
-                    finalNode = $createUserNode(network, item.user);
-                } else {
-                    finalNode = $createTextNode(item.value ?? item.text);
-                }
-
-                autocompleteNode.replace(finalNode);
-
-                if (noSpace) {
-                    finalNode.selectEnd();
-                    return;
-                }
-
-                const sibling = finalNode.getNextSibling();
-                if (!sibling) {
-                    const nextNode = $createTextNode(' ');
-                    finalNode.insertAfter(nextNode);
-                    nextNode.selectEnd();
-                    return;
-                }
-
-                if (sibling?.getType() === 'text' && sibling.isSimpleText()) {
-                    const text = sibling.getTextContent();
-                    if (!text.beginsWith(' ')) {
-                        // Add a space to beginning of next node
-                        sibling.setTextContent(` ${text}`);
-                    }
-                }
-
-                finalNode.selectEnd();
-            });
-
-            this.activeAutocompleteID = null;
-        },
-        getValue() {
-            return this.editor.read(() => $generateHtmlFromNodes(this.editor, null));
-        },
-        setValue(newVal) {
-            // TODO
-            console.log('setValue');
-        },
-        getCurrentWord(toPosition) {
-            return this.editor.read(() => {
+            editor.update(() => {
                 const selection = $getSelection();
-                if (!selection.isCollapsed()) {
-                    return '';
-                }
-                const anchor = selection.anchor;
-                const currentNode = anchor.getNode();
-                console.log('currentNode', currentNode);
+                const nodes = selection.getNodes();
 
-                const pos = anchor.offset;
-                const val = currentNode.getTextContent();
-                let startVal = val.substr(0, pos);
-                let space = startVal.lastIndexOf(' ');
-                if (space === -1) {
-                    space = 0;
-                } else {
-                    // include the space after the word
-                    space++;
+                if (requiredUpdates.autocomplete) {
+                    console.log('updating caret position');
+                    nodes[0].selectEnd();
+                } else if (requiredUpdates.codeStyle) {
+                    $patchStyleText(selection, defaultStyle);
                 }
-                let startPos = space;
-                space = val.indexOf(' ', startPos);
-                if (space === -1) {
-                    space = val.length;
-                }
-                let endPos = toPosition ? pos - startPos : space;
-
-                const result = {
-                    word: val.substr(startPos, endPos),
-                    position: pos - startPos,
-                };
-
-                console.log('word', result);
-                return result;
             });
-        },
-    },
+        })
+    );
+});
+
+onBeforeUnmount(() => {
+    editorListeners.forEach((listener) => listener());
+    timeoutManager.cancelAll();
+});
+
+/* Events */
+const onError = (error) => {
+    log.error('Lexical', error);
 };
+
+const onFocus = (event) => {
+    // workaround for chromium failing to pass focus to lexical
+    // when the placeholder is removed
+    focusTimeout(() => (hasFocus.value = true), 0);
+    emit('focus', event);
+};
+
+const onBlur = (event) => {
+    // workaround for chromium failing to pass focus to lexical
+    // when the placeholder is removed
+    // the blur is so this cannot be fired before onFocus
+    blurTimeout(() => (hasFocus.value = false), 0);
+    emit('blur', event);
+};
+
+const onKeyUp = () => {};
+const onKeyDown = (event) => {
+    console.log('onKeyDown', event);
+};
+const onInput = (event) => {
+    console.log('onInput', event);
+};
+const onBeforeInput = (event) => {
+    console.log('onBeforeInput', event);
+    if (event.inputType === 'insertText' && event.data === '`') {
+        // unused
+    }
+};
+
+const onInsert = (event) => {
+    console.log('onInsert', event);
+};
+
+const maybeCreateCodeNode = (event) => {
+    editor.update(() => {
+        const selection = $getSelection();
+        const nodes = selection.getNodes();
+
+        if (selection.isCollapsed()) {
+            console.log('nodes', nodes);
+            if (nodes[0].getType() === 'paragraph') {
+                console.log('createCode');
+                const codeNode = $createCodeNode('``');
+                nodes[0].append(codeNode);
+                codeNode.select(1, 1);
+                event.preventDefault();
+                return;
+            }
+
+            const text = nodes[0].getTextContent();
+            const offset = selection.anchor.offset;
+            const nextSibling = nodes[0].getNextSibling();
+            console.log('test', nodes[0].getType() !== 'code', !nextSibling, offset, text.length);
+            if (nodes[0].getType() !== 'code' && !nextSibling && offset === text.length) {
+                // const [, targetNode] = nodes[0].splitText(selection.anchor.offset);
+                const codeNode = $createCodeNode('``');
+                // nodes[0].spliceText(text.length, 0, '~', false);
+                // nodes[0].select(text.length - 1, text.length - 1);
+                // nodes[0].selectEnd();
+                nodes[0].insertAfter(codeNode);
+                codeNode.select(1, 1);
+                event.preventDefault();
+            }
+            // else {
+            //     let nextSibling = nodes[0].getNextSibling();
+            //     if (!nextSibling || nextSibling.getType() !== 'text') {
+            //         nextSibling = $createTextNode('');
+            //         nodes[0].insertAfter(nextSibling);
+            //     }
+            //     nextSibling.selectStart();
+            // }
+        } else {
+            const codeText = selection.getTextContent();
+            const codeNode = $createCodeNode('`' + codeText + '`');
+            selection.insertNodes([codeNode]);
+            const position = codeNode.getTextContentSize() - 1;
+            codeNode.select(position, position);
+            event.preventDefault();
+        }
+    });
+};
+
+const editorKeyDown = (event) => {
+    console.log('editorKeyDown', event);
+    if (event.key === '`') {
+        maybeCreateCodeNode(event);
+    }
+};
+
+// const onKeyUp = editorKeyDown;
+
+const focus = (triggerEvent) => {
+    editorElement.value.focus();
+    editor.focus(() => console.log('got focus'));
+    if (triggerEvent?.key === '`') {
+        editorKeyDown(triggerEvent);
+    }
+    // if (triggerEvent) {
+    //     if (triggerEvent.key === '`') {
+    //         triggerEvent.preventDefault();
+    //     }
+    //     editorElement.value.dispatchEvent(new KeyboardEvent(triggerEvent.type, triggerEvent));
+    // }
+    //     const newEvent = new KeyboardEvent('keydown', {
+    //         bubbles: false,
+    //         cancelable: true,
+    //         key: triggerEvent.key,
+    //         code: triggerEvent.code,
+    //         keyCode: triggerEvent.keyCode,
+    //     });
+    //     newEvent.preventDefault();
+    //     // triggerEvent.preventDefault();
+    //     editorElement.value.dispatchEvent(newEvent);
+    // }
+};
+
+const lock = () => editor.setEditable(false);
+
+const unlock = () => editor.setEditable(true);
+
+/* Styles */
+
+/**
+ * Set the text style on the currently selected text or caret position
+ *
+ * @param   {{
+ *     color?: string | null,
+ *     background-color?: string | null,
+ *     font-weight?: string | null,
+ *     font-style?: string | null,
+ *     text-decoration?: string | null
+ *  }} styles
+ *   A css styles object containing the styles that require changing
+ *
+ * @returns {void}
+ */
+const setStyle = (styles) => {
+    focus();
+    editor.update(() => {
+        const selection = $getSelection();
+        if (!selection) {
+            return;
+        }
+        $patchStyleText(selection, styles);
+    });
+};
+
+/**
+ * Set the text colour and background on the currently selected text or caret position
+ *
+ * @param   {{
+ *     color: string | null,
+ *     background-color?: string | null
+ * }} styles A css styles
+ *   object containing color and/or background-color
+ *
+ * @returns {void}
+ */
+const toggleColourStyle = (styles) => {
+    // TODO revisit
+    Object.entries(styles).forEach(([key, value]) => {
+        if (currentStyle[key] !== value) {
+            return;
+        }
+
+        styles[key] = null;
+
+        if (key === 'color') {
+            // we can not have a background colour without a foreground
+            styles['background-color'] = null;
+        }
+    });
+    console.log('toggleColourStyle', styles);
+    setStyle(styles);
+};
+
+/**
+ * Performs a toggle of styles on the currently selected text or caret position
+ *
+ * @param   {'color' | 'background-color' | 'bold' | 'italic' | 'underline' | 'strikethrough'} key
+ *   The style to toggle
+ * @param   {string}                                                                           [value]
+ *   The style value to toggle for `color` and `background-color`
+ *
+ * @returns {void}
+ */
+const toggleStyle = (key, value) => {
+    const styles = {};
+
+    if (key === 'color' || key === 'background-color') {
+        if (value === currentStyle[key]) {
+            styles[key] = null;
+            if (key === 'color') {
+                styles['background-color'] = null;
+            }
+        } else {
+            styles[key] = value;
+        }
+    } else if (key === 'bold') {
+        styles['font-weight'] = currentStyle['font-weight'] === 'bold' ? null : 'bold';
+    } else if (key === 'italic') {
+        styles['font-style'] = currentStyle['font-style'] === 'italic' ? null : 'italic';
+    } else if (key === 'underline' || key === 'strikethrough') {
+        const prop = key === 'underline' ? 'underline' : 'line-through';
+        const decor = currentStyle['text-decoration']
+            ? currentStyle['text-decoration'].split(' ')
+            : [];
+        const index = decor.indexOf(prop);
+        if (index > -1) {
+            decor.splice(index, 1);
+        } else {
+            decor.push(prop);
+        }
+        styles['text-decoration'] = decor.length ? decor.join(' ') : null;
+    }
+    setStyle(styles);
+};
+
+/**
+ * Remove all text styles on the currently selected text or caret position
+ *
+ * @returns {void}
+ */
+const clearStyles = () => {
+    setStyle(defaultStyle);
+};
+
+/**
+ * Remove all text styles on all text currently within the editor
+ *
+ * @returns {void}
+ */
+const resetStyles = () => {
+    editor.update(() => {
+        const selection = $getSelection();
+        const allSelection = selection.clone();
+        $selectAll(allSelection);
+        $patchStyleText(allSelection, defaultStyle);
+        $patchStyleText(selection, defaultStyle);
+        $setSelection(selection);
+    });
+};
+
+/**
+ * Generates HTML from the current editor state
+ *
+ * @returns {string}
+ */
+const getHTML = () => editor.read(() => $generateHtmlFromNodes(editor, null));
+
+/**
+ * Gets the text content from the current editor
+ *
+ * @returns {string}
+ */
+const getText = () => editor.read(() => $getRoot().getTextContent());
+
+const getWord = () => editor.read(() => {
+    const selection = $getSelection();
+    if (!selection?.isCollapsed()) {
+        return {
+            word: '',
+            position: 0,
+        };
+    }
+
+    const node = selection.anchor.getNode();
+    const text = node.getTextContent().slice(0, selection.anchor.offset);
+    let startPos = text.lastIndexOf(' ');
+    startPos = startPos === -1 ? 0 : startPos + 1;
+    return {
+        word: text.slice(startPos),
+        position: selection.anchor.offset,
+    };
+});
+
+/**
+ * Gets a serialisable and restorable editor state
+ *
+ * @returns {Object}
+ */
+const getState = () => editor.read(() => {
+    const editorState = editor.getEditorState();
+    const jsonState = editorState.toJSON();
+    if (!jsonState) {
+        log.error('failed to get editor state');
+        return '';
+    }
+    console.log('json', JSON.stringify(jsonState));
+    return JSON.stringify(jsonState);
+});
+
+/**
+ * Gets a serialisable and restorable editor state
+ *
+ * @param   {string} state
+ *
+ * @returns {void}
+ */
+const setState = (state) => {}; // TODO
+
+const resetState = (restoreCurrentStyle) => editor.update(() => {
+    $getRoot().clear();
+    if (!restoreCurrentStyle) {
+        return;
+    }
+    const selection = $getSelection();
+    if (!selection) {
+        return;
+    }
+    $patchStyleText(selection, currentStyle);
+});
+
+/**
+ * Add an emoji instead of the currently selected text or at the current caret position
+ *
+ * @param   {Object} emoji An emoji object provided by EmojiProvider
+ *
+ * @returns {void}
+ */
+const addEmoji = (emoji) => editor.update(() => {
+    const createOnRoot = (appendNode) => {
+        const paragraph = $createParagraphNode();
+        paragraph.append(appendNode);
+        $getRoot().append(paragraph);
+        appendNode.selectEnd();
+    };
+
+    const emojiNode = $createEmojiNode(emoji);
+    const selection = $getSelection();
+    if (!selection) {
+        createOnRoot(emojiNode);
+        return;
+    }
+
+    if (!selection.isCollapsed()) {
+        selection.removeText();
+    }
+
+    const nodes = selection.getNodes();
+    const node = nodes[0];
+    if (node instanceof RootNode) {
+        createOnRoot(emojiNode);
+    } else if (node instanceof ParagraphNode) {
+        node.clear();
+        node.append(emojiNode);
+    } else if (!node.isSimpleText()) {
+        node.insertAfter(emojiNode);
+    } else {
+        const offset = selection.anchor.offset;
+        const splitNodes = node.splitText(offset, offset);
+
+        splitNodes[0].insertAfter(emojiNode);
+    }
+
+    emojiNode.selectEnd();
+});
+
+const findAutocompleteNode = () => {
+    if (!activeAutocompleteID) {
+        log.error('could not find autocomplete node, no id stored');
+        return null;
+    }
+    return $getAllNodes().find((node) => node.id === activeAutocompleteID);
+};
+
+const createAutocomplete = () => {
+    if (activeAutocompleteID) {
+        log.error('new autocomplete id overwrote existing');
+    }
+    activeAutocompleteID = ++nextAutocompleteID;
+    editor.update(() => {
+        const selection = $getSelection();
+        const node = selection.getNodes()[0];
+        const offset = selection.anchor.offset;
+
+        let targetNode;
+        if (offset === 1) {
+            [targetNode] = node.splitText(offset - 1, offset);
+        } else {
+            [, targetNode] = node.splitText(offset - 1, offset);
+        }
+
+        const autocompleteNode = $createAutocompleteNode(
+            targetNode.getTextContent(),
+            null,
+            activeAutocompleteID
+        );
+        targetNode.replace(autocompleteNode);
+    });
+};
+
+const updateAutocomplete = (value) => {
+    editor.update(() => {
+        const node = findAutocompleteNode();
+        if (!node) {
+            log.error('could not find autocomplete node to update', activeAutocompleteID);
+            return;
+        }
+        node.setSuggestion(value);
+    });
+};
+
+const cancelAutocomplete = () => {
+    activeAutocompleteID = null;
+    editor.update(() => {
+        const node = findAutocompleteNode();
+        if (!node) {
+            log.error('could not find autocomplete node to cancel', activeAutocompleteID);
+            return;
+        }
+        const textNode = $createTextNode(node.getTextContent());
+        node.replace(textNode);
+    });
+};
+
+const finaliseAutocomplete = (item, network, appendSpace) => {
+    activeAutocompleteID = null;
+    editor.update(() => {
+        const node = findAutocompleteNode();
+        if (!node) {
+            log.error('could not find autocomplete node to finalise', activeAutocompleteID);
+            return;
+        }
+
+        let finalNode;
+        if (item.type === 'user') {
+            finalNode = $createUserNode(network, item.user);
+        } else {
+            finalNode = $createTextNode(item.value ?? item.text);
+        }
+
+        node.replace(finalNode);
+
+        if (!appendSpace) {
+            finalNode.selectEnd();
+            return;
+        }
+
+        const sibling = finalNode.getNextSibling();
+        if (!sibling) {
+            const nextNode = $createTextNode(' ');
+            finalNode.insertAfter(nextNode);
+            nextNode.selectEnd();
+            return;
+        }
+
+        if (sibling?.getType() === 'text' && sibling.isSimpleText()) {
+            const text = sibling.getTextContent();
+            if (!text.startsWith(' ')) {
+                // Add a space to beginning of next node
+                sibling.setTextContent(` ${text}`);
+            }
+        }
+
+        finalNode.selectEnd();
+    });
+};
+
+defineExpose({
+    currentStyle,
+
+    focus,
+    lock,
+    unlock,
+
+    // getCaretIdx,
+    // setSelectionEnd,
+    // setSelectionStart,
+
+    setStyle,
+    toggleColourStyle,
+    toggleStyle,
+    clearStyles,
+    resetStyles,
+
+    getHTML,
+    getText,
+    getWord,
+    getState,
+    setState,
+    resetState,
+
+    addEmoji,
+
+    createAutocomplete,
+    updateAutocomplete,
+    cancelAutocomplete,
+    finaliseAutocomplete,
+});
 </script>
 
 <style>
@@ -511,6 +737,14 @@ export default {
 
 .user-node {
     cursor: pointer;
+}
+
+.code-node {
+    border: 1px solid #b5b5b5;
+    padding: 0 3px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.05);
+    font-family: monospace;
 }
 
 .kiwi-ircinput-editor .user-node .kiwi-awaystatusindicator {

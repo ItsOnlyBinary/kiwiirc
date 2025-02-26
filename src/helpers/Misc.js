@@ -418,7 +418,9 @@ export function makePluginObject(app, pluginId, componentOrElement, args = {}) {
         if (componentOrElement.__vue__ && !window.kiwi_deprecations_vueEl) {
             window.kiwi_deprecations_vueEl = true;
             // eslint-disable-next-line no-console
-            console.warn('deprecated component.$el added to plugin api, please switch to just passing the vue.js component object');
+            console.warn(
+                'deprecated component.$el added to plugin api, please switch to just passing the vue.js component object'
+            );
         }
         plugin.component = markRaw(PluginWrapper);
         plugin.props = Object.assign(plugin.props, {
@@ -509,4 +511,46 @@ export function mountComponent(component, props, el) {
     };
 
     return { vNode, destroy, element };
+}
+
+export function useTimeouts() {
+    const activeTimeouts = Object.create(null);
+
+    const createTimeout = () => {
+        let currentTimeoutID = null;
+
+        const startTimeout = (callback, delay, ...args) => {
+            if (currentTimeoutID !== null) {
+                cancelTimeout();
+            }
+
+            currentTimeoutID = setTimeout(() => {
+                cancelTimeout();
+                callback();
+            }, delay, ...args);
+
+            activeTimeouts[currentTimeoutID] = cancelTimeout;
+        };
+
+        const cancelTimeout = () => {
+            if (currentTimeoutID !== null) {
+                clearTimeout(currentTimeoutID);
+                delete activeTimeouts[currentTimeoutID];
+                currentTimeoutID = null;
+            }
+        };
+
+        startTimeout.cancel = cancelTimeout;
+
+        return startTimeout;
+    };
+
+    const cancelAllTimeouts = () => {
+        Object.values(activeTimeouts).forEach((cancelTimeout) => cancelTimeout());
+    };
+
+    return {
+        create: createTimeout,
+        cancelAll: cancelAllTimeouts,
+    };
 }

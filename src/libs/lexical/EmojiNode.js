@@ -8,33 +8,33 @@ export class EmojiNode extends TextNode {
     }
 
     static clone(node) {
-        return new EmojiNode(node.emoji, node.__key);
+        return new EmojiNode(node.emoji, node.word, node.__key);
     }
 
-    constructor(emoji, key) {
-        // console.log('code', emoji.code, parseInt(emoji.code, 16));
-        // const unicode = String.fromCodePoint(parseInt(emoji.code, 16));
+    constructor(emoji, word, key) {
         super(' ', key);
         this.emoji = emoji;
+        this.word = word ?? '';
     }
 
     createDOM(config) {
-        const element = document.createElement('span');
+        const element = super.createDOM(config);
         element.className = 'emoji-node';
         element.dataset.code = this.emoji.ircValue;
         element.style.backgroundImage = `url("${this.emoji.url}")`;
-        element.innerText = this.__text;
         Object.assign(element, {
             ...this.emoji.imgProps,
         });
         return element;
     }
 
-    static importJSON(serializedNode) {
-        return $createEmojiNode(serializedNode.emoji);
+    static importJSON(serialisedNode) {
+        return $createEmojiNode(serialisedNode.emoji);
     }
 
     exportJSON() {
+        // this.word is not needed for serialisation
+        // as its only used to undo auto replace
         return {
             ...super.exportJSON(),
             type: 'emoji',
@@ -43,6 +43,6 @@ export class EmojiNode extends TextNode {
     }
 }
 
-export function $createEmojiNode(emoji) {
-    return new EmojiNode(emoji).setMode('token');
+export function $createEmojiNode(emoji, word) {
+    return new EmojiNode(emoji, word).setMode('token');
 }

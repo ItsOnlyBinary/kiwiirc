@@ -155,7 +155,7 @@ export default {
             const code = event.target.dataset.code;
             const styleKey = this.fgColour ? 'color' : 'background-color';
 
-            this.ircinput.applyTextStyle({
+            this.ircinput.toggleColourStyle({
                 [styleKey]: `var(--irc-colour-${code})`,
             });
         },

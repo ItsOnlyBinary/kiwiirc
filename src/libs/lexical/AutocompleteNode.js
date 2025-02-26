@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+
 import { TextNode } from 'lexical';
 
 export class AutocompleteNode extends TextNode {
@@ -15,9 +17,6 @@ export class AutocompleteNode extends TextNode {
     }
 
     constructor(content, item, id, key) {
-        console.log('new autocompleteNode', key);
-        // console.log('code', emoji.code, parseInt(emoji.code, 16));
-        // const unicode = String.fromCodePoint(parseInt(emoji.code, 16));
         super(content, key);
         this.item = item;
         this.id = id;
@@ -26,10 +25,12 @@ export class AutocompleteNode extends TextNode {
     createDOM(config) {
         const typedEl = super.createDOM(config);
         typedEl.className = 'autocomplete-node';
-        console.log('typedEl', typedEl);
+        typedEl.spellcheck = false;
 
         const remainEl = document.createElement('span');
         remainEl.className = 'autocomplete-remain';
+        remainEl.contentEditable = false;
+        remainEl.spellcheck = false;
 
         if (this.item) {
             updateRemainText(remainEl, this.item, this.getTextContent());
@@ -41,7 +42,6 @@ export class AutocompleteNode extends TextNode {
     }
 
     updateDOM(prevNode, dom, config) {
-        console.log('updateDom', dom);
         const remainEl = dom.lastChild;
         if (remainEl === null) {
             return true;
@@ -56,20 +56,19 @@ export class AutocompleteNode extends TextNode {
     }
 
     setSuggestion(item) {
-        console.log('setSuggestion', item);
         this.getWritable().item = item;
     }
 
-    // static importJSON(serializedNode) {
-    //     return $createAutocompleteNode(serializedNode.emoji);
-    // }
+    static importJSON(serialisedNode) {
+        return $createAutocompleteNode(serialisedNode.text, serialisedNode.item, serialisedNode.id);
+    }
 
-    // exportJSON() {
-    //     return {
-    //         ...super.exportJSON(),
-    //         type: 'autocomplete',
-    //     };
-    // }
+    exportJSON() {
+        return {
+            ...super.exportJSON(),
+            type: 'text',
+        };
+    }
 }
 
 export function $createAutocompleteNode(content, item, id) {
@@ -77,7 +76,6 @@ export function $createAutocompleteNode(content, item, id) {
 }
 
 function updateRemainText(element, item, value) {
-    console.log('updateRemainText', { element, item, value });
     if (item.type === 'user') {
         element.innerText = item.text.slice(value.length - 1);
     } else {

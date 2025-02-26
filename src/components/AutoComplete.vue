@@ -115,7 +115,6 @@ export default {
         },
         selectedItem() {
             let item = this.filteredItems[this.selected_idx];
-            console.log('selectedItem', item);
             return item || null;
         },
     },

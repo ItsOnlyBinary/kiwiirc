@@ -206,7 +206,7 @@ const messageModern = (props, context) => {
             [`kiwi-messagelist-message-${props.message.type}`]: true,
 
             [`kiwi-messagelist-message-${props.message.type}-${props.message.type_extra}`]: props.message.type_extra,
-
+            'kiwi-messagelist-message--pending': props.message.pending,
             'kiwi-messagelist-message--highlight': props.ml.isMessageHighlight(props.message),
             'kiwi-messagelist-message--hover': props.ml.isHoveringOverMessage(props.message),
             'kiwi-messagelist-message--unread': props.ml.buffer.last_read && props.message.time > props.ml.buffer.last_read,
@@ -246,7 +246,6 @@ export default messageModern;
 </script>
 
 <style lang="less">
-
 .kiwi-messagelist-message--modern {
     border-left: 7px solid transparent;
     display: flex;
@@ -410,4 +409,7 @@ export default messageModern;
     }
 }
 
+.kiwi-messagelist-message--pending {
+    opacity: 0.4;
+}
 </style>

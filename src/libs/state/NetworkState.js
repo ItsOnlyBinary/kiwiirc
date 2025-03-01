@@ -65,6 +65,8 @@ export default class NetworkState {
         // Pending prviate messages awaiting whois operator check
         def(this, 'pendingPms', [], false);
 
+        def(this, 'lastMessageID', 0, true);
+
         bufferDict.networks[this.id] = [];
 
         // eslint-disable-next-line no-constructor-return

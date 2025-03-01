@@ -178,6 +178,11 @@ function handleMessage(type, event, command, line, context) {
         localBuffer = extractedTarget.target;
     }
 
+    let tags = {};
+    if (network.ircClient.network.cap.isEnabled('labeled-response')) {
+        tags.label = (++network.lastMessageID).toString(36);
+    }
+
     let buffer = localBuffer.length && this.state.getOrAddBufferByName(network.id, localBuffer);
     if (buffer) {
         let textFormatType = 'privmsg';
@@ -199,6 +204,11 @@ function handleMessage(type, event, command, line, context) {
             type: type,
         };
 
+        if (tags.label) {
+            newMessage.label = tags.label;
+            newMessage.pending = true;
+        }
+
         this.state.addMessage(buffer, newMessage);
     }
 
@@ -208,7 +218,7 @@ function handleMessage(type, event, command, line, context) {
         notice: 'notice',
     };
     let fnName = fnNames[type] || 'say';
-    network.ircClient[fnName](bufferName, message);
+    network.ircClient[fnName](bufferName, message, tags);
 }
 
 inputCommands.msg = function inputCommandMsg(event, command, line, context) {

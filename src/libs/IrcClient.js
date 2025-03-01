@@ -212,6 +212,18 @@ function clientMiddleware(state, network) {
                 '';
         }
 
+        if (command === 'CAP' && event.params[1] === 'LS') {
+            const caps = event.params[event.params.length - 1].split(' ').filter((cap) => !!cap.trim());
+            if (caps.includes('labeled-response')) {
+                console.log('labeled-response added');
+                network.ircClient.command_handler.requestExtraCaps('labeled-response');
+
+                if (caps.includes('echo-message')) {
+                    network.ircClient.command_handler.requestExtraCaps('echo-message');
+                }
+            }
+        }
+
         if (command === 'CAP' && network.setting('show_raw_caps')) {
             let params = [...event.params];
             if (params[params.length - 1].indexOf(' ') > -1) {
@@ -516,7 +528,22 @@ function clientMiddleware(state, network) {
             if (!buffer) {
                 buffer = state.getOrAddBufferByName(networkid, bufferName);
             }
-            state.addMessage(buffer, message);
+
+            if (message.tags.label) {
+                const labelledMessage = buffer.getMessages().find((msg) => msg.label === message.tags.label);
+                if (labelledMessage) {
+                    if (labelledMessage.message !== message.message) {
+                        labelledMessage.html = '';
+                        labelledMessage.hasRendered = false;
+                    }
+                    Object.assign(labelledMessage, message);
+                    labelledMessage.pending = false;
+                } else {
+                    console.log('message not found', message.tags.label);
+                }
+            } else {
+                state.addMessage(buffer, message);
+            }
         }
 
         if (command === 'wallops') {

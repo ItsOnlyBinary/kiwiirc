@@ -43,6 +43,8 @@ export default class Message {
         this.embed = { type: 'url', payload: null };
         this.html = '';
         this.blocks = [];
+        this.pending = message.pending ?? false;
+        def(this, 'label', message.label ?? '');
         def(this, 'hasRendered', false);
         def(this, 'hasUserLink', false);
         // template should be null or a Vue component to render this message

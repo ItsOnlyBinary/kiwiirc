@@ -42,12 +42,6 @@
                             />
                         </template>
                     </container>
-                    <control-input
-                        v-if="buffer.show_input"
-                        :network="network"
-                        :buffer="buffer"
-                        :sidebar-state="sidebarState"
-                    />
                 </template>
                 <component
                     :is="fallbackComponent"
@@ -67,12 +61,12 @@
 import { markRaw, toRef, watch } from 'vue';
 
 import '@/res/globalStyle.css';
+import '@/res/globalStyles.scss';
 import Tinycon from 'tinycon';
 
 import StateBrowser from '@/components/StateBrowser';
 import AppSettings from '@/components/AppSettings';
 import Container from '@/components/Container';
-import ControlInput from '@/components/ControlInput';
 import MediaViewer from '@/components/MediaViewer';
 import AvatarCommon from '@/components/UserAvatarCommon';
 import ThemeManager from '@/libs/ThemeManager';
@@ -87,7 +81,6 @@ export default {
     components: {
         StateBrowser,
         Container,
-        ControlInput,
         MediaViewer,
         AvatarCommon,
     },

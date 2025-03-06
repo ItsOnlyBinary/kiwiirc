@@ -21,16 +21,6 @@
         </div>
 
         <div class="kiwi-controlinput-inner">
-            <away-status-indicator
-                v-if="network && network.state === 'connected'"
-                :network="network"
-                :user="network.currentUser()"
-            />
-            <div v-if="currentNick" class="kiwi-controlinput-user" @click="toggleSelfUser">
-                <span class="kiwi-controlinput-user-nick">{{ currentNick }}</span>
-                <!-- svg-icons: fas-caret-down, fas-caret-up -->
-                <svg-icon :icon="['fa-solid', selfuser_open ? 'fa-caret-down' : 'fa-caret-up']" />
-            </div>
             <form
                 class="kiwi-controlinput-form"
                 @submit.prevent="submitForm"
@@ -60,7 +50,6 @@
                         />
                     </div>
                 </div>
-                <typing-users-list v-if="buffer.setting('share_typing')" :buffer="buffer" />
                 <div class="kiwi-controlinput-input-wrap">
                     <irc-input
                         ref="input"
@@ -161,14 +150,12 @@ import ToolTextStyle from './inputtools/TextStyle';
 import ToolEmoji from './inputtools/Emoji';
 import SelfUser from './SelfUser';
 import AwayStatusIndicator from './AwayStatusIndicator';
-import TypingUsersList from './TypingUsersList';
 
 export default {
     components: {
         AutoComplete,
         AwayStatusIndicator,
         SelfUser,
-        TypingUsersList,
     },
     props: ['network', 'buffer', 'sidebarState'],
     data() {
@@ -802,10 +789,7 @@ export default {
 <style lang="less">
 
 .kiwi-controlinput {
-    z-index: 2;
-    position: relative;
     border-top: 1px solid;
-    max-height: 40%;
 }
 
 .kiwi-controlinput,
@@ -825,40 +809,6 @@ export default {
         margin-top: 14px;
         margin-left: 10px;
         margin-right: -2px;
-    }
-}
-
-.kiwi-controlinput-user {
-    display: flex;
-    height: 100%;
-    padding-left: 10px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    line-height: initial;
-    transition: width 0.2s 0.1s;
-    align-items: center;
-
-    svg {
-        font-size: 120%;
-        margin-left: 8px;
-    }
-}
-
-.kiwi-controlinput--selfuser-open {
-    .kiwi-controlinput-inner > .kiwi-awaystatusindicator {
-        visibility: hidden;
-    }
-
-    .kiwi-controlinput-user {
-        width: 296px;
-        visibility: hidden;
-    }
-
-    .kiwi-controlinput-selfuser {
-        width: 324px;
-        max-height: 300px;
-        opacity: 1;
     }
 }
 

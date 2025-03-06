@@ -131,8 +131,20 @@ export function create(state, network) {
 
     ircClient.on('typing', (event) => {
         let user = state.getUser(network.id, event.nick);
-        if (user) {
-            user.typingStatus(event.target, event.status);
+        if (!user) {
+            return;
+        }
+        user.typingStatus(event.target, event.status);
+
+        let buffer = state.getBufferByName(network.id, event.target);
+        if (!buffer) {
+            return;
+        }
+        const typingIdx = buffer.typingUsers.findIndex((u) => ircClient.caseCompare(u.nick, event.nick));
+        if (event.status === 'active' && typingIdx === -1) {
+            buffer.typingUsers.unshift(user);
+        } else if (typingIdx > -1) {
+            buffer.typingUsers.splice(typingIdx, 1);
         }
     });
 

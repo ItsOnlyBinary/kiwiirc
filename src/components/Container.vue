@@ -47,9 +47,17 @@
                         :buffer="buffer"
                         :sidebar-state="sidebarState"
                     />
+                    <typing-users-list v-if="buffer.setting('share_typing')" :buffer="buffer" />
                 </template>
 
                 <slot name="after" />
+                <user-local :network="network" />
+                <control-input
+                    v-if="buffer.show_input"
+                    :network="network"
+                    :buffer="buffer"
+                    :sidebar-state="sidebarState"
+                />
             </div>
         </template>
         <template v-else>
@@ -66,11 +74,15 @@
 <script>
 'kiwi public';
 
+import ControlInput from '@/components/ControlInput';
 import ContainerHeader from './ContainerHeader';
 import Sidebar from './Sidebar';
 import NotConnected from './NotConnected';
 import MessageList from './MessageList';
 import ServerView from './ServerView';
+import TypingUsersList from './TypingUsersList';
+import AwayStatusIndicator from './AwayStatusIndicator';
+import UserLocal from './UserLocal';
 
 export default {
     components: {
@@ -79,6 +91,10 @@ export default {
         NotConnected,
         MessageList,
         ServerView,
+        TypingUsersList,
+        ControlInput,
+        AwayStatusIndicator,
+        UserLocal,
     },
     props: ['network', 'buffer', 'sidebarState'],
     data: function data() {
@@ -86,6 +102,12 @@ export default {
         };
     },
     computed: {
+        currentNick() {
+            let activeNetwork = this.$state.getActiveNetwork();
+            return activeNetwork ?
+                activeNetwork.nick :
+                '';
+        },
         bufferType: function bufferType() {
             let type = '';
 
@@ -209,6 +231,7 @@ export default {
     z-index: 3;
     transition: right 0.2s, width 0.2s;
     flex: 1;
+    grid-area: side;
 }
 
 .kiwi-container--sidebar-drawn .kiwi-sidebar {
@@ -229,17 +252,35 @@ export default {
 
 .kiwi-container-content {
     flex: 1;
-    display: flex;
-    flex-direction: row;
     overflow: hidden;
+    display: grid;
+    grid-template-areas:
+        'body body side'
+        '.    typi side'
+        'self inpu inpu';
+    grid-template-columns: fit-content(10%) 1fr max-content;
+    grid-template-rows: 1fr 20px fit-content(40%);
 }
 
 .kiwi-messagelist {
-    flex: 1;
+    grid-area: body;
 }
 
 .kiwi-serverview {
-    flex: 1;
+    grid-area: body;
+}
+
+.kiwi-typingusers {
+    grid-area: typi;
+}
+
+.kiwi-userlocal {
+    grid-area: self;
+}
+
+.kiwi-controlinput {
+    grid-area: inpu;
+    max-height: 40vh;
 }
 
 .kiwi-container--no-sidebar .kiwi-header,
@@ -301,6 +342,40 @@ export default {
     width: 0;
     position: absolute;
     pointer-events: none;
+}
+
+.kiwi-controlinput-user {
+    display: flex;
+    height: 100%;
+    padding-left: 10px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    line-height: initial;
+    transition: width 0.2s 0.1s;
+    align-items: center;
+
+    svg {
+        font-size: 120%;
+        margin-left: 8px;
+    }
+}
+
+.kiwi-controlinput--selfuser-open {
+    .kiwi-controlinput-inner > .kiwi-awaystatusindicator {
+        visibility: hidden;
+    }
+
+    .kiwi-controlinput-user {
+        width: 296px;
+        visibility: hidden;
+    }
+
+    .kiwi-controlinput-selfuser {
+        width: 324px;
+        max-height: 300px;
+        opacity: 1;
+    }
 }
 
 .kiwi-container-statebrowser-messagecount-close {

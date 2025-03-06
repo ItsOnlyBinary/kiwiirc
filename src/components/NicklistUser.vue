@@ -63,13 +63,11 @@
 'kiwi public';
 
 import AwayStatusIndicator from './AwayStatusIndicator';
-import TypingStatusIndicator from './TypingStatusIndicator';
 import UserAvatar from './UserAvatar';
 
 export default {
     components: {
         AwayStatusIndicator,
-        TypingStatusIndicator,
         UserAvatar,
     },
     props: ['network', 'user', 'nicklist'],

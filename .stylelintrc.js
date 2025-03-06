@@ -6,12 +6,20 @@ module.exports = {
         'stylelint-config-recommended-vue',
         'stylelint-config-standard-scss',
         'stylelint-config-recommended-scss',
-        'stylelint-config-recess-order',
     ],
     overrides: [
         {
             files: ['**/*.vue', '**/*.html'],
             customSyntax: 'postcss-html',
+        },
+        {
+            files: [
+                'UserLocal.vue',
+                'TypingUsersList.vue'
+            ],
+            extends: [
+                'stylelint-config-recess-order',
+            ],
         },
     ],
     rules: {
@@ -22,7 +30,7 @@ module.exports = {
         'media-feature-range-notation': null,
         'no-descending-specificity': null,
         'number-max-precision': null,
-        'order/properties-order': null,
+        // 'order/properties-order': null,
         'property-no-vendor-prefix': null,
         'scss/at-rule-no-unknown': [
             true,

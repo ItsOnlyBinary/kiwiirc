@@ -75,6 +75,9 @@ const cssRules = [
             },
             {
                 loader: 'sass-loader',
+                options: {
+                    api: 'modern-compiler',
+                },
             },
         ],
     },

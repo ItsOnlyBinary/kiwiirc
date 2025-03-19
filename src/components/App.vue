@@ -67,6 +67,7 @@
 import { markRaw, toRef, watch } from 'vue';
 
 import '@/res/globalStyle.css';
+import '@/res/globalStyles.scss';
 import Tinycon from 'tinycon';
 
 import StateBrowser from '@/components/StateBrowser';
@@ -139,6 +140,11 @@ export default {
         this.listen(window, 'focus', (event) => this.onFocus(event));
         this.listen(window, 'blur', (event) => this.onBlur(event));
         this.listen(window, 'touchstart', (event) => this.onTouchStart(event));
+
+        this.listen(document, 'mousedown', () => (this.$state.ui.interacting = true));
+        this.listen(document, 'mouseup', () => (this.$state.ui.interacting = false));
+        this.listen(document, 'touchstart', () => (this.$state.ui.interacting = true));
+        this.listen(document, 'touchend', () => (this.$state.ui.interacting = false));
     },
     mounted() {
         this.trackWindowDimensions();
@@ -268,7 +274,7 @@ export default {
         },
         warnOnPageClose() {
             window.onbeforeunload = () => {
-                if (this.$state.setting('warnOnExit')) {
+                if (this.$state.ui.warn_on_exit && this.$state.setting('warnOnExit')) {
                     return this.$t('window_unload');
                 }
                 return undefined;
@@ -380,6 +386,13 @@ html, body, #kiwiirc {
     -webkit-font-smoothing: antialiased;
     height: 100%;
     overflow: hidden;
+}
+
+@supports (font-size: round(nearest, 90%, 1px)) and (line-height: round(nearest, 1.6em, 1px)) {
+    .kiwi-wrap {
+        font-size: ~'round(nearest, 90%, 1px)';
+        line-height: ~'round(nearest, 1.6em, 1px)';
+    }
 }
 
 /* .kiwi-workspace has ::before and ::after 4px above itself for the connection status */

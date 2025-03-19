@@ -97,7 +97,7 @@
         "sass": "^1.85.1",
         "sass-loader": "^14.2.1",
         "style-loader": "^4.0.0",
-        "stylelint": "^16.14.1",
+        "stylelint": "^16.16.0",
         "stylelint-config-recess-order": "^6.0.0",
         "stylelint-config-recommended": "^15.0.0",
         "stylelint-config-recommended-scss": "^14.1.0",

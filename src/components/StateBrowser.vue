@@ -1,369 +1,103 @@
 <template>
-    <div class="kiwi-statebrowser kiwi-theme-bg">
-
-        <div
-            v-if="!$state.setting('hideSettings')"
-            :title="$t('kiwi_settings')"
-            class="kiwi-statebrowser-appsettings"
-            @click="clickAppSettings"
-        >
-            <svg-icon icon="fa-solid fa-cog" />
-        </div>
-
-        <state-browser-usermenu
-            v-if="isPersistingState"
-            :network="getNetwork"
-        />
-
-        <div class="kiwi-statebrowser-tools">
+    <div class="kiwi-statebrowser">
+        <StateButtons />
+        <StateUser />
+        <div class="kiwi-plugins">
             <component
                 :is="plugin.component"
-                v-for="plugin in pluginUiElements"
+                v-for="plugin in pluginElements"
                 :key="plugin.id"
-                :plugin-props="{
-                    statebrowser: self,
-                }"
                 v-bind="plugin.props"
                 :networks="networks"
                 :sidebar-state="sidebarState"
-                class="kiwi-statebrowser-tool"
+                class="kiwi-plugin"
             />
         </div>
-
-        <div class="kiwi-statebrowser-scrollarea">
-            <div class="kiwi-statebrowser-networks">
-                <state-browser-network
-                    v-for="network in networksToShow"
-                    :key="network.id"
-                    :network="network"
-                    :sidebar-state="sidebarState"
-                    :active-prompt="activePrompt"
-                />
-            </div>
+        <div class="kiwi-scroll">
+            <StateNetwork
+                v-for="network in visibleNetworks"
+                :key="network.id"
+                :network="network"
+                :sidebar-state="sidebarState"
+                :active-prompt="activePrompt"
+            />
         </div>
-
-        <div v-if="!isRestrictedServer" class="kiwi-statebrowser-newnetwork">
-            <a class="u-button u-button-primary" @click="clickAddNetwork">
-                <span>{{ $t('add_network') }}</span>
-                <svg-icon icon="fa-solid fa-plus" />
-            </a>
-        </div>
+        <a v-if="!isRestricted" class="kiwi-network--add" @click="clickAddNetwork">
+            <span>{{ $t('add_network') }}</span>
+            <svg-icon icon="fa-solid fa-plus" />
+        </a>
     </div>
 </template>
 
-<script>
-'kiwi public';
+<script setup>
+import { computed, reactive } from 'vue';
 
+import getState from '@/libs/state';
 import GlobalApi from '@/libs/GlobalApi';
-import StateBrowserNetwork from './StateBrowserNetwork';
-import StateBrowserUsermenu from './StateBrowserUsermenu';
-import AppSettings from './AppSettings';
-import BufferSettings from './BufferSettings';
+import StateButtons from '@/components/StateButtons';
+import StateUser from '@/components/StateUser.vue';
+import StateNetwork from '@/components/StateNetwork';
 
-export default {
-    components: {
-        BufferSettings,
-        StateBrowserNetwork,
-        StateBrowserUsermenu,
-    },
-    props: ['networks', 'sidebarState'],
-    data() {
-        return {
-            self: this,
-            pluginUiElements: GlobalApi.singleton().stateBrowserPlugins,
-            activePrompt: {
-                type: undefined,
-                value: undefined,
-            },
-        };
-    },
-    computed: {
-        getNetwork() {
-            return this.$state.getActiveNetwork();
-        },
-        isPersistingState: function isPersistingState() {
-            return !!this.$state.persistence;
-        },
-        isRestrictedServer: function isRestrictedServer() {
-            return !!this.$state.settings.restricted;
-        },
-        networksToShow: function networksToShow() {
-            return this.networks.filter((net) => !net.hidden);
-        },
-    },
-    created() {
-        this.listen(this.$state, 'document.clicked', (e) => {
-            if (!this.activePrompt.type) {
-                // Prompt is not open
-                return;
-            }
+import * as TextFormatting from '@/helpers/TextFormatting';
+import { processNickRandomNumber } from '@/helpers/Misc';
 
-            // Clicking anywhere on the page that is not a prompt or close button
-            // closes the active prompt
-            const ignoreClasses = [
-                '.kiwi-statebrowser-prompt-close',
-                '.kiwi-statebrowser-queries-close',
-                '.kiwi-statebrowser-channel-leave',
-            ];
-            const ignoreEls = this.$el.querySelectorAll(ignoreClasses.join(', '));
-
-            // ignoreEls.forEach((ignoreEl) => {
-            for (let i = 0; i < ignoreEls.length; i++) {
-                if (ignoreEls[i].contains(e.target)) {
-                    return;
-                }
-            }
-
-            this.activePrompt.type = undefined;
-            this.activePrompt.value = undefined;
-        });
+const { networks, sidebarState } = defineProps({
+    networks: {
+        type: Object,
+        required: true,
     },
-    methods: {
-        clickAddNetwork: function clickAddNetwork() {
-            let nick = 'Guest' + Math.floor(Math.random() * 100);
-            let network = this.$state.getNetworkFromAddress('');
-            if (typeof network === 'undefined') {
-                network = this.$state.addNetwork('Network', nick, {});
-            }
-            network.showServerBuffer('settings');
-        },
-        clickAppSettings: function clickAppSettings() {
-            this.$state.$emit('active.component.toggle', AppSettings);
-        },
-        hideStatebrowser: function hideStatebrowser() {
-            this.$state.$emit('statebrowser.hide');
-        },
+    sidebarState: {
+        type: Object,
+        required: true,
     },
+});
+
+const activePrompt = reactive({
+    type: undefined,
+    value: undefined,
+});
+
+const visibleNetworks = computed(() => networks.filter((network) => !network.hidden));
+
+const pluginElements = GlobalApi.singleton().stateBrowserPlugins;
+
+const isRestricted = computed(() => !!getState().getSetting('settings.restricted'));
+
+const clickAddNetwork = () => {
+    const state = getState();
+    const nick = processNickRandomNumber(state.setting('startupOptions.nick'));
+    const network = state.addNetwork(TextFormatting.t('network'), nick, {});
+    network.showServerBuffer('settings');
 };
 </script>
 
-<style lang="less">
-
+<style lang="scss">
 .kiwi-statebrowser {
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    border-right: none;
-    text-align: center;
-    overflow: hidden;
-    transition: left 0.145s, margin-left 0.145s;
-}
+    line-height: 1.2em;
 
-.kiwi-statebrowser h1 {
-    width: 100%;
-    font-size: 1em;
-    opacity: 0.8;
-    cursor: default;
-    padding: 20px 0 27px 0;
-}
-
-.kiwi-statebrowser hr {
-    width: 100%;
-    margin: 0;
-    opacity: 0.3;
-}
-
-/* User Settings */
-.kiwi-statebrowser-appsettings {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 32px;
-    line-height: 32px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: 800;
-    font-size: 20px;
-    opacity: 0.8;
-    border-bottom-right-radius: 14px;
-    transition: background 0.2s, opacity 0.2s;
-    z-index: 1;
-}
-
-/* Add network button */
-.kiwi-statebrowser-newnetwork {
-    width: 100%;
-    position: static;
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    border-top: 1px solid;
-}
-
-.kiwi-statebrowser-newnetwork a {
-    width: 100%;
-    padding: 0 10px;
-    margin: 0;
-    opacity: 1;
-    line-height: 38px;
-    cursor: pointer;
-    display: flex;
-    box-sizing: border-box;
-    background: none;
-    text-align: left;
-    position: relative;
-    border-radius: 0;
-    font-size: 0.9em;
-    transition: all 0.3s;
-    border: none;
-    align-items: center;
-
-    span {
+    .kiwi-scroll {
         flex-grow: 1;
     }
 
-    svg {
-        margin-right: 10px;
-        font-size: 1.15em;
-    }
-}
-
-.kiwi-statebrowser-newnetwork a
-
-.kiwi-statebrowser-newnetwork a:hover {
-    opacity: 1;
-}
-
-/* Channel Styling */
-.kiwi-statebrowser-channel {
-    line-height: 30px;
-    padding: 0 0 0 8px;
-    transition: opacity 0.3s;
-}
-
-.kiwi-statebrowser-channel .kiwi-statebrowser-channel-name {
-    text-align: left;
-    font-weight: 600;
-    font-size: 1em;
-}
-
-.kiwi-statebrowser-channel-active {
-    font-weight: 600;
-    border-left: 3px solid;
-    opacity: 1;
-}
-
-.kiwi-statebrowser-channel::before {
-    line-height: 30px;
-}
-
-/* New Channel Button */
-.kiwi-statebrowser-newchannel {
-    padding: 0;
-    height: auto;
-    width: 100%;
-    border-top: none;
-    box-sizing: border-box;
-}
-
-.kiwi-statebrowser-usermenu .fa-caret-down {
-    transition: all 0.3s;
-}
-
-.kiwi-statebrowser-usermenu--open .fa-caret-down {
-    transform: rotate(-180deg);
-}
-
-.kiwi-statebrowser-switcher a {
-    display: inline-block;
-    width: 50%;
-    padding: 5px 0;
-    font-size: 1.2em;
-    cursor: pointer;
-    text-align: center;
-}
-
-.kiwi-statebrowser-usermenu-body a:hover {
-    text-decoration: underline;
-}
-
-.kiwi-statebrowser-scrollarea {
-    height: auto;
-    margin-bottom: 0;
-    box-sizing: border-box;
-    overflow-y: auto;
-    width: 100%;
-    flex: 1;
-}
-
-.kiwi-statebrowser-network {
-    margin-bottom: 2em;
-    overflow: hidden;
-}
-
-.kiwi-statebrowser-network:last-child {
-    margin-bottom: 0;
-}
-
-.kiwi-statebrowser-options {
-    position: absolute;
-    bottom: 0;
-    padding: 15px;
-    height: 30px;
-
-    /* some space on the right so it doesnt overlap the parent elements scrollbar */
-    margin-right: 10px;
-}
-
-.kiwi-statebrowser-newchannel-inputwrap {
-    padding: 3px;
-}
-
-.kiwi-statebrowser-newchannel-inputwrap input {
-    outline: none;
-    border: none;
-    display: block;
-    width: calc(100% - 20px);
-    margin-right: 30px;
-}
-
-.kiwi-statebrowser-newchannel-inputwrap--focus {
-    opacity: 1;
-}
-
-@media screen and (max-width: 769px) {
-    .kiwi-statebrowser {
-        left: -100%;
-        padding-top: 0;
-        z-index: 1000;
-    }
-
-    .kiwi-wrap.kiwi-wrap--statebrowser-drawopen .kiwi-statebrowser {
-        width: 75%;
-        left: 0;
-        z-index: 100;
-        transition: left 0.07s, width 0.1s;
-    }
-
-    .kiwi-header {
-        text-align: center;
-    }
-
-    .kiwi-container-toggledraw-statebrowser-messagecount {
-        width: 30px;
-        color: #000;
+    .kiwi-network--add {
+        display: flex;
+        align-items: center;
+        min-height: 43px;
+        padding: 0 12px;
         font-weight: 600;
-        max-height: 49.5px;
-    }
+        white-space: nowrap;
+        border-top: 1px solid grey;
+        transition: background-color 0.3s;
 
-    .kiwi-statebrowser-channel::before {
-        line-height: 40px;
-    }
+        > span {
+            flex-grow: 1;
+        }
 
-    .kiwi-statebrowser-usermenu {
-        position: relative;
-    }
-
-    .kiwi-statebrowser-usermenu-body .kiwi-close-icon {
-        display: none;
-    }
-
-    .kiwi-wrap--statebrowser-drawopen .kiwi-statebrowser::after {
-        opacity: 1;
-        width: 100%;
-        right: -100%;
-        transition: width 0.2s, opacity 0.2s;
+        > svg {
+            font-size: 1.1em;
+        }
     }
 }
-
 </style>

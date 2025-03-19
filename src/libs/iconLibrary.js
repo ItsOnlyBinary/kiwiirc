@@ -23,6 +23,7 @@ import { faInfo as fasInfo } from '@fortawesome/free-solid-svg-icons/faInfo';
 import { faLock as fasLock } from '@fortawesome/free-solid-svg-icons/faLock';
 import { faMagnifyingGlass as fasMagnifyingGlass } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
 import { faMapPin as fasMapPin } from '@fortawesome/free-solid-svg-icons/faMapPin';
+import { faMinus as fasMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPaperPlane as fasPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
 import { faPencil as fasPencil } from '@fortawesome/free-solid-svg-icons/faPencil';
 import { faPlus as fasPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
@@ -74,6 +75,7 @@ library.add(
     fasLock,
     fasMagnifyingGlass,
     fasMapPin,
+    fasMinus,
     fasPaperPlane,
     fasPencil,
     fasPlus,

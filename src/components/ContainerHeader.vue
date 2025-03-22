@@ -42,11 +42,9 @@
                         :title="$t('person', { count: userCount })"
                         @click="sidebarState.toggleNicklist()"
                     >
-                        <svg-icon icon="fa-solid fa-users" />
+                        <users-icon />
                         <span v-if="!$state.ui.is_narrow" class="kiwi-stack">
-                            <span class="kiwi-stack-hidden">{{
-                                new Array(userCount.toString().length < 4 ? 5 : userCount.toString().length + 1).join('8')
-                            }}</span>
+                            <span class="kiwi-stack-hidden">8888</span>
                             <span class="kiwi-stack-content">{{ userCount }}</span>
                         </span>
                     </a>
@@ -174,6 +172,7 @@
 import GlobalApi from '@/libs/GlobalApi';
 import toHtml from '@/libs/renderers/Html';
 import parseMessage from '@/libs/MessageParser';
+import UsersIcon from '@/res/icons/users.svg';
 import BufferSettings from './BufferSettings';
 import ChannelInfo from './ChannelInfo';
 import ChannelBanlist from './ChannelBanlist';
@@ -181,6 +180,7 @@ import AwayStatusIndicator from './AwayStatusIndicator';
 
 export default {
     components: {
+        UsersIcon,
         BufferSettings,
         ChannelInfo,
         ChannelBanlist,
@@ -375,13 +375,13 @@ export default {
     background: none;
     opacity: 0.9;
     font-weight: 900;
-    font-size: 0.8em;
 
     svg {
         height: 12px;
     }
 
     svg:only-child {
+        width: 22px;
         height: 22px;
     }
 }
@@ -413,6 +413,33 @@ export default {
 
 .kiwi-header-option--active a {
     opacity: 1;
+}
+
+@font-face {
+    font-family: Roboto-Numbers;
+    font-style: normal;
+    font-weight: 400;
+    src: url('@/res/fonts/Roboto-Numbers.woff2') format('woff2'),
+         url('@/res/fonts/Roboto-Numbers.ttf') format('truetype');
+    font-display: auto;
+}
+
+.kiwi-header-option-nicklist {
+    font-size: 12px;
+
+    a {
+        gap: 2px;
+    }
+
+    svg {
+        height: auto;
+        width: 22px;
+    }
+
+    span {
+        font-family: 'Roboto-Numbers', Arial, sans-serif;
+        font-weight: 400;
+    }
 }
 
 /* The not joined button */

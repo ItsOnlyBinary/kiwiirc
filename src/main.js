@@ -1,3 +1,34 @@
+
+/* eslint-disable */
+// console.log('__webpack_require__');
+// console.dir(__webpack_require__, { depth: null, showHidden: true });
+// console.dir(__webpack_exports__, { depth: null, showHidden: true });
+// console.dir(__webpack_module_cache__, { depth: null, showHidden: true });
+// console.log('keys', Object.keys(__webpack_exports__));
+// Get the original __webpack_require__
+// const originalRequire = n;
+
+// let proxyId = 0;
+// const createProxy = (obj) => {
+//     const id = ++proxyId;
+//     return new Proxy(obj, {
+//         get(target, prop, receiver) {
+//             console.log(`${id} require get`, prop);
+//             if (['object', 'function'].includes(typeof target[prop])) {
+//                 return createProxy(target[prop]);
+//             }
+//             return target[prop];
+//         },
+//         apply(target, thisArg, argumentsList) {
+//             console.log(`${id} require apply`, argumentsList);
+//             return Reflect.apply(target, thisArg, argumentsList);
+//         },
+//     });
+// }
+
+// // Override __webpack_require__ to point to the proxy
+// n = createProxy(originalRequire);
+
 /* eslint-disable import/no-import-module-exports */
 import _ from 'lodash';
 import { createApp, markRaw, watch } from 'vue';
@@ -53,7 +84,7 @@ Object.assign(faConfig, {
     observeMutations: false,
 });
 
-import('@/libs/iconLibrary');
+import '@/libs/iconLibrary';
 
 /* eslint-disable no-undef */
 if (module?.hot) {

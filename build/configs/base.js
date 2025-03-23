@@ -12,6 +12,7 @@ const FriendlyErrorsWebpackPlugin = require('@soda/friendly-errors-webpack-plugi
 
 const ConvertLocalesPlugin = require('../plugins/webpack/convert-locales');
 const ImportIconsPlugin = require('../plugins/webpack/import-icons');
+const TestPlugin = require('../plugins/webpack/inject-modules');
 
 const utils = require('../utils');
 const pkg = require('../../package.json');
@@ -82,6 +83,7 @@ module.exports = (env, argv, config) => {
             new CaseSensitivePathsPlugin(),
             new ConvertLocalesPlugin(),
             new ImportIconsPlugin(),
+            new TestPlugin(),
             new HTMLPlugin({
                 template: utils.pathResolve('static/index.html'),
                 templateParameters: {

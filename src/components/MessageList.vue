@@ -811,10 +811,6 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     position: relative;
 }
 
-.kiwi-messagelist--showtyping {
-    margin-bottom: 25px;
-}
-
 .kiwi-messagelist--smoothscroll {
     scroll-behavior: smooth;
 }

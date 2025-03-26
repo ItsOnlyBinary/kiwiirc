@@ -46,6 +46,7 @@ export default class BufferState {
         this.input_history_pos = 0;
         this.show_input = true;
         this.latest_messages = [];
+        this.typingUsers = [];
 
         // Counter for chathistory requests. While this value is 0, it means that this buffer is
         // still loading messages
@@ -502,6 +503,8 @@ export default class BufferState {
         // Users could be queued to be added, so make sure to clear them as they
         // would just be added again. Eg. user joins/parts during a flood
         this.addUserBatch && this.addUserBatch.queue().splice(0);
+
+        this.typingUsers.length = 0;
 
         _.each(this.users, (userObj, nick) => {
             delete userObj.buffers[this.id];

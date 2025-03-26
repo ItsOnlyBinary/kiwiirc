@@ -6,14 +6,38 @@
     <link rel="icon" type="image/png" href="static/favicon.png">
     <title>Kiwi IRC</title>
     <style>
+        html,
         body {
             /* disable the 'pull down to refresh' on mobiles */
+            height: 100%;
+            margin: 0;
             overflow: hidden;
         }
-        .kiwi-noscript-warn {
+        .kiwi-preload {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Source Sans Pro', Helvetica, sans-serif;
+        }
+        .kiwi-preload > div {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 48px;
+            font-weight: 900;
+        }
+        .kiwi-preload > noscript {
             text-align: center;
             font-weight: bold;
             padding: 1em;
+        }
+        @media (prefers-color-scheme: dark) {
+            .kiwi-preload {
+                background-color: #3c3c3c;
+                color: #ffffff;
+            }
         }
     </style>
     <style class="embedly-css">
@@ -26,17 +50,23 @@
             padding: 4px 0 0 0;
         }
     </style>
+    <script>window.startupTime = Date.now()</script>
 <% for (let index in htmlWebpackPlugin.files.css) { %>
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.files.css[index] %>" /><% } %>
 <% for (let index in htmlWebpackPlugin.files.js) { %>
     <script defer src="<%= htmlWebpackPlugin.files.js[index] %>"></script><% } %>
 </head>
 <body>
-    <noscript>
-        <div class="kiwi-noscript-warn">
-            Please enable JavaScript and refresh the page to use this website.
+    <div id="kiwiirc">
+        <div class="kiwi-preload">
+            <div>
+                <img src="static/favicon.png">
+                <span>Kiwi IRC</span>
+            </div>
+            <noscript>
+                Please enable JavaScript and refresh the page to use this website.
+            </noscript>
         </div>
-    </noscript>
-    <div id="kiwiirc"></div>
+    </div>
 </body>
 </html>

@@ -1,68 +1,68 @@
 <template>
-    <div class="u-input-confirm">
-        <div v-if="state==='pre'" @click="prompt"><slot /></div>
-
-        <template v-if="state==='prompt'">
-            <span class="u-input-confirm-label">{{ label }}</span>
-            <a :class="['u-button-'+connoteCss.yes]" class="u-button" @click="complete(true)">
-                {{ $t('yes') }}
-            </a>
-            <a :class="['u-button-'+connoteCss.no]" class="u-button" @click="complete(false)">
-                {{ $t('no') }}
-            </a>
+    <div class="kc-input-confirm">
+        <div v-if="showPre" @click="showPre = false"><slot /></div>
+        <template v-else>
+            <span v-if="label" class="kc-input-confirm-label" v-text="label" />
+            <div class="kc-input-confirm-buttons">
+                <a
+                    v-for="button in buttons"
+                    :key="button.id"
+                    class="kc-button kc-input-confirm-button"
+                    :class="`kc-button--${button.type}`"
+                    :data-id="button.id"
+                    @click="emit('submit', button.id, $event)"
+                    v-text="button.text[0] === '_' ? $t(button.text.substr(1)) : button.text"
+                />
+            </div>
         </template>
     </div>
 </template>
 
-<script>
-'kiwi public';
+<script setup>
+import { ref, useSlots } from 'vue';
 
-export default {
-    props: ['label', 'flipConnotation'],
-    emits: ['submit'],
-    data() {
-        return {
-            state: 'pre',
-        };
+const { label, buttons } = defineProps({
+    label: {
+        type: String,
     },
-    computed: {
-        connoteCss() {
-            return {
-                yes: this.flipConnotation ? 'warning' : 'primary',
-                no: this.flipConnotation ? 'primary' : 'warning',
-            };
-        },
+    buttons: {
+        type: Array,
+        default: () => [
+            {
+                id: 'yes',
+                text: '_yes',
+                type: 'positive',
+            },
+            {
+                id: 'no',
+                text: '_no',
+                type: 'negative',
+            },
+        ],
     },
-    created() {
-        // TODO this wont work
-        if (!this.$slots.default) {
-            this.state = 'prompt';
-        }
-    },
-    methods: {
-        prompt() {
-            this.state = 'prompt';
-        },
-        complete(val) {
-            this.$emit(val ? 'ok' : 'cancel');
-            this.$emit('submit', val);
-            this.state = 'pre';
-        },
-    },
-};
+});
+
+const emit = defineEmits(['submit']);
+
+const slots = useSlots();
+const showPre = ref(!!slots.default);
 </script>
 
-<style>
-.u-input-confirm {
-    display: inline-block;
+<style lang="scss">
+.kc-input-confirm {
     padding: 10px;
-}
+    text-align: center;
 
-.u-input-confirm > a {
-    margin-right: 10px;
-}
+    > span {
+        display: block;
+        padding-bottom: 10px;
+    }
 
-.u-input-confirm > a:last-of-type {
-    margin-right: 0;
+    &-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+    }
 }
 </style>

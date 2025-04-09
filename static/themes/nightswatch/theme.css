@@ -314,19 +314,6 @@ button.u-button.u-button-primary.u-submit.kiwi-welcome-znc-start,
     color: var(--brand-default-bg);
 }
 
-.kiwi-container-toggledraw-statebrowser-messagecount {
-    background-color: #4c4b4b;
-    color: var(--brand-default-fg);
-}
-
-.kiwi-container-toggledraw-statebrowser-messagecount::after {
-    border-right-color: #4c4b4b;
-}
-
-.kiwi-wrap--statebrowser-drawopen .kiwi-container-toggledraw-statebrowser-messagecount::after {
-    border-left-color: #4c4b4b;
-}
-
 .kiwi-autocomplete-item--selected {
     background: #3c3c3c;
     color: #ffffff;

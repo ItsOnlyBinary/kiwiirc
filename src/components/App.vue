@@ -4,6 +4,8 @@
             'kiwi-wrap--statebrowser-drawopen': stateBrowserDrawOpen,
             'kiwi-wrap--monospace': $state.setting('useMonospace'),
             'kiwi-wrap--touch': $state.ui.is_touch,
+            'kiwi-wrap--compact': $state.ui.is_narrow,
+            'kiwi-wrap--show-statebrowser': $state.ui.show_statebrowser,
         }"
         :data-theme="currentThemeName"
         :data-activebuffer="buffer ? buffer.name.toLowerCase() : ''"
@@ -15,13 +17,12 @@
             <component :is="startupComponent" @start="startUp" />
         </template>
         <template v-else>
-            <state-browser :networks="networks" :sidebar-state="sidebarState" />
+            <state-browser :networks="networks" />
             <div
                 :class="{
                     'kiwi-workspace--disconnected': network && network.state !== 'connected'
                 }"
                 class="kiwi-workspace"
-                @click="stateBrowserDrawOpen = false"
             >
                 <div class="kiwi-workspace-background" />
 
@@ -67,6 +68,7 @@
 import { markRaw, watch } from 'vue';
 
 import '@/res/globalStyle.css';
+import '@/res/styles/global.scss';
 import Tinycon from 'tinycon';
 
 import StateBrowser from '@/components/StateBrowser';
@@ -90,6 +92,11 @@ export default {
         ControlInput,
         MediaViewer,
         AvatarCommon,
+    },
+    provide() {
+        return {
+            SidebarState: this.sidebarState,
+        };
     },
     props: ['startupComponent'],
     data() {
@@ -126,6 +133,12 @@ export default {
             const theme = ThemeManager.instance().currentTheme();
             return theme ? theme.name.toLowerCase() : '';
         },
+        fontSize() {
+            return this.$state.setting('fontSize');
+        },
+        animationDuration() {
+            return this.$state.setting('animationDuration');
+        },
     },
     created() {
         this.listenForActiveComponents();
@@ -139,9 +152,17 @@ export default {
         this.listen(window, 'focus', (event) => this.onFocus(event));
         this.listen(window, 'blur', (event) => this.onBlur(event));
         this.listen(window, 'touchstart', (event) => this.onTouchStart(event));
+
+        this.listen(document, 'mousedown', () => (this.$state.ui.interacting = true));
+        this.listen(document, 'mouseup', () => (this.$state.ui.interacting = false));
+        this.listen(document, 'touchstart', () => (this.$state.ui.interacting = true));
+        this.listen(document, 'touchend', () => (this.$state.ui.interacting = false));
     },
     mounted() {
         this.trackWindowDimensions();
+        if (this.$state.ui.is_narrow) {
+            this.$state.ui.show_statebrowser = false;
+        }
     },
     methods: {
         // Triggered by a startup screen event
@@ -270,9 +291,11 @@ export default {
             trackWindowDims();
         },
         warnOnPageClose() {
-            window.onbeforeunload = () => {
-                if (this.$state.setting('warnOnExit')) {
-                    return this.$t('window_unload');
+            window.onbeforeunload = (event) => {
+                if (this.$state.ui.warn_on_exit && this.$state.setting('warnOnExit')) {
+                    event.preventDefault();
+                    event.returnValue = this.$t('window_unload');
+                    return event.returnValue;
                 }
                 return undefined;
             };
@@ -369,29 +392,41 @@ export default {
 };
 </script>
 
-<style lang="less">
-html, body, #kiwiirc {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
+<style lang="scss">
+@use '/src/res/styles/uiFunctions' as ui;
 
 .kiwi-wrap {
-    font-size: 90%;
+    --transition-time: v-bind(animationDuration);
+    --statebrowser-width: 220px;
+    --font-size-85: 0.85em;
+    --font-size-110: 1.1em;
+
+    font-size: v-bind(fontSize);
     line-height: 1.6em;
     font-family: 'Source Sans Pro', Helvetica, sans-serif;
     -webkit-font-smoothing: antialiased;
     height: 100%;
     overflow: hidden;
+    display: flex;
+}
+
+@supports (font-size: round(nearest, 90%, 1px)) and (line-height: round(nearest, 1.6em, 1px)) {
+    .kiwi-wrap {
+        --font-size-85: round(nearest, 0.85em, 1px);
+        --font-size-110: round(nearest, 1.1em, 1px);
+
+        font-size: round(nearest, v-bind(fontSize), 1px);
+        line-height: round(nearest, 1.6em, 1px);
+    }
 }
 
 /* .kiwi-workspace has ::before and ::after 4px above itself for the connection status */
 .kiwi-workspace {
     position: relative;
-    margin-left: 220px;
-    left: 0;
+    flex: 1 1;
     top: 4px;
     display: flex;
+    width: 100%;
     flex-direction: column;
     height: calc(100% - 4px); // 4px is the top movement
     transition: left 0.2s, margin-left 0.2s;
@@ -433,16 +468,6 @@ html, body, #kiwiirc {
     z-index: -1;
 }
 
-.kiwi-statebrowser {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 220px;
-    bottom: 0;
-    z-index: 11; /* Must be at least 1 higher than the workspace :after z-index; */
-    transition: left 0.145s, margin-left 0.145s;
-}
-
 .kiwi-container {
     flex-grow: 1;
 
@@ -453,30 +478,22 @@ html, body, #kiwiirc {
 }
 
 .kiwi-main-mediaviewer {
-    max-height: 70%;
+    max-height: 70vw;
     overflow: auto;
     border-bottom: 1px solid rgba(0, 0, 0, 0.3);
 }
 
-/* Small screen will cause the statebrowser to act as a drawer */
-@media screen and (max-width: 769px) {
+.kiwi-wrap--compact {
+    --statebrowser-width: max(220px, min(70%, 280px));
+
     .kiwi-workspace {
         left: 0;
         margin-left: 0;
+        transition: ui.transition(left);
     }
 
-    .kiwi-statebrowser {
-        left: -220px;
-    }
-
-    .kiwi-wrap--statebrowser-drawopen .kiwi-statebrowser {
-        left: 0;
-    }
-
-    .kiwi-wrap--statebrowser-drawopen .kiwi-workspace {
-        left: 75%;
-        transition: left 0.1s;
-        transition-delay: 0s;
+    &.kiwi-wrap--show-statebrowser .kiwi-workspace {
+        left: var(--statebrowser-width);
     }
 }
 </style>

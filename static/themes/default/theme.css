@@ -11,8 +11,8 @@
 
     /* Warning colors */
     --brand-notice: #f6c358;
-    --brand-warning: #cf742a;
-    --brand-error: #bf5155;
+    --brand-warning: rgb(207, 116, 42);
+    --brand-error: rgb(191, 81, 85);
 
     /* Input elements */
     --brand-input-border: #e2e2e2;
@@ -51,6 +51,17 @@
     --brand-link--hover: var(--brand-primary-hover);
     --brand-shadow: rgba(0, 0, 0, 0.1);
     --comp-border: #b2b2b2;
+
+    /* New */
+    --brand-positive: hsl(160deg, 50%, 50%);
+    --brand-neutral: hsl(22deg, 50%, 50%);
+    --brand-negative: hsl(11deg, 50%, 50%);
+}
+
+.kiwi-statebrowser {
+    --brand-positive: hsl(160deg, 50%, 40%);
+    --brand-neutral: hsl(22deg, 70%, 40%);
+    --brand-negative: hsl(0deg, 50%, 40%);
 }
 
 /* IRC Text Colours */

@@ -35,7 +35,7 @@
 import * as Misc from '@/helpers/Misc';
 
 export default {
-    props: ['filter', 'buffer', 'items', 'itemsPerPage'],
+    props: ['filter', 'buffer', 'items', 'itemsPerPage', 'fuzzyFilter'],
     emits: ['cancel', 'selected', 'temp'],
     data() {
         return {
@@ -64,6 +64,22 @@ export default {
 
             return this.items.filter((item) => {
                 let s = false;
+
+                if (this.fuzzyFilter) {
+                    // TODO make this nice
+                    if (item.text.toLowerCase().indexOf(filterVal) > -1) {
+                        s = true;
+                    }
+
+                    (item.alias || []).forEach((alias) => {
+                        if (alias.toLowerCase().indexOf(filterVal) > -1) {
+                            s = true;
+                        }
+                    });
+
+                    return s;
+                }
+
                 if (item.text.toLowerCase().indexOf(filterVal) === 0) {
                     s = true;
                 }
@@ -227,7 +243,7 @@ export default {
         },
         handleClick(item) {
             this.selected_idx = item.idx;
-            this.selectCurrentItem();
+            this.selectCurrentItem(true);
             this.$emit('click', item.value || item.text, item);
         },
         openQuery(nick) {
@@ -242,7 +258,7 @@ export default {
             }
             this.$emit('temp', item.value || item.text, item);
         },
-        selectCurrentItem() {
+        selectCurrentItem(isClick = false) {
             let item = this.selectedItem;
             let value = '';
 
@@ -250,7 +266,7 @@ export default {
                 value = item.value || item.text;
             }
 
-            this.$emit('selected', value, item);
+            this.$emit('selected', value, item, isClick);
         },
         cancel() {
             this.$emit('cancel');

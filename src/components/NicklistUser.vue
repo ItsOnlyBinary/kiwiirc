@@ -60,7 +60,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import AwayStatusIndicator from './AwayStatusIndicator';
 import TypingStatusIndicator from './TypingStatusIndicator';

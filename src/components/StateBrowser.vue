@@ -52,7 +52,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import GlobalApi from '@/libs/GlobalApi';
 import StateBrowserNetwork from './StateBrowserNetwork';

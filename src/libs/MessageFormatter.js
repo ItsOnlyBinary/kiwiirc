@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 const tokens = Object.create(null);
 

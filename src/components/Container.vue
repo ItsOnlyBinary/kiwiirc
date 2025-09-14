@@ -64,7 +64,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import ContainerHeader from './ContainerHeader';
 import Sidebar from './Sidebar';

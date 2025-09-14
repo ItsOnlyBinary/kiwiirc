@@ -17,7 +17,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 let embedlyTagIncluded = false;
 

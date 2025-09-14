@@ -40,7 +40,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import Logger from '@/libs/Logger';
 import * as Misc from '@/helpers/Misc';

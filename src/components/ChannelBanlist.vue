@@ -76,7 +76,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import * as IrcdDiffs from '@/helpers/IrcdDiffs';
 import * as Misc from '@/helpers/Misc';

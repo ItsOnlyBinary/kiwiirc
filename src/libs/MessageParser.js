@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 import { trim } from 'lodash';
 

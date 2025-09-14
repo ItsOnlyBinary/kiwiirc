@@ -14,7 +14,7 @@ const pkg = require('./package.json');
 export default defineConfig({
     publicDir: null,
     output: {
-        // format: 'cjs',
+        format: 'cjs',
     },
     plugins: [
         // commonjs({

@@ -14,41 +14,68 @@ export default function pluggableExportsPlugin() {
         name: 'vite-pluggable-exports-plugin',
         enforce: 'post',
 
-        // config(config) {
-        //     if (config.output.format !== 'cjs') {
-        //         console.log('disabling');
-        //         pluginDisabled = true;
-        //         return
-        //     }
-        // },
+        config(config) {
+            if (config.output.format !== 'cjs') {
+                console.log('disabling');
+                pluginDisabled = true;
+                return
+            }
+        },
+
 
         async transform(code, id) {
             if (!filter(id)) return;
 
-            if (!code.includes(`'kiwi public'`)) {
+            if (!code.includes(`void 'kiwi public'`)) {
+                console.log('skipping', id);
                 return;
             }
 
-            // console.log('code', code);
-            const ast = babel.parseSync(code, {
-                sourceType: 'unambiguous',
-                plugins: [],
-            });
+            console.log('transforming', id);
 
-            // traverse.default(ast, {
-                // ExpressionStatement(path) {
-                //     const expr = path.node.expression;
-                //     if (
-                //         expr.type === 'StringLiteral' &&
-                //         expr.value === 'kiwi public'
-                //     ) {
-                //         path.remove();
-                //     }
-                // },
-            // });
+            // try {
+            //     const ast = babel.parseSync(code, {
+            //         sourceType: 'module',
+            //         plugins: [],
+            //     });
 
-            // const output = generate.default(ast, { sourceMaps: true, sourceFileName: id }, code);
-            // return { code: output.code, map: output.map };
+            //     console.log('code', code);
+            //     console.log('ast', ast.program.body[0]);
+
+            //     traverse.default(ast, {
+            //         Program: {
+            //             exit() {
+            //                 process.exit(0);
+            //             },
+            //         },
+            //         StringLiteral(path) {
+            //             const value = path.node.value;
+            //             if (value === void 'kiwi public') {
+            //                 console.log('removing');
+            //                 path.remove();
+            //             } else {
+            //                 console.log('expr', value);
+            //             }
+            //         },
+            //         ExpressionStatement(path) {
+            //             const expr = path.node.expression;
+            //             if (
+            //                 path.parent.type === 'Program' &&
+            //                 expr.type === 'StringLiteral' &&
+            //                 expr.value === void 'kiwi public'
+            //             ) {
+            //                 console.log('Matched top-level string literal:', expr.value);
+            //                 console.log('Location:', expr.loc?.start);
+            //             }
+            //         }
+            //     });
+
+            //     const output = generate.default(ast, { sourceMaps: true, sourceFileName: id }, code);
+            //     return { code: output.code, map: output.map };
+
+            // } catch (error) {
+            //     console.log('error', id, error);
+            // }
         },
     }
 }

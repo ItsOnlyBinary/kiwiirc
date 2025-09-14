@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 import _ from 'lodash';
 import Logger from '@/libs/Logger';

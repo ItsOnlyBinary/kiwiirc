@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 // What settings keys to ignore when building period delimited settings object
 let ignoreKeys = ['emojis', 'themes', 'bnc', 'aliases', 'restricted', 'kiwiServer',

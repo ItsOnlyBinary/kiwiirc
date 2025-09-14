@@ -63,7 +63,7 @@
 
 <script>
 
-'kiwi public';
+void 'kiwi public';
 
 import Captcha from '@/components/Captcha';
 

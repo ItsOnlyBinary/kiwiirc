@@ -35,7 +35,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 export default {
     components: {

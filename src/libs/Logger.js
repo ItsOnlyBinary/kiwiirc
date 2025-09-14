@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 const defaultLogger = makeLogger();
 export default defaultLogger;

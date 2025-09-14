@@ -76,7 +76,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import UserBox from '@/components/UserBox';
 import SidebarState from './SidebarState';

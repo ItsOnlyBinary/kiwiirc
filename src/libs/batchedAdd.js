@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 /**
  * batchedAdd prevents a flood of new inserts into state. Based on JS ticks, inserts /sec are

@@ -51,7 +51,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import { computed } from 'vue';
 

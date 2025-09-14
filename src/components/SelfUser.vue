@@ -40,7 +40,7 @@
 
 <script>
 
-'kiwi public';
+void 'kiwi public';
 
 import * as TextFormatting from '@/helpers/TextFormatting';
 import AwayStatusIndicator from './AwayStatusIndicator';

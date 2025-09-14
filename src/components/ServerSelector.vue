@@ -82,7 +82,7 @@
 
 <script>
 
-'kiwi public';
+void 'kiwi public';
 
 import * as Misc from '@/helpers/Misc';
 

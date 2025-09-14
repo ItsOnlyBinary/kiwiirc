@@ -69,7 +69,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 export default {
     data: function data() {

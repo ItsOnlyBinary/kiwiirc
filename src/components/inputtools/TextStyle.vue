@@ -74,7 +74,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import * as Colours from '@/helpers/Colours';
 

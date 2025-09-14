@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 import { escape } from 'lodash';
 import getState from '@/libs/state';

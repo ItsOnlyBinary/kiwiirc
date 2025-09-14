@@ -10,7 +10,7 @@
     </div>
 </template>
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import TypingStatusIndicator from './TypingStatusIndicator';
 

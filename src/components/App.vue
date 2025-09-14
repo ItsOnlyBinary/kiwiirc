@@ -62,8 +62,6 @@
 </template>
 
 <script>
-'kiwi public';
-
 import '@/res/globalStyle.css';
 import Tinycon from 'tinycon';
 

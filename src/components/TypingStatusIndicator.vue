@@ -10,7 +10,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 const methods = {
     props: {},

@@ -147,7 +147,7 @@
 </template>
 
 <script>
-'kiwi public';
+void 'kiwi public';
 
 import _ from 'lodash';
 

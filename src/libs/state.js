@@ -1,4 +1,4 @@
-'kiwi public';
+void 'kiwi public';
 
 import Vue from 'vue';
 import _ from 'lodash';

@@ -15,6 +15,10 @@ export default function convertLocalesPlugin() {
 
     const localeRegexp = /^app.([a-z_-]+).po$/i;
 
+    const localeStaticRegexp = /\/static\/locales\/([a-z_-]+).json$/i;
+
+    const configStaticRegexp = /\/static\/config(_.+)?\.json$/i;
+
     console.log('sourceDir', sourceDir);
 
     const availableLangs = new Set();
@@ -25,16 +29,19 @@ export default function convertLocalesPlugin() {
         enforce: 'pre',
 
         resolveId(id, importer) {
+            if (id.includes('fr-fr')) {
+                console.log('resolve Locale', id);
+            }
+            if (filterLocalePath(id)) {
+                // console.log('resolve Locale', id);
+                return id;
+            }
+
             if (!filter(id)) {
                 return;
             }
 
             if (id.endsWith('available.json')) {
-                return id;
-            }
-
-            if (filterLocalePath(id)) {
-                console.log('resolve Locale', id);
                 return id;
             }
             console.log('resolveId', id);
@@ -44,9 +51,46 @@ export default function convertLocalesPlugin() {
             console.log('config');
         },
 
-        configureServer() {
+        configureServer(server) {
             devMode = true;
             console.log('configServer');
+            server.middlewares.use(async (req, res, next) => {
+                const url = req.url;
+
+                const locale = url.match(localeStaticRegexp)?.[1];
+                if (locale) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(await generateLocale(sourceDir, locale));
+                    return;
+                }
+
+                const match = url.match(configStaticRegexp)?.[1];
+                if (match) {
+                    const configPaths = ['config.local.json', 'config.json'];
+                    if (match[1]) {
+                        configPaths.unshift(`config_${match[1]}.json`);
+                        configPaths.unshift(`config_${match[1]}.local.json`);
+                    }
+
+                    let configPath = null;
+                    for (const filePath of configPaths) {
+                        const resolvedPath = path.resolve('static/', filePath);
+                        if (fs.existsSync(resolvedPath)) {
+                            configPath = resolvedPath;
+                            break;
+                        }
+                    }
+
+                    if (configPath) {
+                        const config = fs.readFileSync(configPath);
+                        res.setHeader('Content-Type', 'application/json');
+                        res.end(config);
+                        return;
+                    }
+                }
+
+                next(); // Pass to Vite's internal handlers
+            });
         },
 
         async buildStart(options) {
@@ -111,13 +155,12 @@ export default function convertLocalesPlugin() {
 function generateLocale(sourceDir, locale) {
     const concatLocale = () => new Promise((resolve) => {
         let data = Buffer.alloc(0);
-        findLocaleFiles(sourceDir, locale).forEach((localeFile) => {
-            if (!localeFile.endsWith(`.${locale}.po`)) {
-                return;
-            }
+        const files = findLocaleFiles(sourceDir, locale);
+        files.forEach((localeFile) => {
             const content = fs.readFileSync(path.join(sourceDir, localeFile));
             data = Buffer.concat([data, content]);
         });
+        console.log('data', sourceDir, files, data);
         resolve(data);
     });
 
@@ -125,6 +168,6 @@ function generateLocale(sourceDir, locale) {
 }
 
 function findLocaleFiles(sourceDir, locale) {
-    const localeFinderRegexp = new RegExp(`^.+\\.${locale}\\.po$`);
+    const localeFinderRegexp = new RegExp(`^.+\\.${locale}\\.po$`, 'i');
     return fs.readdirSync(sourceDir).filter((file) => localeFinderRegexp.test(file))
 }

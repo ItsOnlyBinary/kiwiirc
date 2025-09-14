@@ -126,8 +126,6 @@ import MessageListMessageInline from './MessageListMessageInline';
 import LoadingAnimation from './LoadingAnimation';
 import BufferKey from './BufferKey';
 
-require('@/libs/polyfill/Element.closest');
-
 let log = Logger.namespace('MessageList.vue');
 
 // If we're scrolled up more than this many pixels, don't auto scroll down to the bottom

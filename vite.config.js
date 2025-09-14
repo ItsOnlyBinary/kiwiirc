@@ -69,26 +69,26 @@ export default defineConfig({
                 },
 
                 // JS output structure
-                chunkFileNames: 'js/[name]-[hash].js',
-                entryFileNames: 'js/[name]-[hash].js',
+                chunkFileNames: 'static/js/[name]-[hash].js',
+                entryFileNames: 'static/js/[name]-[hash].js',
 
                 // Assets structure
                 assetFileNames: (assetInfo) => {
                     const ext = assetInfo.name.split('.').pop()
 
                     if (/\.(png|jpe?g|gif|svg|webp)$/.test(assetInfo.name)) {
-                        return 'images/[name]-[hash][extname]'
+                        return 'static/images/[name]-[hash][extname]'
                     }
 
                     if (/\.(woff2?|ttf|otf|eot)$/.test(assetInfo.name)) {
-                        return 'fonts/[name]-[hash][extname]'
+                        return 'static/fonts/[name]-[hash][extname]'
                     }
 
                     if (ext === 'css') {
-                        return 'css/[name]-[hash][extname]'
+                        return 'static/css/[name]-[hash][extname]'
                     }
 
-                    return 'assets/[name]-[hash][extname]'
+                    return 'static/assets/[name]-[hash][extname]'
                 },
             },
         }

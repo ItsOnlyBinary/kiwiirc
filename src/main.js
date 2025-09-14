@@ -34,7 +34,7 @@ import WindowTitle from '@/libs/WindowTitle';
 import { configTemplates } from '@/res/configTemplates';
 
 import AvailableLocales from '@/res/locales/available.json';
-import FallbackLocale from '@/../static/locales/en-us.json';
+import FallbackLocale from '/static/locales/dev.json';
 
 // Global utilities
 import '@/components/utils/TabbedView';
@@ -57,10 +57,6 @@ let log = Logger.namespace('main');
 
 // Add the global API as soon as possible so that things can start listening to it
 let api = window.kiwi = GlobalApi.singleton();
-
-// Third party imports now have access to the state and api
-/* eslint-disable import/first */
-import '@/thirdparty/';
 
 function getQueryVariable(variable) {
     let query = window.location.search.substring(1);
@@ -216,7 +212,7 @@ Vue.directive('focus', {
 let ROSymbol = Symbol('resizeobserver');
 Vue.directive('resizeobserver', {
     bind(el, bindings) {
-        let cb = bindings.value || function noop() {};
+        let cb = bindings.value || function noop() { };
         el[ROSymbol] = new ResizeObserver(cb);
         el[ROSymbol].observe(el);
     },

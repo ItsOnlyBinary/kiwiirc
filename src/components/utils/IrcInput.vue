@@ -30,7 +30,7 @@ import * as Colours from '@/helpers/Colours';
 import * as Misc from '@/helpers/Misc';
 import * as EmojiProvider from '@/libs/EmojiProvider';
 
-let Vue = require('vue');
+import Vue from 'vue';
 
 export default Vue.component('irc-input', {
     props: ['placeholder'],

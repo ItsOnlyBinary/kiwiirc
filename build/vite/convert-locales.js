@@ -1,26 +1,33 @@
 import fs from 'fs';
 import path from 'path';
 import { gettextToI18next } from 'i18next-conv';
-import { createFilter, normalizePath } from 'vite';
+import { createFilter } from 'vite';
 
+/**
+ * Vite plugin to convert locale files from PO format to i18next JSON format.
+ * This plugin handles locale file conversion during build and development.
+ *
+ * @returns {Object} Vite plugin object
+ */
 export default function convertLocalesPlugin() {
     const sourceDir = path.resolve('src/res/locales/');
     const outputDir = path.resolve('static/locales/');
 
-    // import { createFilter } from 'vite';
-    const filter = createFilter(['**/*.js', '**/*.vue', '**/*.json'], ['**/node_modules/**']);
-    // console.log('filter Test', filter('../static/available.json'));
+    // Initialize logging
+    const log = (message, level = 'info') => {
+        console[level](`[convert-locales] ${message}`);
+    };
 
+    // Create filters for locale files and other relevant files
     const filterLocalePath = createFilter(['**/static/locales/*.json'], ['**/node_modules/**']);
+    const filterAvailablePath = createFilter(['**/res/locales/available.json'], ['**/node_modules/**']);
 
-    const localeRegexp = /^app.([a-z_-]+).po$/i;
-
+    // Regular expressions for matching locale files and URLs
+    const localeRegexp = /^app.([a-z0-9_-]+).po$/i;
     const localeStaticRegexp = /\/static\/locales\/([a-z_-]+).json$/i;
-
     const configStaticRegexp = /\/static\/config(_.+)?\.json$/i;
 
-    console.log('sourceDir', sourceDir);
-
+    // Track available languages and development mode state
     const availableLangs = new Set();
     let devMode = false;
 
@@ -29,47 +36,46 @@ export default function convertLocalesPlugin() {
         enforce: 'pre',
 
         resolveId(id, importer) {
-            if (id.includes('fr-fr')) {
-                console.log('resolve Locale', id);
+            // Special handling for available.json
+            if (filterAvailablePath(id)) {
+                return id;
             }
+
+            // Handle locale file resolution
             if (filterLocalePath(id)) {
-                // console.log('resolve Locale', id);
                 return id;
             }
-
-            if (!filter(id)) {
-                return;
-            }
-
-            if (id.endsWith('available.json')) {
-                return id;
-            }
-            console.log('resolveId', id);
-        },
-
-        config() {
-            console.log('config');
         },
 
         configureServer(server) {
             devMode = true;
-            console.log('configServer');
+
             server.middlewares.use(async (req, res, next) => {
                 const url = req.url;
 
-                const locale = url.match(localeStaticRegexp)?.[1];
+                // Handle locale file requests
+                const localeMatch = url.match(localeStaticRegexp);
+                const locale = localeMatch?.[1];
                 if (locale) {
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(await generateLocale(sourceDir, locale));
+                    try {
+                        const json = await generateLocale(sourceDir, locale);
+                        res.setHeader('Content-Type', 'application/json');
+                        res.end(json);
+                    } catch (err) {
+                        log(`Error generating locale ${locale}: ${err.message}`, 'error');
+                        res.statusCode = 500;
+                        res.end('Internal Server Error');
+                    }
                     return;
                 }
 
-                const match = url.match(configStaticRegexp)?.[1];
-                if (match) {
+                // Handle config file requests
+                const configMatch = url.match(configStaticRegexp);
+                if (configMatch) {
                     const configPaths = ['config.local.json', 'config.json'];
-                    if (match[1]) {
-                        configPaths.unshift(`config_${match[1]}.json`);
-                        configPaths.unshift(`config_${match[1]}.local.json`);
+                    if (configMatch[1]) {
+                        configPaths.unshift(`config_${configMatch[1]}.json`);
+                        configPaths.unshift(`config_${configMatch[1]}.local.json`);
                     }
 
                     let configPath = null;
@@ -82,9 +88,20 @@ export default function convertLocalesPlugin() {
                     }
 
                     if (configPath) {
-                        const config = fs.readFileSync(configPath);
-                        res.setHeader('Content-Type', 'application/json');
-                        res.end(config);
+                        try {
+                            const config = fs.readFileSync(configPath);
+                            res.setHeader('Content-Type', 'application/json');
+                            res.end(config);
+                        } catch (err) {
+                            log(`Error reading config file ${configPath}: ${err.message}`, 'error');
+                            res.statusCode = 500;
+                            res.end('Internal Server Error');
+                        }
+                        return;
+                    } else {
+                        log('Config file not found', 'warn');
+                        res.statusCode = 404;
+                        res.end('Not Found');
                         return;
                     }
                 }
@@ -94,80 +111,151 @@ export default function convertLocalesPlugin() {
         },
 
         async buildStart(options) {
-            console.log('buildStart');
-
             const awaitPromises = new Set();
-
             availableLangs.clear();
 
-            const files = fs.readdirSync(sourceDir).filter((f) => path.extname(f) === '.po');
-            console.log('files', files);
-            files.forEach((file) => {
-                const locale = file.match(localeRegexp)?.[1];
-                if (!locale) {
-                    return
-                }
+            try {
+                // Process locale files
+                const files = fs.readdirSync(sourceDir).filter((f) => path.extname(f) === '.po');
 
-                const lcLocale = locale.toLowerCase();
+                files.forEach((file) => {
+                    const locale = file.match(localeRegexp)?.[1];
+                    if (!locale) {
+                        log(`Skipping file without locale match: ${file}`, 'warn');
+                        return;
+                    }
 
-                availableLangs.add(lcLocale);
+                    const lcLocale = locale.toLowerCase();
+                    availableLangs.add(lcLocale);
 
-                if (devMode) {
-                    return;
-                }
+                    if (devMode) {
+                        return;
+                    }
 
-                const outputPath = path.join(outputDir, lcLocale + '.json');
-                const sourcePath = path.join(sourceDir, file);
+                    const outputPath = path.join(outputDir, lcLocale + '.json');
+                    const sourcePath = path.join(sourceDir, file);
 
-                const promise = generateLocale(sourceDir, locale).then((json) => this.emitFile({
-                    type: 'asset',
-                    originalFileName: sourcePath,
-                    fileName: 'static/locales/' + lcLocale + '.json',
-                    source: json,
-                }));
+                    const promise = generateLocale(sourceDir, locale)
+                        .then((json) => this.emitFile({
+                            type: 'asset',
+                            originalFileName: sourcePath,
+                            fileName: 'static/locales/' + lcLocale + '.json',
+                            source: json,
+                        })).catch((err) => {
+                            log(`Error processing locale ${locale}: ${err.message}`, 'error');
+                        });
 
-                awaitPromises.add(promise);
-            });
+                    awaitPromises.add(promise);
+                });
 
-            await Promise.all(awaitPromises);
+                await Promise.all(awaitPromises);
+            } catch (err) {
+                log(`Error during build start: ${err.message}`, 'error');
+            }
         },
 
         async load(id) {
-            if (!filter(id)) {
-                return;
-            }
-            console.log('load', id);
+            try {
+                if (filterAvailablePath(id)) {
+                    return JSON.stringify({
+                        locales: Array.from(availableLangs),
+                    });
+                }
 
-            if (id.endsWith('available.json')) {
-                return JSON.stringify({
-                    locales: Array.from(availableLangs),
-                });
-            }
-
-            if (filterLocalePath(id)) {
-                console.log('load Locale', id);
-                return await generateLocale(sourceDir, path.basename(id).replace(/\.json$/, ''));
+                if (filterLocalePath(id)) {
+                    const locale = path.basename(id).replace(/\.json$/, '');
+                    try {
+                        return await generateLocale(sourceDir, locale);
+                    } catch (err) {
+                        log(`Error loading locale ${locale}: ${err.message}`, 'error');
+                        return '{}';
+                    }
+                }
+            } catch (err) {
+                log(`Error in load function: ${err.message}`, 'error');
             }
         }
+    };
+}
+
+/**
+ * Generates a locale JSON file from PO files.
+ *
+ * This function reads all PO files matching the locale code, concatenates
+ * their contents, and converts them to i18next JSON format.
+ *
+ * @param {string} sourceDir - Directory containing locale PO files
+ * @param {string} locale - Locale code
+ * @returns {Promise<string>} JSON string containing locale data
+ */
+async function generateLocale(sourceDir, locale) {
+    try {
+        const files = findLocaleFiles(sourceDir, locale);
+        if (files.length === 0) {
+            log(`No locale files found for ${locale}`, 'warn');
+            return '{}'; // Return empty JSON for missing locale
+        }
+
+        let data = Buffer.alloc(0);
+        for (const localeFile of files) {
+            try {
+                const filePath = path.join(sourceDir, localeFile);
+                const content = fs.readFileSync(filePath);
+                data = Buffer.concat([data, content]);
+            } catch (err) {
+                log(`Error reading locale file ${localeFile}: ${err.message}`, 'error');
+                // Continue with other files
+            }
+        }
+
+        if (data.length === 0) {
+            log(`No data found for locale ${locale}`, 'warn');
+            return '{}';
+        }
+
+        try {
+            return gettextToI18next(locale, data);
+        } catch (err) {
+            return '{}'; // Return empty JSON on error
+        }
+    } catch (err) {
+        log(`Error processing locale ${locale}: ${err.message}`, 'error');
+        return '{}';
     }
 }
 
-function generateLocale(sourceDir, locale) {
-    const concatLocale = () => new Promise((resolve) => {
-        let data = Buffer.alloc(0);
-        const files = findLocaleFiles(sourceDir, locale);
-        files.forEach((localeFile) => {
-            const content = fs.readFileSync(path.join(sourceDir, localeFile));
-            data = Buffer.concat([data, content]);
-        });
-        console.log('data', sourceDir, files, data);
-        resolve(data);
-    });
-
-    return concatLocale().then((data) => gettextToI18next(locale, data));
-}
-
+/**
+ * Finds locale files matching the given locale code.
+ *
+ * This function searches for PO files in the source directory that match
+ * the given locale code. It handles errors gracefully and returns an empty
+ * array if any issues occur.
+ *
+ * @param {string} sourceDir - Directory containing locale PO files
+ * @param {string} locale - Locale code
+ * @returns {string[]} Array of matching locale file names
+ */
 function findLocaleFiles(sourceDir, locale) {
-    const localeFinderRegexp = new RegExp(`^.+\\.${locale}\\.po$`, 'i');
-    return fs.readdirSync(sourceDir).filter((file) => localeFinderRegexp.test(file))
+    try {
+        if (!fs.existsSync(sourceDir) || !fs.lstatSync(sourceDir).isDirectory()) {
+            log(`Invalid source directory: ${sourceDir}`, 'error');
+            return [];
+        }
+
+        const localeFinderRegexp = new RegExp(`^.+\\.${locale}\\.po$`, 'i');
+        const files = fs.readdirSync(sourceDir);
+
+        // Filter files that match the locale pattern
+        return files.filter((file) => {
+            try {
+                return localeFinderRegexp.test(file);
+            } catch (err) {
+                log(`Error processing file ${file}: ${err.message}`, 'error');
+                return false;
+            }
+        });
+    } catch (err) {
+        log(`Error reading directory ${sourceDir}: ${err.message}`, 'error');
+        return [];
+    }
 }

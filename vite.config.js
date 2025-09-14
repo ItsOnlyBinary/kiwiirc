@@ -1,6 +1,6 @@
 import path from 'path';
 import { defineConfig, normalizePath } from 'vite';
-
+import { execSync } from 'child_process';
 import commonjs from '@rollup/plugin-commonjs';
 import vue from '@vitejs/plugin-vue2';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
@@ -55,6 +55,11 @@ export default defineConfig({
         ],
     },
     define: {
+        '__BUILD_INFO__': {
+            date: (new Date()).toISOString(),
+            version: pkg.version,
+            commit: getCommitHash(),
+        },
         '__VERSION__': JSON.stringify(pkg.version),
         '__COMMITHASH__': JSON.stringify(getCommitHash()),
     },
@@ -110,8 +115,8 @@ function getCommitHash() {
         if (modified.trim() === 'true') {
             commitHash += '-modified';
         }
-    } catch {
-        console.error('Failed to get commit hash');
+    } catch (error) {
+        console.error('Failed to get commit hash:', error.message);
     }
     return commitHash;
 }

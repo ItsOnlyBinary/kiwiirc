@@ -22,6 +22,7 @@ export default class GlobalApi extends EventEmitter {
         // Version information from DefinePlugin in vue.config.js
         this.version = __VERSION__; // eslint-disable-line no-undef
         this.commithash = __COMMITHASH__; // eslint-disable-line no-undef
+        this.buildInfo = __BUILD_INFO__; // eslint-disable-line no-undef
 
         /** A reference to the internal Vuejs instance */
         this.Vue = Vue;

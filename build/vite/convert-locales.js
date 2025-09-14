@@ -91,6 +91,10 @@ export default function convertLocalesPlugin() {
                         try {
                             const config = fs.readFileSync(configPath);
                             res.setHeader('Content-Type', 'application/json');
+                            // Set no-cache headers
+                            res.setHeader('Cache-Control', 'no-store');
+                            res.setHeader('Pragma', 'no-cache');
+                            res.setHeader('Expires', '0');
                             res.end(config);
                         } catch (err) {
                             log(`Error reading config file ${configPath}: ${err.message}`, 'error');

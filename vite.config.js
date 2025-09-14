@@ -6,6 +6,7 @@ import vue from '@vitejs/plugin-vue2';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import convertLocalesPlugin from './build/vite/convert-locales';
+import pluggableExportsPlugin from './build/vite/pluggable-exports';
 
 const pkg = require('./package.json');
 
@@ -29,6 +30,7 @@ export default defineConfig({
                 Buffer: true,
             },
         }),
+        pluggableExportsPlugin(),
         viteStaticCopy({
             targets: [
                 {

@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const NormalModule = require('webpack').NormalModule;
+const RawSource = require('webpack-sources').RawSource;
 
 const utils = require('../../utils');
 
@@ -9,125 +11,90 @@ const log = (message, level = 'info') => {
     console[level](`[convert-locales] ${message}`);
 };
 
-module.exports = class ConvertLocalesPlugin {
+const SCHEME = 'locale';
+
+// const PATH_QUERY_REGEXP = /^((?:\0.|[^?\0])*)(\?.*)?$/;
+
+module.exports = class VirtualLocalesPlugin {
     constructor(options = {}) {
         this.sourceDir = options.sourceDir || utils.pathResolve('src/res/locales');
         this.availableLangs = new Set();
+
+        const files = fs.readdirSync(this.sourceDir).filter((f) => path.extname(f) === '.po');
+        files.forEach((file) => {
+            const locale = file.match(localeRegexp)?.[1];
+            if (!locale) {
+                log(`Skipping file without locale match: ${file}`, 'warn');
+                return;
+            }
+
+            this.availableLangs.add(locale);
+        });
     }
 
     apply(compiler) {
         const pluginName = this.constructor.name;
-        const fileDependencies = new Set();
 
-        compiler.hooks.afterEnvironment.tap(pluginName, () => {
-            const devServer = compiler.options.devServer;
-            if (!devServer) {
-                return;
-            }
-        });
-
-        compiler.hooks.beforeRun.tapAsync(pluginName, async (compilation, callback) => {
-            // run in build mode
-            await this.generateLocales(true);
-            callback();
-        });
-
-        compiler.hooks.watchRun.tapAsync(pluginName, async (compilation, callback) => {
-            // run in dev mode
-            await this.generateLocales(true);
-            callback();
+        compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
+            compilation.hooks.processAssets.tapAsync(
+                {
+                    name: pluginName,
+                    stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
+                },
+                async (assets, callback) => {
+                    console.log('processAssets');
+                    await this.generateLocales(assets, false);
+                    callback();
+                }
+            );
         });
 
         compiler.hooks.compilation.tap(
             pluginName,
             (compilation, { normalModuleFactory }) => {
-                // Intercept the resolution of the module
-                normalModuleFactory.hooks.resolve.tapAsync(
-                    pluginName,
-                    (data, callback) => {
-                        if (data.request === '@/res/locales/available.json') {
-                            console.log('resolve avail locale', data);
-                            // Modify the data object in-place
-                            data.path = data.request;
-                            data.resource = data.request;
-                            // No return, just call callback()
-                            callback();
-                            return;
-                        }
-                        callback();
-                    }
-                );
+                normalModuleFactory.hooks.resolveForScheme
+                    .for(SCHEME)
+                    .tap(pluginName, (resourceData) => {
+                        // const match = PATH_QUERY_REGEXP.exec(resourceData.resource);
+                        // const path = match[1].replace(/\0(.)/g, '$1');
+                        const url = resourceData.resource;
+                        resourceData.path = resourceData.resource;
+                        // resourceData.resource = resourceData.resource;
+                        console.log('url', url);
+                        // TODO
+                        return true;
+                    });
 
-                // Provide the content for the virtual module
-                normalModuleFactory.hooks.afterResolve.tap(
-                    pluginName,
-                    (data) => {
-                        if (data.request === '@/res/locales/available.json') {
-                            console.log('requested avail locale');
-                            // data.loaders = [
-                            //     {
-                            //         loader: require.resolve('json-loader'),
-                            //         options: {},
-                            //         ident: 'json',
-                            //         type: 'json',
-                            //     },
-                            // ];
-                            data.createData.content = JSON.stringify({
-                                locales: Array.from(this.availableLangs),
-                            });
-                            // data.createData.resource = 'virtual-locales-module';
+                const hooks = NormalModule.getCompilationHooks(compilation);
+                hooks.readResource
+                    .for(SCHEME)
+                    .tapAsync(pluginName, async (loaderContext, callback) => {
+                        const { resourcePath } = loaderContext;
+                        const fileName = resourcePath.split(':')[1];
 
+                        console.log('resoourcePath', fileName);
+
+                        try {
+                            if (fileName === 'available.json') {
+                                callback(null, JSON.stringify(
+                                    [...this.availableLangs].map((lng) => lng.toLowerCase()),
+                                ));
+                            } else {
+                                const lcLocale = fileName.split('.')[0];
+                                const localeData = await this.generateLocale(lcLocale);
+                                console.log('localeData', lcLocale, typeof localeData);
+                                callback(null, localeData);
+                            }
+
+                        } catch (err) {
+                            callback(/** @type {Error} */ (err));
                         }
-                    }
-                );
+                    });
             }
         );
-        // compiler.hooks.compilation.tap(
-        //     pluginName,
-        //     (compilation, { normalModuleFactory }) => {
-        //         normalModuleFactory.hooks.afterResolve.tap(
-        //             pluginName,
-        //             (data) => {
-        //                 if (data.request === '@/res/locales/available.json') {
-        //                     console.log('requested avail locale');
-        //                     // Generate your content here
-        //                     data.createData.resource = 'virtual-locales-module';
-        //                     data.createData.content = JSON.stringify({
-        //                         locales: Array.from(this.availableLangs),
-        //                     });
-        //                 }
-        //             }
-        //         );
-        //     }
-        // );
-
-        // compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
-        //     compilation.hooks.processAssets.tapPromise({
-
-        //     });
-        // });
-
-        // compiler.hooks.beforeRun.tapAsync(pluginName, (compilation, callback) => {
-        //     // run in build mode
-        //     convertLocales(fileDependencies, callback);
-        // });
-
-        // compiler.hooks.watchRun.tapAsync(pluginName, (compilation, callback) => {
-        //     // run in dev mode
-        //     convertLocales(fileDependencies, callback);
-        // });
-
-        // compiler.hooks.afterEmit.tapAsync(pluginName, (compilation, callback) => {
-        //     // Add file dependencies
-        //     fileDependencies.forEach((dependency) => {
-        //         compilation.fileDependencies.add(dependency);
-        //     });
-
-        //     callback();
-        // });
     }
 
-    async generateLocales(devMode = false) {
+    async generateLocales(assets, devMode = false) {
         if (!this.gettextToI18next) {
             this.gettextToI18next = await import('i18next-conv').then((m) => m.gettextToI18next);
         }
@@ -149,19 +116,14 @@ module.exports = class ConvertLocalesPlugin {
                 const lcLocale = locale.toLowerCase();
                 this.availableLangs.add(lcLocale);
 
-                if (devMode) {
+                if (!assets) {
                     return;
                 }
 
-                const sourcePath = path.join(this.sourceDir, file);
-
-                const promise = this.generateLocale(this.sourceDir, locale)
-                    .then((json) => this.emitFile({
-                        type: 'asset',
-                        originalFileName: sourcePath,
-                        fileName: 'static/locales/' + lcLocale + '.json',
-                        source: json,
-                    })).catch((err) => {
+                const promise = this.generateLocale(locale)
+                    .then((json) => {
+                        assets['static/locales/' + lcLocale + '.json'] = new RawSource(json);
+                    }).catch((err) => {
                         log(`Error processing locale ${locale}: ${err.message}`, 'error');
                     });
 
@@ -185,18 +147,22 @@ module.exports = class ConvertLocalesPlugin {
      * @returns {Promise<string>} JSON string containing locale data
      */
 
-    async generateLocale(sourceDir, locale) {
+    async generateLocale(locale) {
+        if (!this.gettextToI18next) {
+            this.gettextToI18next = await import('i18next-conv').then((m) => m.gettextToI18next);
+        }
+
         try {
-            const files = this.findLocaleFiles(sourceDir, locale);
+            const files = this.findLocaleFiles(this.sourceDir, locale);
             if (files.length === 0) {
-                log(`No locale files found for ${locale}`, 'warn');
+                log(`No locale files found for "${locale}"`, 'warn');
                 return '{}'; // Return empty JSON for missing locale
             }
 
             let data = Buffer.alloc(0);
             for (const localeFile of files) {
                 try {
-                    const filePath = path.join(sourceDir, localeFile);
+                    const filePath = path.join(this.sourceDir, localeFile);
                     const content = fs.readFileSync(filePath);
                     data = Buffer.concat([data, content]);
                 } catch (err) {
@@ -234,11 +200,6 @@ module.exports = class ConvertLocalesPlugin {
      */
     findLocaleFiles(sourceDir, locale) {
         try {
-            if (!fs.existsSync(sourceDir) || !fs.lstatSync(sourceDir).isDirectory()) {
-                log(`Invalid source directory: ${sourceDir}`, 'error');
-                return [];
-            }
-
             const localeFinderRegexp = new RegExp(`^.+\\.${locale}\\.po$`, 'i');
             const files = fs.readdirSync(sourceDir);
 
@@ -257,66 +218,3 @@ module.exports = class ConvertLocalesPlugin {
         }
     }
 };
-
-// async function convertLocales(fileDependencies, callback) {
-//     const i18nextConv = await import('i18next-conv');
-
-//     fileDependencies.clear();
-//     const sourceDir = path.resolve('src/res/locales/');
-//     const outputDir = path.resolve('static/locales/');
-
-//     const awaitPromises = new Set();
-//     const availableLangs = new Set();
-
-//     const files = fs.readdirSync(sourceDir).filter((f) => path.extname(f) === '.po');
-//     files.forEach((file) => {
-//         const match = file.match(/^app.([a-z_-]+).po$/i);
-//         if (!match) {
-//             return;
-//         }
-
-//         const locale = match[1];
-//         const lcLocale = locale.toLowerCase();
-//         const outputPath = path.join(outputDir, lcLocale + '.json');
-//         const sourcePath = path.join(sourceDir, file);
-
-//         const concatLocale = () => new Promise((resolve) => {
-//             let data = Buffer.alloc(0);
-//             files.forEach((localeFile) => {
-//                 if (!localeFile.endsWith(`.${locale}.po`)) {
-//                     return;
-//                 }
-//                 const content = fs.readFileSync(path.join(sourceDir, localeFile));
-//                 data = Buffer.concat([data, content]);
-//             });
-//             resolve(data);
-//         });
-
-//         const promise = concatLocale()
-//             .then((data) => i18nextConv.gettextToI18next(locale, data))
-//             .then((json) => writeIfChanged(outputPath, json));
-
-//         awaitPromises.add(promise);
-//         availableLangs.add(lcLocale);
-//         fileDependencies.add(sourcePath);
-//     });
-
-//     // Write available.json
-//     const availablePath = path.join(sourceDir, 'available.json');
-//     const content = JSON.stringify({
-//         locales: Array.from(availableLangs),
-//     });
-//     writeIfChanged(availablePath, content);
-
-//     await Promise.all(awaitPromises);
-//     callback();
-// }
-
-// function writeIfChanged(file, _data) {
-//     const data = Buffer.from(_data);
-//     if (fs.existsSync(file) && data.equals(fs.readFileSync(file))) {
-//         return;
-//     }
-
-//     fs.writeFileSync(file, data);
-// }

@@ -42,8 +42,12 @@ import TransitionExpand from '@/components/utils/TransitionExpand';
 
 import SvgSpinner from '@/res/icons/ring-resize.svg';
 
-import AvailableLocales from '@/res/locales/available.json';
-import FallbackLocale from '@/../static/locales/dev.json';
+// eslint-disable-next-line import/no-unresolved
+import AvailableLocales from 'locale:available.json';
+// eslint-disable-next-line import/no-unresolved
+import FallbackLocale from 'locale:dev.json';
+
+console.log('AvailableLocales', AvailableLocales);
 
 Object.assign(faConfig, {
     // Disable fontawesome's watching of the dom

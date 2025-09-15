@@ -117,5 +117,8 @@
         "webpack-merge": "^6.0.1",
         "webpack-sources": "^3.3.3"
     },
-    "packageManager": "yarn@4.6.0"
+    "packageManager": "yarn@4.6.0",
+    "engines": {
+        "node": ">= 20.19"
+    }
 }

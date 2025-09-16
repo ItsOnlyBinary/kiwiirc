@@ -110,9 +110,8 @@ export default [
             'import/no-cycle': 'off',
             'import/no-unresolved': ['error', {
                 ignore: [
-                    // These files will not exist if lint is run before the first build
-                    '/res/locales/available\\.json$',
-                    '/static/locales/\\S+\\.json$',
+                    // virtual path to locales
+                    '^locale:',
                 ],
             }],
             'import/prefer-default-export': 'off',

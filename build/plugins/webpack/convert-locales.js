@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const NormalModule = require('webpack').NormalModule;
 const RawSource = require('webpack-sources').RawSource;
@@ -7,44 +7,52 @@ const utils = require('../../utils');
 
 const localeRegexp = /^app.([a-z0-9_-]+).po$/i;
 
-const log = (message, level = 'info') => {
-    console[level](`[convert-locales] ${message}`);
-};
-
-const SCHEME = 'locale';
-
-// const PATH_QUERY_REGEXP = /^((?:\0.|[^?\0])*)(\?.*)?$/;
-
+/**
+ * Webpack plugin to convert PO locale files to JSON format for i18next.
+ * This plugin scans a directory for PO files, converts them to JSON format
+ * using i18next-conv, and makes them available to the webpack build process.
+ */
 module.exports = class VirtualLocalesPlugin {
+    /**
+     * Create a new instance of the VirtualLocalesPlugin.
+     * @param {Object} [options={}] - Configuration options for the plugin.
+     * @param {string} [options.sourceDir] - Directory containing PO locale files.
+     * @param {string} [options.scheme='locale'] - URL scheme for virtual modules.
+     */
     constructor(options = {}) {
         this.sourceDir = options.sourceDir || utils.pathResolve('src/res/locales');
+        this.scheme = options.scheme || 'locale';
         this.availableLangs = new Set();
-
-        const files = fs.readdirSync(this.sourceDir).filter((f) => path.extname(f) === '.po');
-        files.forEach((file) => {
-            const locale = file.match(localeRegexp)?.[1];
-            if (!locale) {
-                log(`Skipping file without locale match: ${file}`, 'warn');
-                return;
-            }
-
-            this.availableLangs.add(locale);
-        });
+        this.gettextToI18next = import('i18next-conv').then((m) => m.gettextToI18next);
     }
 
+    /**
+     * Apply the plugin to the webpack compiler.
+     * @param {Object} compiler - The webpack compiler instance.
+     */
     apply(compiler) {
         const pluginName = this.constructor.name;
 
         compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
+            const compilationLogger = compilation.getLogger(pluginName);
+
+            // Initialize available languages
+            this.initializeAvailableLangs(compilation);
+
             compilation.hooks.processAssets.tapAsync(
                 {
                     name: pluginName,
                     stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
                 },
                 async (assets, callback) => {
-                    console.log('processAssets');
-                    await this.generateLocales(assets, false);
-                    callback();
+                    try {
+                        compilationLogger.debug('Processing assets');
+                        await this.generateLocales(compilation, assets, false);
+                        callback();
+                    } catch (err) {
+                        compilationLogger.error(`Error processing assets: ${err.message}`);
+                        callback(err);
+                    }
                 }
             );
         });
@@ -52,168 +60,212 @@ module.exports = class VirtualLocalesPlugin {
         compiler.hooks.compilation.tap(
             pluginName,
             (compilation, { normalModuleFactory }) => {
+                const compilationLogger = compilation.getLogger(pluginName);
+
                 normalModuleFactory.hooks.resolveForScheme
-                    .for(SCHEME)
+                    .for(this.scheme)
                     .tap(pluginName, (resourceData) => {
-                        // const match = PATH_QUERY_REGEXP.exec(resourceData.resource);
-                        // const path = match[1].replace(/\0(.)/g, '$1');
                         const url = resourceData.resource;
                         resourceData.path = resourceData.resource;
-                        // resourceData.resource = resourceData.resource;
-                        console.log('url', url);
-                        // TODO
+                        compilationLogger.debug(`Resolving scheme for: ${url}`);
                         return true;
                     });
 
                 const hooks = NormalModule.getCompilationHooks(compilation);
                 hooks.readResource
-                    .for(SCHEME)
+                    .for(this.scheme)
                     .tapAsync(pluginName, async (loaderContext, callback) => {
                         const { resourcePath } = loaderContext;
                         const fileName = resourcePath.split(':')[1];
 
-                        console.log('resoourcePath', fileName);
+                        compilationLogger.debug(`Processing resource: ${fileName}`);
 
                         try {
                             if (fileName === 'available.json') {
+                                compilationLogger.debug('Returning available languages');
                                 callback(null, JSON.stringify(
                                     [...this.availableLangs].map((lng) => lng.toLowerCase()),
                                 ));
                             } else {
                                 const lcLocale = fileName.split('.')[0];
-                                const localeData = await this.generateLocale(lcLocale);
-                                console.log('localeData', lcLocale, typeof localeData);
-                                callback(null, localeData);
-                            }
+                                compilationLogger.debug(`Generating locale data for: ${lcLocale}`);
+                                const localeData = await this.generateLocale(compilation, lcLocale);
 
+                                if (localeData) {
+                                    callback(null, localeData);
+                                } else {
+                                    callback(null, '{}'); // Return empty JSON if no data
+                                }
+                            }
                         } catch (err) {
-                            callback(/** @type {Error} */ (err));
+                            compilationLogger.error(`Error processing resource ${fileName}: ${err.message}`);
+                            callback(/** @type {Error} */(err));
                         }
                     });
             }
         );
     }
 
-    async generateLocales(assets, devMode = false) {
-        if (!this.gettextToI18next) {
-            this.gettextToI18next = await import('i18next-conv').then((m) => m.gettextToI18next);
-        }
+    /**
+     * Initialize the set of available languages by scanning the source directory.
+     * @param {Object} compilation - The webpack compilation object.
+     * @private
+     */
+    async initializeAvailableLangs(compilation) {
+        const logger = compilation.getLogger(this.constructor.name);
 
-        const awaitPromises = new Set();
+        try {
+            const files = await fs.readdir(this.sourceDir);
+            const poFiles = files.filter((f) => path.extname(f) === '.po');
+
+            for (const file of poFiles) {
+                const locale = file.match(localeRegexp)?.[1];
+                if (!locale) {
+                    logger.warn(`Skipping file without locale match: ${file}`);
+                    continue;
+                }
+
+                this.availableLangs.add(locale.toLowerCase());
+            }
+        } catch (err) {
+            logger.error(`Error reading source directory: ${err.message}`);
+        }
+    }
+
+    /**
+     * Generate locale JSON files from PO files.
+     * @param {Object} compilation - The webpack compilation object.
+     * @param {Object} assets - The webpack assets object.
+     * @param {boolean} [devMode=false] - Whether this is a development build.
+     * @private
+     */
+    async generateLocales(compilation, assets, devMode = false) {
+        const logger = compilation.getLogger(this.constructor.name);
+
         this.availableLangs.clear();
 
         try {
             // Process locale files
-            const files = fs.readdirSync(this.sourceDir).filter((f) => path.extname(f) === '.po');
+            const files = await fs.readdir(this.sourceDir);
+            const poFiles = files.filter((f) => path.extname(f) === '.po');
 
-            files.forEach((file) => {
+            if (!assets) {
+                // Just collect available languages
+                for (const file of poFiles) {
+                    const locale = file.match(localeRegexp)?.[1];
+                    if (locale) {
+                        this.availableLangs.add(locale.toLowerCase());
+                    }
+                }
+                return;
+            }
+
+            // Process each locale file in parallel
+            const processLocale = async (file) => {
                 const locale = file.match(localeRegexp)?.[1];
                 if (!locale) {
-                    log(`Skipping file without locale match: ${file}`, 'warn');
+                    logger.warn(`Skipping file without locale match: ${file}`);
                     return;
                 }
 
                 const lcLocale = locale.toLowerCase();
                 this.availableLangs.add(lcLocale);
 
-                if (!assets) {
-                    return;
-                }
-
-                const promise = this.generateLocale(locale)
-                    .then((json) => {
+                try {
+                    const json = await this.generateLocale(compilation, locale);
+                    if (json) {
                         assets['static/locales/' + lcLocale + '.json'] = new RawSource(json);
-                    }).catch((err) => {
-                        log(`Error processing locale ${locale}: ${err.message}`, 'error');
-                    });
+                    }
+                } catch (err) {
+                    logger.error(`Error processing locale ${locale}: ${err.message}`);
+                }
+            };
 
-                awaitPromises.add(promise);
-            });
-
-            await Promise.all(awaitPromises);
+            // Process all locales in parallel
+            const promises = poFiles.map(processLocale);
+            await Promise.all(promises);
         } catch (err) {
-            log(`Error during build start: ${err.message}`, 'error');
+            logger.error(`Error during build start: ${err.message}`);
         }
     }
 
     /**
-     * Generates a locale JSON file from PO files.
-     *
-     * This function reads all PO files matching the locale code, concatenates
-     * their contents, and converts them to i18next JSON format.
-     *
-     * @param {string} sourceDir - Directory containing locale PO files
-     * @param {string} locale - Locale code
-     * @returns {Promise<string>} JSON string containing locale data
+     * Generate JSON data for a specific locale.
+     * @param {Object} compilation - The webpack compilation object.
+     * @param {string} locale - The locale code (e.g., 'en-US').
+     * @returns {Promise<string|null>} - The JSON data for the locale, or null if an error occurs.
+     * @private
      */
+    async generateLocale(compilation, locale) {
+        const logger = compilation.getLogger(this.constructor.name);
 
-    async generateLocale(locale) {
-        if (!this.gettextToI18next) {
-            this.gettextToI18next = await import('i18next-conv').then((m) => m.gettextToI18next);
-        }
+        // Ensure gettextToI18next is initialized
+        await this.gettextToI18next;
 
         try {
-            const files = this.findLocaleFiles(this.sourceDir, locale);
+            const files = await this.findLocaleFiles(compilation, locale);
             if (files.length === 0) {
-                log(`No locale files found for "${locale}"`, 'warn');
-                return '{}'; // Return empty JSON for missing locale
+                logger.warn(`No locale files found for "${locale}"`);
+                return null; // Return null for missing locale
             }
 
-            let data = Buffer.alloc(0);
-            for (const localeFile of files) {
+            // Read all files in parallel and collect valid buffers
+            const readPromises = files.map(async (localeFile) => {
                 try {
                     const filePath = path.join(this.sourceDir, localeFile);
-                    const content = fs.readFileSync(filePath);
-                    data = Buffer.concat([data, content]);
+                    const buffer = await fs.readFile(filePath);
+                    return buffer;
                 } catch (err) {
-                    log(`Error reading locale file ${localeFile}: ${err.message}`, 'error');
-                    // Continue with other files
+                    logger.error(`Error reading locale file ${localeFile}: ${err.message}`);
+                    return null;
                 }
-            }
+            });
+
+            const contents = await Promise.all(readPromises);
+            const data = Buffer.concat(contents.filter((c) => c !== null));
 
             if (data.length === 0) {
-                log(`No data found for locale ${locale}`, 'warn');
-                return '{}';
+                logger.warn(`No valid data found for locale ${locale}`);
+                return null;
             }
 
             try {
                 return this.gettextToI18next(locale, data);
             } catch (err) {
-                return '{}'; // Return empty JSON on error
+                logger.error(`Error converting locale ${locale}: ${err.message}`);
+                return null; // Return null on error
             }
         } catch (err) {
-            log(`Error processing locale ${locale}: ${err.message}`, 'error');
-            return '{}';
+            logger.error(`Error processing locale ${locale}: ${err.message}`);
+            return null;
         }
     }
 
     /**
-     * Finds locale files matching the given locale code.
-     *
-     * This function searches for PO files in the source directory that match
-     * the given locale code. It handles errors gracefully and returns an empty
-     * array if any issues occur.
-     *
-     * @param {string} sourceDir - Directory containing locale PO files
-     * @param {string} locale - Locale code
-     * @returns {string[]} Array of matching locale file names
+     * Find PO files for a specific locale.
+     * @param {Object} compilation - The webpack compilation object.
+     * @param {string} locale - The locale code (e.g., 'en-US').
+     * @returns {Promise<string[]>} - An array of matching file names.
+     * @private
      */
-    findLocaleFiles(sourceDir, locale) {
+    async findLocaleFiles(compilation, locale) {
+        const logger = compilation.getLogger(this.constructor.name);
+
         try {
             const localeFinderRegexp = new RegExp(`^.+\\.${locale}\\.po$`, 'i');
-            const files = fs.readdirSync(sourceDir);
+            const files = await fs.readdir(this.sourceDir);
 
             // Filter files that match the locale pattern
             return files.filter((file) => {
                 try {
                     return localeFinderRegexp.test(file);
                 } catch (err) {
-                    log(`Error processing file ${file}: ${err.message}`, 'error');
+                    logger.error(`Error processing file ${file}: ${err.message}`);
                     return false;
                 }
             });
         } catch (err) {
-            log(`Error reading directory ${sourceDir}: ${err.message}`, 'error');
+            logger.error(`Error reading directory ${this.sourceDir}: ${err.message}`);
             return [];
         }
     }

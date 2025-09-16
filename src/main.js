@@ -575,7 +575,12 @@ function startApp() {
     // eslint-disable-next-line no-underscore-dangle
     app._props.startupComponent = markRaw(startup);
 
-    app.mount('#kiwiirc');
+    const startDelay = 1000 - (Date.now() - window.startupTime);
+    if (startDelay > 0) {
+        setTimeout(() => app.mount('#kiwiirc'), startDelay);
+    } else {
+        app.mount('#kiwiirc');
+    }
 
     api.emit('ready');
 }
@@ -587,8 +592,15 @@ function showError(err) {
         log.error('Unknown error starting Kiwi IRC');
     }
 
-    createApp(
+    const errApp = createApp(
         StartupError,
         { error: err }
-    ).mount('#kiwiirc');
+    );
+
+    const startDelay = 1000 - (Date.now() - window.startupTime);
+    if (startDelay > 0) {
+        setTimeout(() => errApp.mount('#kiwiirc'), startDelay);
+    } else {
+        errApp.mount('#kiwiirc');
+    }
 }

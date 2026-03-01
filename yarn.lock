@@ -8969,6 +8969,7 @@ __metadata:
     terser-webpack-plugin: "npm:^5.3.16"
     thread-loader: "npm:^4.0.4"
     tinycon: "npm:^0.6.8"
+    virtua: "npm:^0.48.6"
     vue: "npm:^3.5.29"
     vue-eslint-parser: "npm:^10.4.0"
     vue-loader: "npm:^17.4.2"
@@ -13522,6 +13523,30 @@ __metadata:
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: 10c0/f15d588d79f3675135ba783c91a4083dcd290a2a5be9fcb6514220a1634e23df116847b1cc51f66bfb0644cf9353b2abb7815ae499bab06e46dd33c1a6bf1f4f
+  languageName: node
+  linkType: hard
+
+"virtua@npm:^0.48.6":
+  version: 0.48.6
+  resolution: "virtua@npm:0.48.6"
+  peerDependencies:
+    react: ">=16.14.0"
+    react-dom: ">=16.14.0"
+    solid-js: ">=1.0"
+    svelte: ">=5.0"
+    vue: ">=3.2"
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    solid-js:
+      optional: true
+    svelte:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10c0/2f4c5875ffba737b159abdd85aa74a3392c056348c48b151a3f91b6d739c445203dcd7bb86297a0cb8b5e64afac71e8d4fbfecfecf2cdadeeb2c9782f2f64dc4
   languageName: node
   linkType: hard
 

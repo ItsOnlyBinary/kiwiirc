@@ -875,16 +875,16 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     height: 100%;
 }
 
+.kiwi-messagelist--showtyping {
+    height: calc(100% - 25px);
+}
+
 /* VList renders its own div; we make it fill the wrapper completely */
 .kiwi-messagelist-vlist {
     position: absolute;
     inset: 0;
     overflow-y: auto;
     overflow-x: hidden;
-}
-
-.kiwi-messagelist--showtyping {
-    margin-bottom: 25px;
 }
 
 .kiwi-messagelist--smoothscroll {

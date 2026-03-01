@@ -12,15 +12,33 @@ import BufferState from './state/BufferState';
 import UserState from './state/UserState';
 import Message from './Message';
 
-function createNewState() {
-    const stateObj = {
+class State extends EventEmitter {
+    // Internal lookup dictionaries and message store — not part of the public API.
+    // Passed as constructor arguments to NetworkState / BufferState.
+    #userDict = { networks: {} };
+
+    #bufferDict = { networks: {} };
+
+    #messages = [];
+
+    #availableStartups = Object.create(null);
+
+    constructor() {
+        super();
+
+        // Vue-style event aliases
+        this.$on = this.on.bind(this);
+        this.$off = this.off.bind(this);
+        this.$once = this.once.bind(this);
+        this.$emit = this.emit.bind(this);
+
         // May be set by a StatePersistence instance
-        persistence: null,
+        this.persistence = null;
 
         // Settings may be overridden via config.json
-        settings: configTemplates.default,
-        user_settings: reactive({}),
-        ui: reactive({
+        this.settings = configTemplates.default;
+        this.user_settings = reactive({});
+        this.ui = reactive({
             active_network: 0,
             active_buffer: '',
             last_active_buffers: [],
@@ -35,952 +53,877 @@ function createNewState() {
             input_history: [],
             input_history_pos: 0,
             show_advanced_tab: false,
-        }),
-        networks: shallowReactive([]),
-    };
+        });
+        this.networks = shallowReactive([]);
+    }
 
-    const userDict = {
-        networks: {},
-        /*
-        (network id): {
-            (lowercase nick): UserState,
-            (lowercase nick): UserState,
-        },
-        */
-    };
+    // --- Settings ---
 
-    const bufferDict = {
-        networks: {},
-        /*
-        (network id): [
-            BufferState,
-            BufferState,
-        ]
-        */
-    };
+    setting(name, val) {
+        if (typeof val !== 'undefined') {
+            if (val === this.getSetting('settings.' + name)) {
+                // Remove setting from user_settings if it's the default
+                return this.setSetting('user_settings.' + name, null);
+            }
+            // Setting any setting always goes into the user's own settings space
+            return this.setSetting('user_settings.' + name, val);
+        }
 
-    // Messages are seperate from the above state object to keep them from being reactive. Saves CPU
-    const messages = [
-        /* {
-            networkid: 1,
-            buffer: '#kiwiirc',
-            messages: [
-                Message,
-                Message
-            ],
-        }, */
-    ];
+        // Check the user specific settings before reverting to global settings
+        let userSetting = this.getSetting('user_settings.' + name);
+        return typeof userSetting !== 'undefined' ?
+            userSetting :
+            this.getSetting('settings.' + name);
+    }
 
-    const availableStartups = Object.create(null);
+    settingComputed(name) {
+        return computed(() => this.setting(name));
+    }
 
-    const oldState = {
-        data: stateObj,
-        methods: {
-            // Export enough state so that it can be imported in future to resume
-            exportState(includeBuffers) {
-                let toExport = {};
+    // Accept 'dotted.notation' to read a state property of any depth
+    getSetting(name) {
+        let parts = name.split('.');
+        let val = this;
 
-                if (includeBuffers) {
-                    toExport.networks = state.networks.map((network) => {
-                        let networkObj = {
-                            id: network.id,
-                            name: network.name,
-                            connection: {
-                                nick: network.connection.nick,
-                                server: network.connection.server,
-                                port: network.connection.port,
-                                tls: network.connection.tls,
-                                path: network.connection.path,
-                                password: network.connection.password,
-                                direct: network.connection.direct,
-                                encoding: network.connection.encoding,
-                                bncnetid: network.connection.bncnetid,
-                            },
-                            auto_commands: network.auto_commands,
-                            settings: _.cloneDeep(network.settings),
-                            username: network.username,
-                            gecos: network.gecos,
-                            password: network.password,
-                            hidden: network.hidden,
-                            is_bnc: network.is_bnc,
-                            buffers: [],
-                        };
+        for (let i = 0; i < parts.length; i++) {
+            val = val[parts[i]];
+            if (typeof val === 'undefined') {
+                break;
+            }
+        }
 
-                        networkObj.buffers = network.buffers.map((buffer) => {
-                            let bufferObj = {
-                                name: buffer.name,
-                                key: buffer.key,
-                                enabled: !!buffer.enabled,
-                                settings: _.cloneDeep(buffer.settings),
-                                latest_messages: [],
-                            };
+        return val;
+    }
 
-                            buffer.latest_messages.forEach((msg) => {
-                                bufferObj.latest_messages.push(msg.serialise());
-                            });
+    // Accept 'dotted.notation' to set a state property of any depth
+    setSetting(name, newVal) {
+        let parts = name.split('.');
+        let val = this;
 
-                            return bufferObj;
-                        });
+        for (let i = 0; i < parts.length; i++) {
+            let propName = parts[i];
+            let nextVal = val[propName];
 
-                        return networkObj;
+            if (i < parts.length - 1 && typeof nextVal === 'undefined') {
+                val[propName] = {};
+                nextVal = val[propName];
+            } else if (i === parts.length - 1) {
+                if (newVal === null) {
+                    delete val[propName];
+                } else {
+                    val[propName] = newVal;
+                }
+            }
+
+            val = nextVal;
+        }
+
+        return val;
+    }
+
+    // --- State export / import ---
+
+    // Export enough state so that it can be imported in future to resume
+    exportState(includeBuffers) {
+        let toExport = {};
+
+        if (includeBuffers) {
+            toExport.networks = this.networks.map((network) => {
+                let networkObj = {
+                    id: network.id,
+                    name: network.name,
+                    connection: {
+                        nick: network.connection.nick,
+                        server: network.connection.server,
+                        port: network.connection.port,
+                        tls: network.connection.tls,
+                        path: network.connection.path,
+                        password: network.connection.password,
+                        direct: network.connection.direct,
+                        encoding: network.connection.encoding,
+                        bncnetid: network.connection.bncnetid,
+                    },
+                    auto_commands: network.auto_commands,
+                    settings: _.cloneDeep(network.settings),
+                    username: network.username,
+                    gecos: network.gecos,
+                    password: network.password,
+                    hidden: network.hidden,
+                    is_bnc: network.is_bnc,
+                    buffers: [],
+                };
+
+                networkObj.buffers = network.buffers.map((buffer) => {
+                    let bufferObj = {
+                        name: buffer.name,
+                        key: buffer.key,
+                        enabled: !!buffer.enabled,
+                        settings: _.cloneDeep(buffer.settings),
+                        latest_messages: [],
+                    };
+
+                    buffer.latest_messages.forEach((msg) => {
+                        bufferObj.latest_messages.push(msg.serialise());
                     });
-                }
 
-                toExport.user_settings = state.user_settings;
-
-                return JSON.stringify(toExport);
-            },
-
-            // Import a previously exported state to continue that state
-            importState(stateStr) {
-                let importObj = JSON.parse(stateStr);
-                if (importObj && importObj.networks) {
-                    this.resetState();
-                    importObj.networks.forEach((importNetwork) => {
-                        let network = new NetworkState(
-                            importNetwork.id,
-                            state,
-                            userDict,
-                            bufferDict
-                        );
-                        network.name = importNetwork.name;
-                        network.connection = { ...network.connection, ...importNetwork.connection };
-                        network.auto_commands = importNetwork.auto_commands || '';
-                        network.settings = importNetwork.settings;
-                        // First check importNetwork.nick as this was used in older versions
-                        // TODO: Eventually remove this importNetwork.nick check
-                        network.nick = importNetwork.nick || importNetwork.connection.nick;
-                        if (!network.connection.nick && importNetwork.nick) {
-                            network.connection.nick = importNetwork.nick;
-                        }
-                        network.username = importNetwork.username;
-                        network.gecos = importNetwork.gecos;
-                        network.password = importNetwork.password;
-                        network.hidden = importNetwork.hidden;
-                        network.is_bnc = importNetwork.is_bnc;
-
-                        this.networks.push(network);
-
-                        importNetwork.buffers.forEach((impBuffer) => {
-                            let buffer = new BufferState(
-                                impBuffer.name,
-                                network.id,
-                                state,
-                                messages
-                            );
-                            buffer.key = impBuffer.key;
-                            buffer.enabled = !!impBuffer.enabled;
-                            buffer.settings = impBuffer.settings;
-
-                            let latestMessages = impBuffer.latest_messages || [];
-                            latestMessages.forEach((msg) => {
-                                buffer.latest_messages.push(new Message(msg));
-                            });
-
-                            network.buffers.push(buffer);
-                        });
-                    });
-                }
-
-                if (importObj && importObj.user_settings) {
-                    this.user_settings = importObj.user_settings;
-                }
-            },
-
-            resetState() {
-                Object.keys(this.user_settings).forEach((key) => {
-                    delete this.user_settings[key];
-                });
-                this.networks.splice(0, this.networks.length);
-                messages.splice(0, messages.length);
-            },
-
-            setting(name, val) {
-                if (typeof val !== 'undefined') {
-                    if (val === this.getSetting('settings.' + name)) {
-                        // Remove setting from user_settings if its the default
-                        return this.setSetting('user_settings.' + name, null);
-                    }
-                    // Setting any setting always goes into the user own settings space
-                    return this.setSetting('user_settings.' + name, val);
-                }
-
-                // Check the user specific settings before reverting to global settings
-                let userSetting = this.getSetting('user_settings.' + name);
-                let result = typeof userSetting !== 'undefined' ?
-                    userSetting :
-                    this.getSetting('settings.' + name);
-
-                return result;
-            },
-
-            settingComputed(name) {
-                return computed(() => this.setting(name));
-            },
-
-            // Accept 'dotted.notation' to read a state property of any depth
-            getSetting(name) {
-                let parts = name.split('.');
-                let val = this;
-
-                for (let i = 0; i < parts.length; i++) {
-                    val = val[parts[i]];
-                    if (typeof val === 'undefined') {
-                        break;
-                    }
-                }
-
-                return val;
-            },
-
-            // Accept 'dotted.notation' to set a state property of any depth
-            setSetting(name, newVal) {
-                let parts = name.split('.');
-                let val = this;
-
-                for (let i = 0; i < parts.length; i++) {
-                    let propName = parts[i];
-                    let nextVal = val[propName];
-
-                    if (i < parts.length - 1 && typeof nextVal === 'undefined') {
-                        val[propName] = {};
-                        nextVal = val[propName];
-                    } else if (i === parts.length - 1) {
-                        if (newVal === null) {
-                            delete val[propName];
-                        } else {
-                            val[propName] = newVal;
-                        }
-                    }
-
-                    val = nextVal;
-                }
-
-                return val;
-            },
-
-            getActiveNetwork() {
-                return this.getNetwork(this.ui.active_network);
-            },
-
-            getNetwork(networkid) {
-                let network = _.find(this.networks, {
-                    id: networkid,
+                    return bufferObj;
                 });
 
-                return network;
-            },
+                return networkObj;
+            });
+        }
 
-            getNetworkFromAddress(netAddr) {
-                return _.find(this.networks, (net) => {
-                    let isMatch = netAddr.toLowerCase() === net.connection.server.toLowerCase();
-                    return isMatch;
-                });
-            },
+        toExport.user_settings = this.user_settings;
 
-            getNetworkFromBncNetId(bncnetid) {
-                return _.find(this.networks, (net) => bncnetid === net.connection.bncnetid);
-            },
+        return JSON.stringify(toExport);
+    }
 
-            addNetwork(name, nick, serverInfo) {
-                // Find the current largest ID and increment it by 1
-                function networkidReduce(currentMax, network) {
-                    return network.id > currentMax ?
-                        network.id :
-                        currentMax;
+    // Import a previously exported state to continue that state
+    importState(stateStr) {
+        let importObj = JSON.parse(stateStr);
+        if (importObj && importObj.networks) {
+            this.resetState();
+            importObj.networks.forEach((importNetwork) => {
+                let network = new NetworkState(
+                    importNetwork.id,
+                    this,
+                    this.#userDict,
+                    this.#bufferDict
+                );
+                network.name = importNetwork.name;
+                network.connection = { ...network.connection, ...importNetwork.connection };
+                network.auto_commands = importNetwork.auto_commands || '';
+                network.settings = importNetwork.settings;
+                // First check importNetwork.nick as this was used in older versions
+                // TODO: Eventually remove this importNetwork.nick check
+                network.nick = importNetwork.nick || importNetwork.connection.nick;
+                if (!network.connection.nick && importNetwork.nick) {
+                    network.connection.nick = importNetwork.nick;
                 }
-                let networkid = serverInfo.channelId ?
-                    parseInt(serverInfo.channelId, 10) :
-                    _.reduce(this.networks, networkidReduce, 0) + 1;
-
-                let network = new NetworkState(networkid, state, userDict, bufferDict);
-                network.name = name;
-                network.username = serverInfo.username;
-                network.gecos = serverInfo.gecos;
-                network.password = serverInfo.account_password || '';
-                network.connection.password = serverInfo.password;
-                network.connection.nick = nick;
-                network.connection.server = serverInfo.server || '';
-                network.connection.port = serverInfo.port || 6667;
-                network.connection.tls = serverInfo.tls || false;
-                network.connection.path = serverInfo.path || '';
-                network.connection.direct = !!serverInfo.direct;
-                network.connection.path = serverInfo.path || '';
-                network.connection.encoding = serverInfo.encoding || 'utf8';
-                network.connection.bncnetid = serverInfo.bncnetid || '';
-
-                if (serverInfo.services) {
-                    network.services = serverInfo.services;
-                }
+                network.username = importNetwork.username;
+                network.gecos = importNetwork.gecos;
+                network.password = importNetwork.password;
+                network.hidden = importNetwork.hidden;
+                network.is_bnc = importNetwork.is_bnc;
 
                 this.networks.push(network);
 
-                // Add the server server buffer
-                this.addBuffer(network.id, '*').joined = true;
-
-                let eventObj = { network };
-                state.$emit('network.new', eventObj);
-
-                return network;
-            },
-
-            removeNetwork(networkid) {
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return;
-                }
-
-                if (network.state === 'connected') {
-                    network.ircClient.quit();
-                }
-
-                while (network.buffers.length > 0) {
-                    this.removeBuffer(network.buffers[0]);
-                }
-
-                let findNewNetwork = false;
-                if (network === this.getActiveNetwork()) {
-                    findNewNetwork = true;
-                }
-
-                let idx = this.networks.indexOf(network);
-                this.networks.splice(idx, 1);
-
-                if (findNewNetwork) {
-                    this.openLastActiveBuffer();
-                }
-
-                let eventObj = { network };
-                state.$emit('network.removed', eventObj);
-            },
-
-            getActiveBuffer() {
-                return this.getBufferByName(this.ui.active_network, this.ui.active_buffer);
-            },
-
-            setActiveBuffer(networkid, bufferName) {
-                if (this.ui.active_network && this.ui.active_buffer) {
-                    const oldBuffer = this.getBufferByName(
-                        this.ui.active_network,
-                        this.ui.active_buffer,
+                importNetwork.buffers.forEach((impBuffer) => {
+                    let buffer = new BufferState(
+                        impBuffer.name,
+                        network.id,
+                        this,
+                        this.#messages
                     );
-                    if (oldBuffer) {
-                        oldBuffer.isVisible = false;
-                    }
-                }
+                    buffer.key = impBuffer.key;
+                    buffer.enabled = !!impBuffer.enabled;
+                    buffer.settings = impBuffer.settings;
 
-                if (!networkid) {
-                    this.ui.active_network = 0;
-                    this.ui.active_buffer = '';
-                    return;
-                }
-
-                if (this.setting('useBufferHistory') && this.ui.active_network) {
-                    // Keep track of last 20 viewed buffers. When closing buffers we can go back
-                    // to one of the previous ones
-                    this.ui.last_active_buffers.push({
-                        networkid: this.ui.active_network,
-                        bufferName: this.ui.active_buffer,
+                    let latestMessages = impBuffer.latest_messages || [];
+                    latestMessages.forEach((msg) => {
+                        buffer.latest_messages.push(new Message(msg));
                     });
 
-                    let lastActive = this.ui.last_active_buffers;
-                    this.ui.last_active_buffers = lastActive.splice(lastActive.length - 20);
-                }
-
-                this.ui.active_network = networkid;
-                this.ui.active_buffer = bufferName;
-
-                let buffer = this.getBufferByName(networkid, bufferName);
-                if (buffer) {
-                    buffer.isVisible = true;
-                }
-            },
-
-            openLastActiveBuffer: function openLastActiveBuffer() {
-                // if not using buffer history, just unset the active buffer
-                if (!this.settings.useBufferHistory) {
-                    this.setActiveBuffer();
-                    return;
-                }
-
-                let targetNetwork;
-                let targetBuffer;
-                let lastActive = this.ui.last_active_buffers;
-
-                // Find the last buffer in our history that still exists
-                for (let i = lastActive.length - 1; i >= 0; i--) {
-                    let network = this.getNetwork(lastActive[i].networkid);
-                    if (!network) {
-                        continue;
-                    }
-
-                    let buffer = network.bufferByName(lastActive[i].bufferName);
-                    if (!buffer) {
-                        continue;
-                    }
-
-                    targetNetwork = network;
-                    targetBuffer = buffer;
-
-                    // Trim the buffer history to this point
-                    lastActive.splice(i);
-                    break;
-                }
-
-                // Try to find a suitable buffer
-                if (!targetBuffer) {
-                    let network = this.getActiveNetwork() || this.networks[0];
-                    if (network) {
-                        targetNetwork = network;
-                        let buffer = network.buffers[1];
-                        if (buffer) {
-                            targetBuffer = buffer;
-                        } else {
-                            targetBuffer = network.serverBuffer();
-                        }
-                    }
-                }
-
-                if (targetBuffer) {
-                    this.setActiveBuffer(targetNetwork.id, targetBuffer.name);
-                } else {
-                    this.setActiveBuffer();
-                }
-            },
-
-            updateBufferLastRead(networkid, bufferName) {
-                let buffer = this.getBufferByName(networkid, bufferName);
-                if (buffer) {
-                    buffer.last_read = Date.now();
-                    buffer.active_timeout = null;
-                }
-            },
-
-            getOrAddBufferByName(networkid, bufferName) {
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return null;
-                }
-
-                let toMatch = bufferName.toLowerCase();
-                let buffer = _.find(network.buffers, (b) => b.name.toLowerCase() === toMatch);
-
-                if (!buffer) {
-                    buffer = this.addBuffer(networkid, bufferName);
-                }
-
-                return buffer;
-            },
-
-            getBufferByName(networkid, bufferName) {
-                if (!bufferName) {
-                    return null;
-                }
-
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return null;
-                }
-
-                let toMatch = bufferName.toLowerCase();
-                let buffer = _.find(network.buffers, (b) => b.name.toLowerCase() === toMatch);
-
-                return buffer;
-            },
-
-            addBuffer(networkid, bufferName) {
-                if (!bufferName) {
-                    return false;
-                }
-
-                // If we already have this buffer, don't re-add it
-                let buffer = this.getBufferByName(networkid, bufferName);
-                if (buffer) {
-                    return buffer;
-                }
-
-                // Make sure we at least we have this network
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return false;
-                }
-
-                buffer = new BufferState(bufferName, network.id, state, messages);
-                network.buffers.push(buffer);
-
-                let eventObj = { buffer };
-                state.$emit('buffer.new', eventObj);
-
-                return buffer;
-            },
-
-            removeBuffer(buffer) {
-                let isActiveBuffer = (this.getActiveBuffer() === buffer);
-
-                let network = this.getNetwork(buffer.networkid);
-                if (!network) {
-                    return;
-                }
-
-                let eventObj = { buffer };
-                state.$emit('buffer.close', eventObj);
-
-                let bufferIdx = network.buffers.indexOf(buffer);
-                if (bufferIdx > -1) {
-                    network.buffers.splice(bufferIdx, 1);
-                }
-
-                let messageIdx = _.findIndex(messages, {
-                    networkid: network.id,
-                    buffer: buffer.name,
+                    network.buffers.push(buffer);
                 });
-                if (messageIdx > -1) {
-                    messages.splice(messageIdx, 1);
-                }
+            });
+        }
 
-                if (buffer.isChannel() && buffer.joined) {
-                    network.ircClient.part(buffer.name);
-                }
+        if (importObj && importObj.user_settings) {
+            Object.keys(this.user_settings).forEach((k) => delete this.user_settings[k]);
+            Object.assign(this.user_settings, importObj.user_settings);
+        }
+    }
 
-                // Remove the user from network state if no remaining common channels
-                if (buffer.isQuery()) {
-                    let remainingBuffers = state.getBuffersWithUser(network.id, buffer.name);
-                    if (remainingBuffers.length === 0) {
-                        state.removeUser(network.d, {
-                            nick: buffer.name,
-                        });
-                    }
-                }
+    resetState() {
+        Object.keys(this.user_settings).forEach((key) => {
+            delete this.user_settings[key];
+        });
+        this.networks.splice(0, this.networks.length);
+        this.#messages.splice(0, this.#messages.length);
+    }
 
-                if (isActiveBuffer) {
-                    this.openLastActiveBuffer();
-                }
+    // --- Networks ---
 
-                // Remove this buffer from any users
-                /* eslint-disable guard-for-in */
-                Object.keys(buffer.users).forEach((nick) => {
-                    let user = buffer.users[nick];
-                    delete user.buffers[buffer.id];
-                });
-            },
+    getActiveNetwork() {
+        return this.getNetwork(this.ui.active_network);
+    }
 
-            addMessage(buffer, message) {
-                // Some messages try to be added after a network has been removed, meaning no buffer
-                // will be available
-                if (!buffer || !buffer.getNetwork()) {
+    getNetwork(networkid) {
+        return _.find(this.networks, { id: networkid });
+    }
+
+    getNetworkFromAddress(netAddr) {
+        return _.find(this.networks, (net) => netAddr.toLowerCase() === net.connection.server.toLowerCase());
+    }
+
+    getNetworkFromBncNetId(bncnetid) {
+        return _.find(this.networks, (net) => bncnetid === net.connection.bncnetid);
+    }
+
+    addNetwork(name, nick, serverInfo) {
+        // Find the current largest ID and increment it by 1
+        function networkidReduce(currentMax, network) {
+            return network.id > currentMax ? network.id : currentMax;
+        }
+        let networkid = serverInfo.channelId ?
+            parseInt(serverInfo.channelId, 10) :
+            _.reduce(this.networks, networkidReduce, 0) + 1;
+
+        let network = new NetworkState(networkid, this, this.#userDict, this.#bufferDict);
+        network.name = name;
+        network.username = serverInfo.username;
+        network.gecos = serverInfo.gecos;
+        network.password = serverInfo.account_password || '';
+        network.connection.password = serverInfo.password;
+        network.connection.nick = nick;
+        network.connection.server = serverInfo.server || '';
+        network.connection.port = serverInfo.port || 6667;
+        network.connection.tls = serverInfo.tls || false;
+        network.connection.path = serverInfo.path || '';
+        network.connection.direct = !!serverInfo.direct;
+        network.connection.encoding = serverInfo.encoding || 'utf8';
+        network.connection.bncnetid = serverInfo.bncnetid || '';
+
+        if (serverInfo.services) {
+            network.services = serverInfo.services;
+        }
+
+        this.networks.push(network);
+
+        // Add the server buffer
+        this.addBuffer(network.id, '*').joined = true;
+
+        this.$emit('network.new', { network });
+
+        return network;
+    }
+
+    removeNetwork(networkid) {
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return;
+        }
+
+        if (network.state === 'connected') {
+            network.ircClient.quit();
+        }
+
+        while (network.buffers.length > 0) {
+            this.removeBuffer(network.buffers[0]);
+        }
+
+        let findNewNetwork = network === this.getActiveNetwork();
+
+        let idx = this.networks.indexOf(network);
+        this.networks.splice(idx, 1);
+
+        if (findNewNetwork) {
+            this.openLastActiveBuffer();
+        }
+
+        this.$emit('network.removed', { network });
+    }
+
+    // --- Buffers ---
+
+    getActiveBuffer() {
+        return this.getBufferByName(this.ui.active_network, this.ui.active_buffer);
+    }
+
+    setActiveBuffer(networkid, bufferName) {
+        if (this.ui.active_network && this.ui.active_buffer) {
+            const oldBuffer = this.getBufferByName(
+                this.ui.active_network,
+                this.ui.active_buffer,
+            );
+            if (oldBuffer) {
+                oldBuffer.isVisible = false;
+            }
+        }
+
+        if (!networkid) {
+            this.ui.active_network = 0;
+            this.ui.active_buffer = '';
+            return;
+        }
+
+        if (this.setting('useBufferHistory') && this.ui.active_network) {
+            // Keep track of last 20 viewed buffers. When closing buffers we can go back
+            // to one of the previous ones
+            this.ui.last_active_buffers.push({
+                networkid: this.ui.active_network,
+                bufferName: this.ui.active_buffer,
+            });
+
+            let lastActive = this.ui.last_active_buffers;
+            this.ui.last_active_buffers = lastActive.splice(lastActive.length - 20);
+        }
+
+        this.ui.active_network = networkid;
+        this.ui.active_buffer = bufferName;
+
+        let buffer = this.getBufferByName(networkid, bufferName);
+        if (buffer) {
+            buffer.isVisible = true;
+        }
+    }
+
+    openLastActiveBuffer() {
+        // if not using buffer history, just unset the active buffer
+        if (!this.settings.useBufferHistory) {
+            this.setActiveBuffer();
+            return;
+        }
+
+        let targetNetwork;
+        let targetBuffer;
+        let lastActive = this.ui.last_active_buffers;
+
+        // Find the last buffer in our history that still exists
+        for (let i = lastActive.length - 1; i >= 0; i--) {
+            let network = this.getNetwork(lastActive[i].networkid);
+            if (!network) {
+                continue;
+            }
+
+            let buffer = network.bufferByName(lastActive[i].bufferName);
+            if (!buffer) {
+                continue;
+            }
+
+            targetNetwork = network;
+            targetBuffer = buffer;
+
+            // Trim the buffer history to this point
+            lastActive.splice(i);
+            break;
+        }
+
+        // Try to find a suitable buffer
+        if (!targetBuffer) {
+            let network = this.getActiveNetwork() || this.networks[0];
+            if (network) {
+                targetNetwork = network;
+                let buffer = network.buffers[1];
+                targetBuffer = buffer || network.serverBuffer();
+            }
+        }
+
+        if (targetBuffer) {
+            this.setActiveBuffer(targetNetwork.id, targetBuffer.name);
+        } else {
+            this.setActiveBuffer();
+        }
+    }
+
+    updateBufferLastRead(networkid, bufferName) {
+        let buffer = this.getBufferByName(networkid, bufferName);
+        if (buffer) {
+            buffer.last_read = Date.now();
+            buffer.active_timeout = null;
+        }
+    }
+
+    getOrAddBufferByName(networkid, bufferName) {
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return null;
+        }
+
+        let toMatch = bufferName.toLowerCase();
+        let buffer = _.find(network.buffers, (b) => b.name.toLowerCase() === toMatch);
+
+        if (!buffer) {
+            buffer = this.addBuffer(networkid, bufferName);
+        }
+
+        return buffer;
+    }
+
+    getBufferByName(networkid, bufferName) {
+        if (!bufferName) {
+            return null;
+        }
+
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return null;
+        }
+
+        let toMatch = bufferName.toLowerCase();
+        return _.find(network.buffers, (b) => b.name.toLowerCase() === toMatch);
+    }
+
+    addBuffer(networkid, bufferName) {
+        if (!bufferName) {
+            return false;
+        }
+
+        // If we already have this buffer, don't re-add it
+        let buffer = this.getBufferByName(networkid, bufferName);
+        if (buffer) {
+            return buffer;
+        }
+
+        // Make sure we at least have this network
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return false;
+        }
+
+        buffer = new BufferState(bufferName, network.id, this, this.#messages);
+        network.buffers.push(buffer);
+
+        this.$emit('buffer.new', { buffer });
+
+        return buffer;
+    }
+
+    removeBuffer(buffer) {
+        let isActiveBuffer = (this.getActiveBuffer() === buffer);
+
+        let network = this.getNetwork(buffer.networkid);
+        if (!network) {
+            return;
+        }
+
+        this.$emit('buffer.close', { buffer });
+
+        let bufferIdx = network.buffers.indexOf(buffer);
+        if (bufferIdx > -1) {
+            network.buffers.splice(bufferIdx, 1);
+        }
+
+        let messageIdx = _.findIndex(this.#messages, {
+            networkid: network.id,
+            buffer: buffer.name,
+        });
+        if (messageIdx > -1) {
+            this.#messages.splice(messageIdx, 1);
+        }
+
+        if (buffer.isChannel() && buffer.joined) {
+            network.ircClient.part(buffer.name);
+        }
+
+        // Remove the user from network state if no remaining common channels
+        if (buffer.isQuery()) {
+            let remainingBuffers = this.getBuffersWithUser(network.id, buffer.name);
+            if (remainingBuffers.length === 0) {
+                // BUG FIX: was network.d (typo) in original
+                this.removeUser(network.id, { nick: buffer.name });
+            }
+        }
+
+        if (isActiveBuffer) {
+            this.openLastActiveBuffer();
+        }
+
+        // Remove this buffer from any users
+        Object.keys(buffer.users).forEach((nick) => {
+            let user = buffer.users[nick];
+            delete user.buffers[buffer.id];
+        });
+    }
+
+    // --- Messages ---
+
+    addMessage(buffer, message) {
+        // Some messages try to be added after a network has been removed, meaning no buffer
+        // will be available
+        if (!buffer || !buffer.getNetwork()) {
+            return;
+        }
+
+        let user = this.getUser(buffer.networkid, message.nick);
+        let bufferMessage = new Message(message, user);
+        if (user && user.ignore) {
+            bufferMessage.ignore = true;
+        }
+
+        buffer.addMessage(bufferMessage);
+
+        // Increment the unread counter if this buffer is not active
+        let includeAsActivity = false;
+        let typesForActivity = ['privmsg', 'action', 'notice', 'wallops'];
+        if (buffer.setting('traffic_as_activity') && message.type === 'traffic') {
+            typesForActivity.push('traffic');
+        }
+
+        if (typesForActivity.indexOf(message.type) > -1) {
+            includeAsActivity = true;
+        }
+
+        if (buffer.setting('server_as_activity') && buffer.isServer()) {
+            includeAsActivity = true;
+        }
+
+        let network = buffer.getNetwork();
+        let isNewMessage = message.time >= buffer.last_read;
+        let isHighlight = !network || buffer.isRaw() ?
+            false :
+            Misc.mentionsNick(bufferMessage.message, network.ircClient.user.nick);
+
+        if (message.type && message.type === 'invite') {
+            // Invites should be treated as highlights
+            isHighlight = true;
+        }
+
+        // Check for extra custom highlight words
+        let extraHighlights = (this.setting('highlights') || '').toLowerCase().split(' ');
+        if (!isHighlight && !buffer.isRaw() && extraHighlights.length > 0) {
+            extraHighlights.forEach((word) => {
+                if (!word) {
                     return;
                 }
 
-                let user = this.getUser(buffer.networkid, message.nick);
-                let bufferMessage = new Message(message, user);
-                if (user && user.ignore) {
-                    bufferMessage.ignore = true;
-                }
-
-                buffer.addMessage(bufferMessage);
-
-                // Increment the unread counter if this buffer is not active
-                let includeAsActivity = false;
-                let typesForActivty = ['privmsg', 'action', 'notice', 'wallops'];
-                if (buffer.setting('traffic_as_activity') && message.type === 'traffic') {
-                    typesForActivty.push('traffic');
-                }
-
-                if (typesForActivty.indexOf(message.type) > -1) {
-                    includeAsActivity = true;
-                }
-
-                if (buffer.setting('server_as_activity') && buffer.isServer()) {
-                    includeAsActivity = true;
-                }
-
-                let network = buffer.getNetwork();
-                let isNewMessage = message.time >= buffer.last_read;
-                let isHighlight = !network || buffer.isRaw() ?
-                    false :
-                    Misc.mentionsNick(bufferMessage.message, network.ircClient.user.nick);
-
-                if (message.type && message.type === 'invite') {
-                    // Invites should be treated as highlights
+                if (bufferMessage.message.toLowerCase().indexOf(word) > -1) {
                     isHighlight = true;
                 }
+            });
+        }
 
-                // Check for extra custom highlight words
-                let extraHighlights = (state.setting('highlights') || '').toLowerCase().split(' ');
-                if (!isHighlight && !buffer.isRaw() && extraHighlights.length > 0) {
-                    extraHighlights.forEach((word) => {
-                        if (!word) {
-                            return;
+        if (!buffer.isRaw() && this.setting('teamHighlights')) {
+            let m = bufferMessage.message;
+            let patterns = {
+                everyone: /(^|\s)@everybody($|\s|[,.;])/,
+                channel: /(^|\s)@channel($|\s|[,.;])/,
+                here: /(^|\s)@here($|\s|[,.;])/,
+            };
+            if (m.match(patterns.everyone) || m.match(patterns.channel)) {
+                isHighlight = true;
+            }
+
+            if (m.match(patterns.here) && network && !network.away) {
+                isHighlight = true;
+            }
+        }
+
+        bufferMessage.isHighlight = isHighlight;
+
+        if (isNewMessage && buffer.isVisible) {
+            buffer.last_read = message.time;
+        }
+
+        // Handle buffer flags
+        if (
+            isNewMessage &&
+            includeAsActivity &&
+            !buffer.isVisible &&
+            !bufferMessage.ignore
+        ) {
+            buffer.incrementFlag('unread');
+            if (isHighlight) {
+                buffer.flag('highlight', true);
+            }
+        }
+
+        // Handle any notifications
+        let settingAlertOn = buffer.setting('alert_on');
+        let isSelf = !network ? false : message.nick === network.nick;
+        if (
+            isNewMessage &&
+            settingAlertOn !== 'never' &&
+            message.type !== 'nick' &&
+            message.type !== 'mode' &&
+            message.type !== 'traffic' &&
+            !buffer.isSpecial() &&
+            !bufferMessage.ignore &&
+            !isSelf
+        ) {
+            let notifyTitle = '';
+            let notifyMessage = message.nick ?
+                message.nick + ': ' :
+                '';
+            notifyMessage += message.message;
+
+            if (isHighlight) {
+                notifyTitle = TextFormatting.t('notification_mentioned', { channel: buffer.name });
+            } else if (settingAlertOn === 'message' && !isHighlight) {
+                notifyTitle = buffer.name;
+            }
+
+            if (notifyTitle) {
+                this.$emit('notification.show', notifyMessage, {
+                    title: notifyTitle,
+                    onclick: () => {
+                        this.setActiveBuffer(buffer.networkid, buffer.name);
+
+                        // Newer webkit browser use parent.focus() while older webkit uses
+                        // window.focus()
+                        /* eslint-disable no-restricted-globals */
+                        if (parent && parent.focus) {
+                            parent.focus();
                         }
-
-                        if (bufferMessage.message.toLowerCase().indexOf(word) > -1) {
-                            isHighlight = true;
+                        if (window.focus) {
+                            window.focus();
                         }
-                    });
-                }
-
-                if (!buffer.isRaw() && state.setting('teamHighlights')) {
-                    let m = bufferMessage.message;
-                    let patterns = {
-                        everyone: /(^|\s)@everybody($|\s|[,.;])/,
-                        channel: /(^|\s)@channel($|\s|[,.;])/,
-                        here: /(^|\s)@here($|\s|[,.;])/,
-                    };
-                    if (m.match(patterns.everyone) || m.match(patterns.channel)) {
-                        isHighlight = true;
-                    }
-
-                    if (m.match(patterns.here) && network && !network.away) {
-                        isHighlight = true;
-                    }
-                }
-
-                bufferMessage.isHighlight = isHighlight;
-
-                if (isNewMessage && buffer.isVisible) {
-                    buffer.last_read = message.time;
-                }
-
-                // Handle buffer flags
-                if (
-                    isNewMessage &&
-                    includeAsActivity &&
-                    !buffer.isVisible &&
-                    !bufferMessage.ignore
-                ) {
-                    buffer.incrementFlag('unread');
-                    if (isHighlight) {
-                        buffer.flag('highlight', true);
-                    }
-                }
-
-                // Handle any notifications
-                let settingAlertOn = buffer.setting('alert_on');
-                let isSelf = !network ? false : message.nick === network.nick;
-                if (
-                    isNewMessage &&
-                    settingAlertOn !== 'never' &&
-                    message.type !== 'nick' &&
-                    message.type !== 'mode' &&
-                    message.type !== 'traffic' &&
-                    !buffer.isSpecial() &&
-                    !bufferMessage.ignore &&
-                    !isSelf
-                ) {
-                    let notifyTitle = '';
-                    let notifyMessage = message.nick ?
-                        message.nick + ': ' :
-                        '';
-                    notifyMessage += message.message;
-
-                    if (isHighlight) {
-                        notifyTitle = TextFormatting.t('notification_mentioned', { channel: buffer.name });
-                    } else if (settingAlertOn === 'message' && !isHighlight) {
-                        notifyTitle = buffer.name;
-                    }
-
-                    if (notifyTitle) {
-                        this.$emit('notification.show', notifyMessage, {
-                            title: notifyTitle,
-                            onclick: () => {
-                                state.setActiveBuffer(buffer.networkid, buffer.name);
-
-                                // Newer webkit browser use parent.focus() while older webkit uses
-                                // window.focus()
-                                /* eslint-disable no-restricted-globals */
-                                if (parent && parent.focus) {
-                                    parent.focus();
-                                }
-                                if (window.focus) {
-                                    window.focus();
-                                }
-                            },
-                        });
-                    }
-                }
-
-                if (
-                    !state.ui.app_has_focus &&
-                    message.type !== 'traffic' &&
-                    (
-                        (buffer.setting('flash_title') === 'message') ||
-                        (buffer.setting('flash_title') === 'highlight' && isHighlight)
-                    )
-                ) {
-                    this.$emit('notification.title', true);
-                }
-
-                this.$emit('message.new', { message: bufferMessage, buffer });
-            },
-
-            addMessageNoRepeat(buffer, message) {
-                // Add a message to the buffer only if it does not match the previous message
-
-                if (!buffer || !buffer.getNetwork()) {
-                    // Some messages try to be added after a network has been removed,
-                    // meaning no buffer will be available
-                    return;
-                }
-
-                let lastMessage = buffer.getLastMessage();
-                if (lastMessage && lastMessage.message === message.message) {
-                    return;
-                }
-
-                this.addMessage(buffer, message);
-            },
-
-            getUser(networkid, nick, usersArr_) {
-                let user = null;
-                let users = usersArr_;
-
-                if (!users) {
-                    let network = this.getNetwork(networkid);
-                    if (network) {
-                        users = network.users;
-                    }
-                }
-
-                if (users) {
-                    user = users[nick.toUpperCase()];
-                }
-
-                return user;
-            },
-
-            // Modify a networks user array without hitting vues reactive system until fn()
-            // has completed. Good for making large changes in bulk
-            usersTransaction(networkid, fn) {
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return;
-                }
-
-                let users = Object.assign(Object.create(null), network.users);
-                fn(users);
-                network.users = users;
-            },
-
-            addUser(networkid, user, usersArr_) {
-                let network = null;
-
-                // Accept either a network ID or a direct network object
-                if (typeof networkid === 'number') {
-                    network = this.getNetwork(networkid);
-                } else {
-                    network = networkid;
-                }
-
-                if (!network) {
-                    return null;
-                }
-
-                let usersArr = usersArr_ || network.users;
-                let userObj = null;
-
-                if (!usersArr[user.nick.toUpperCase()]) {
-                    userObj = new UserState(network.id, user, state);
-                    usersArr[user.nick.toUpperCase()] = userObj;
-                } else {
-                    // Update the existing user object with any new info we have
-                    userObj = state.getUser(network.id, user.nick, usersArr);
-                    _.each(user, (val, prop) => {
-                        if (typeof val !== 'undefined') {
-                            userObj[prop] = val;
-                        }
-                    });
-                }
-
-                return userObj;
-            },
-
-            removeUser(networkid, user) {
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return;
-                }
-
-                let buffers = state.getBuffersWithUser(networkid, user.nick);
-                buffers.forEach((buffer) => {
-                    state.removeUserFromBuffer(buffer, user.nick);
+                    },
                 });
+            }
+        }
 
-                delete network.users[user.nick.toUpperCase()];
-            },
+        if (
+            !this.ui.app_has_focus &&
+            message.type !== 'traffic' &&
+            (
+                (buffer.setting('flash_title') === 'message') ||
+                (buffer.setting('flash_title') === 'highlight' && isHighlight)
+            )
+        ) {
+            this.$emit('notification.title', true);
+        }
 
-            addMultipleUsersToBuffer(buffer, newUsers) {
-                let network = this.getNetwork(buffer.networkid);
-                let bufUsers = Object.create(null);
+        this.$emit('message.new', { message: bufferMessage, buffer });
+    }
 
-                newUsers.forEach((newUser) => {
-                    let user = newUser.user;
-                    let modes = newUser.modes;
-                    let userObj = state.getUser(network.id, user.nick);
+    addMessageNoRepeat(buffer, message) {
+        // Add a message to the buffer only if it does not match the previous message
 
-                    if (!userObj) {
-                        userObj = this.addUser(network, user);
-                    }
-                    bufUsers[userObj.nick.toUpperCase()] = userObj;
+        if (!buffer || !buffer.getNetwork()) {
+            // Some messages try to be added after a network has been removed,
+            // meaning no buffer will be available
+            return;
+        }
 
-                    // Add the buffer to the users buffer list
-                    if (!userObj.buffers[buffer.id]) {
-                        userObj.buffers[buffer.id] = {
-                            modes: modes || [],
-                            buffer: buffer,
-                        };
-                    } else {
-                        userObj.buffers[buffer.id].modes = modes || [];
-                    }
-                });
+        let lastMessage = buffer.getLastMessage();
+        if (lastMessage && lastMessage.message === message.message) {
+            return;
+        }
 
-                Object.assign(buffer.users, bufUsers);
-            },
+        this.addMessage(buffer, message);
+    }
 
-            addUserToBuffer(buffer, user, modes) {
-                let network = this.getNetwork(buffer.networkid);
-                let userObj = state.getUser(network.id, user.nick);
+    // --- Users ---
 
-                if (!userObj) {
-                    userObj = this.addUser(network, user);
-                } else {
-                    // Verify the user object is correct
-                    _.each(user, (val, prop) => {
-                        if (userObj[prop] !== val) {
-                            userObj[prop] = val;
-                        }
-                    });
+    getUser(networkid, nick, usersArr_) {
+        let user = null;
+        let users = usersArr_;
+
+        if (!users) {
+            let network = this.getNetwork(networkid);
+            if (network) {
+                users = network.users;
+            }
+        }
+
+        if (users) {
+            user = users[nick.toUpperCase()];
+        }
+
+        return user;
+    }
+
+    // Modify a network's user array without hitting Vue's reactive system until fn()
+    // has completed. Good for making large changes in bulk
+    usersTransaction(networkid, fn) {
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return;
+        }
+
+        let users = Object.assign(Object.create(null), network.users);
+        fn(users);
+        network.users = users;
+    }
+
+    addUser(networkid, user, usersArr_) {
+        let network = null;
+
+        // Accept either a network ID or a direct network object
+        if (typeof networkid === 'number') {
+            network = this.getNetwork(networkid);
+        } else {
+            network = networkid;
+        }
+
+        if (!network) {
+            return null;
+        }
+
+        let usersArr = usersArr_ || network.users;
+        let userObj = null;
+
+        if (!usersArr[user.nick.toUpperCase()]) {
+            userObj = new UserState(network.id, user, this);
+            usersArr[user.nick.toUpperCase()] = userObj;
+        } else {
+            // Update the existing user object with any new info we have
+            userObj = this.getUser(network.id, user.nick, usersArr);
+            _.each(user, (val, prop) => {
+                if (typeof val !== 'undefined') {
+                    userObj[prop] = val;
                 }
+            });
+        }
 
-                buffer.addUser(userObj);
+        return userObj;
+    }
 
-                // Add the buffer to the users buffer list
-                if (!userObj.buffers[buffer.id]) {
-                    userObj.buffers[buffer.id] = {
-                        modes: modes || [],
-                        buffer: buffer,
-                    };
-                } else {
-                    userObj.buffers[buffer.id].modes = modes || [];
+    removeUser(networkid, user) {
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return;
+        }
+
+        let buffers = this.getBuffersWithUser(networkid, user.nick);
+        buffers.forEach((buffer) => {
+            this.removeUserFromBuffer(buffer, user.nick);
+        });
+
+        delete network.users[user.nick.toUpperCase()];
+    }
+
+    addMultipleUsersToBuffer(buffer, newUsers) {
+        let network = this.getNetwork(buffer.networkid);
+        let bufUsers = Object.create(null);
+
+        newUsers.forEach((newUser) => {
+            let user = newUser.user;
+            let modes = newUser.modes;
+            let userObj = this.getUser(network.id, user.nick);
+
+            if (!userObj) {
+                userObj = this.addUser(network, user);
+            }
+            bufUsers[userObj.nick.toUpperCase()] = userObj;
+
+            // Add the buffer to the users buffer list
+            if (!userObj.buffers[buffer.id]) {
+                userObj.buffers[buffer.id] = {
+                    modes: modes || [],
+                    buffer: buffer,
+                };
+            } else {
+                userObj.buffers[buffer.id].modes = modes || [];
+            }
+        });
+
+        Object.assign(buffer.users, bufUsers);
+    }
+
+    addUserToBuffer(buffer, user, modes) {
+        let network = this.getNetwork(buffer.networkid);
+        let userObj = this.getUser(network.id, user.nick);
+
+        if (!userObj) {
+            userObj = this.addUser(network, user);
+        } else {
+            // Verify the user object is correct
+            _.each(user, (val, prop) => {
+                if (userObj[prop] !== val) {
+                    userObj[prop] = val;
                 }
-            },
+            });
+        }
 
-            removeUserFromBuffer(buffer, nick) {
-                buffer.removeUser(nick);
-            },
+        buffer.addUser(userObj);
 
-            getBuffersWithUser(networkid, nick) {
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return [];
-                }
+        // Add the buffer to the users buffer list
+        if (!userObj.buffers[buffer.id]) {
+            userObj.buffers[buffer.id] = {
+                modes: modes || [],
+                buffer: buffer,
+            };
+        } else {
+            userObj.buffers[buffer.id].modes = modes || [];
+        }
+    }
 
-                let buffers = [];
-                network.buffers.forEach((buffer) => {
-                    if (buffer.hasNick(nick)) {
-                        buffers.push(buffer);
-                    } else if (nick === network.nick && buffer.isQuery()) {
-                        buffers.push(buffer);
-                    }
-                });
+    removeUserFromBuffer(buffer, nick) {
+        buffer.removeUser(nick);
+    }
 
-                return buffers;
-            },
+    getBuffersWithUser(networkid, nick) {
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return [];
+        }
 
-            clearNickColours() {
-                this.networks.forEach((network) => {
-                    // Clear user colours
-                    Object.values(network.users).forEach((user) => {
-                        user.colour = '';
-                    });
+        let buffers = [];
+        network.buffers.forEach((buffer) => {
+            if (buffer.hasNick(nick)) {
+                buffers.push(buffer);
+            } else if (nick === network.nick && buffer.isQuery()) {
+                buffers.push(buffer);
+            }
+        });
 
-                    // Re-render messages with user colours
-                    Object.values(network.buffers).forEach((buffer) => {
-                        buffer.getMessages().forEach((msg) => {
-                            if (msg.hasUserLink) {
-                                msg.hasRendered = false;
-                            }
-                        });
-                    });
-                });
-            },
+        return buffers;
+    }
 
-            changeUserNick(networkid, oldNick, newNick) {
-                let network = this.getNetwork(networkid);
-                if (!network) {
-                    return;
-                }
-
-                let user = state.getUser(network.id, oldNick);
-                if (!user) {
-                    return;
-                }
-
-                let normalisedNew = newNick.toUpperCase();
-                let normalisedOld = oldNick.toUpperCase();
-
-                user.key = normalisedNew;
-                user.nick = newNick;
+    clearNickColours() {
+        this.networks.forEach((network) => {
+            // Clear user colours
+            Object.values(network.users).forEach((user) => {
                 user.colour = '';
+            });
 
-                // If the nick has completely changed (ie. not just a case change) then update all
-                // associated buffers user lists
-                if (normalisedOld !== normalisedNew) {
-                    network.users[normalisedNew] = network.users[normalisedOld];
-                    delete network.users[normalisedOld];
+            // Re-render messages with user colours
+            network.buffers.forEach((buffer) => {
+                buffer.getMessages().forEach((msg) => {
+                    if (msg.hasUserLink) {
+                        msg.hasRendered = false;
+                    }
+                });
+            });
+        });
+    }
 
-                    Object.keys(user.buffers).forEach((bufferId) => {
-                        let buffer = user.buffers[bufferId].buffer;
-                        if (!buffer.addUserBatch.queue().includes(user)) {
-                            // The user is not in the queue to be added to the buffer
-                            buffer.users[normalisedNew] = buffer.users[normalisedOld];
-                            delete buffer.users[normalisedOld];
-                        }
-                    });
+    changeUserNick(networkid, oldNick, newNick) {
+        let network = this.getNetwork(networkid);
+        if (!network) {
+            return;
+        }
+
+        let user = this.getUser(network.id, oldNick);
+        if (!user) {
+            return;
+        }
+
+        let normalisedNew = newNick.toUpperCase();
+        let normalisedOld = oldNick.toUpperCase();
+
+        user.key = normalisedNew;
+        user.nick = newNick;
+        user.colour = '';
+
+        // If the nick has completely changed (ie. not just a case change) then update all
+        // associated buffers user lists
+        if (normalisedOld !== normalisedNew) {
+            network.users[normalisedNew] = network.users[normalisedOld];
+            delete network.users[normalisedOld];
+
+            Object.keys(user.buffers).forEach((bufferId) => {
+                let buffer = user.buffers[bufferId].buffer;
+                if (!buffer.addUserBatch.queue().includes(user)) {
+                    // The user is not in the queue to be added to the buffer
+                    buffer.users[normalisedNew] = buffer.users[normalisedOld];
+                    delete buffer.users[normalisedOld];
                 }
+            });
+        }
 
-                let buffer = this.getBufferByName(network.id, oldNick);
-                if (buffer) {
-                    buffer.rename(newNick);
-                }
-            },
+        let buffer = this.getBufferByName(network.id, oldNick);
+        if (buffer) {
+            buffer.rename(newNick);
+        }
+    }
 
-            getStartups() {
-                return availableStartups;
-            },
-        },
-    };
+    // --- Startups ---
 
-    const state = new EventEmitter();
-    Object.assign(state, stateObj, oldState.methods, {
-        $on: state.on,
-        $off: state.off,
-        $once: state.once,
-        $emit: state.emit,
-    });
-
-    return state;
+    getStartups() {
+        return this.#availableStartups;
+    }
 }
 
 let instance = null;
-function singleton() {
-    instance = instance || createNewState();
+export default function singleton() {
+    instance = instance || new State();
     return instance;
 }
 
 singleton.create = function createState() {
-    return createNewState();
+    return new State();
 };
-
-singleton.recreate = function recreateState() {
-    if (instance) {
-        instance.resetState();
-        instance.$destroy();
-        // eslint-disable-next-line
-        instance._watchers.splice(0, instance._watchers.length);
-    }
-
-    instance = createNewState();
-    return instance;
-};
-
-export default singleton;

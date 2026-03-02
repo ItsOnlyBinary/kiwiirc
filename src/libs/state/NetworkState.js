@@ -1,3 +1,5 @@
+'kiwi public';
+
 /** @module */
 
 import { nextTick, shallowReactive } from 'vue';

@@ -1,3 +1,5 @@
+'kiwi public';
+
 /** @module */
 
 import { shallowReactive } from 'vue';

@@ -397,6 +397,47 @@ export default {
         });
     },
     methods: {
+        getMessageClasses(gIdx, mIdx, message) {
+            const classes = [];
+
+            // Message is unread
+            if (this.buffer.last_read && message.time > this.buffer.last_read) {
+                classes.push('kiwi-messagelist-message--unread');
+            }
+
+            // Hovering nick / avatar
+            if (message.nick && message.nick.toLowerCase() === this.hover_nick) {
+                classes.push('kiwi-messagelist-message--hover');
+            }
+
+            // Message info open
+            if (this.message_info_open === message) {
+                classes.push('kiwi-messagelist-message--info-open');
+            }
+
+            // Message not focus of message info
+            if (this.message_info_open && this.message_info_open !== message) {
+                classes.push('kiwi-messagelist-message--blur');
+            }
+
+            // Message is repeat
+            if (!mIdx) {
+                classes.push('kiwi-messagelist-message--author-first');
+            } else {
+                const prevMessage = this.filteredMessagesGroupedDay[gIdx].messages[mIdx - 1];
+
+                if (
+                    !!prevMessage
+                        && prevMessage.nick === message.nick
+                        && message.time - prevMessage.time < 60000
+                        && prevMessage.type !== 'traffic'
+                        && message.type !== 'traffic'
+                        && message.type === prevMessage.type
+                ) {
+                    classes.push('kiwi-messagelist-message--author-repeat');
+                }
+            }
+        },
         isUnread(message) {
             return this.buffer.last_read && message.time > this.buffer.last_read;
         },

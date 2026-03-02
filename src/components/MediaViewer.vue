@@ -42,6 +42,7 @@
                 @setMaxHeight="setMaxHeight"
             />
         </div>
+        <div class="kiwi-mediaviewer-drag" />
     </div>
 </template>
 
@@ -177,7 +178,7 @@ export default {
 }
 
 .kiwi-mediaviewer-content {
-    height: 100%;
+    height: calc(100% - 3px);
     overflow: auto;
 }
 
@@ -187,6 +188,13 @@ export default {
     width: 100%;
     top: 0;
     border: none;
+}
+
+.kiwi-mediaviewer-drag {
+    width: 100%;
+    height: 3px;
+    background-color: var(--comp-border);
+    cursor: ns-resize;
 }
 
 @media screen and (max-width: 769px) {

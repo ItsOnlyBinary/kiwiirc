@@ -132,6 +132,10 @@ export default class NetworkState {
         nextTick(() => {
             this.appState.$emit('server.tab.show', tabName || 'settings');
         });
+
+        if (tabName === 'channels') {
+            this.maybeUpdateChannelList();
+        }
     }
 
     /**

@@ -13,7 +13,7 @@ import UserState from './state/UserState';
 import Message from './Message';
 
 class State extends EventEmitter {
-    // Internal lookup dictionaries and message store â€” not part of the public API.
+    // Internal lookup dictionaries and message store — not part of the public API.
     // Passed as constructor arguments to NetworkState / BufferState.
     #userDict = { networks: {} };
 
@@ -53,6 +53,9 @@ class State extends EventEmitter {
             input_history: [],
             input_history_pos: 0,
             show_advanced_tab: false,
+            warn_on_exit: true,
+            interacting: false,
+            show_statebrowser: true,
         });
         this.networks = shallowReactive([]);
     }

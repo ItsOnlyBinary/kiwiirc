@@ -524,6 +524,13 @@ async function initState() {
     }
 
     api.setState(getState());
+
+    const backgroundURL = getState().settings.startupOptions.infoBackground;
+    if (backgroundURL) {
+        // preload the background image, as they are often quite large
+        const img = new Image();
+        img.src = backgroundURL;
+    }
 }
 
 function initThemes() {

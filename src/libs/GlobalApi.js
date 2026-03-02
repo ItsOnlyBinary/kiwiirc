@@ -114,7 +114,8 @@ export default class GlobalApi extends EventEmitter {
      */
     require(modPath) {
         let path = modPath.replace(/\//g, '.');
-        let mod = _.get(this.exports, path);
+        let node = _.get(this.exports, path);
+        let mod = (node && typeof node === 'object') ? node.default : undefined;
         if (typeof mod === 'undefined') {
             Logger.error('Module does not exist: ' + modPath);
         }

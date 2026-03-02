@@ -12,6 +12,8 @@ function accessorString(value) {
         propertyString += `[${JSON.stringify(childProperties[i])}]`;
     }
 
+    // Ensure the namespace object exists so its .default and any child namespaces coexist
+    result += `if(!${propertyString}) ${propertyString} = {};\n`;
     result += `${propertyString}`;
     return result;
 }
@@ -27,8 +29,8 @@ module.exports = function processSource(source, map) {
         resource = resource.replace(/\.(vue|js)$/, '');
 
         let appendCode = `\n${entry} = ${entry} || {};\n`;
-        appendCode += `${accessorString(resource)};\n`;
-        appendCode += `${entry}.${resource} = exports.default ? exports.default : exports;\n`;
+        // Store the module as .default so it coexists with any same-named child namespaces
+        appendCode += `${accessorString(resource)}.default = exports.default !== undefined ? exports.default : exports;\n`;
 
         // Use `this.callback` to maintain source maps
         this.callback(null, source + appendCode, map);

@@ -3,7 +3,7 @@
         <div class="kiwi-serverview-inner">
             <tabbed-view ref="tabs" :key="network.id" @changed="tabChanged">
                 <tabbed-tab :header="$t('messages')" :focus="hasMessages" name="messages">
-                    <message-list :buffer="serverBuffer" />
+                    <message-list :network="network" :buffer="serverBuffer" />
                 </tabbed-tab>
                 <tabbed-tab
                     v-if="!restrictedServer"

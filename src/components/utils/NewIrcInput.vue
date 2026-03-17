@@ -32,7 +32,7 @@ import {
     KEY_ENTER_COMMAND,
     ParagraphNode,
     RootNode,
-    createEditor,
+    createEditor
 } from 'lexical';
 import { $patchStyleText, $selectAll, getStyleObjectFromCSS } from '@lexical/selection';
 import { markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef } from 'vue';
@@ -41,12 +41,9 @@ import { mergeRegister } from '@lexical/utils';
 import { registerPlainText } from '@lexical/plain-text';
 
 import { $createAutocompleteNode, AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
-import { $createCodeNode, CodeNode } from '@/libs/lexical/CodeNode';
 import { $createEmojiNode, EmojiNode } from '@/libs/lexical/EmojiNode';
 import { $createUserNode, UserNode } from '@/libs/lexical/UserNode';
 import { $getAllNodes } from '@/libs/lexical/helpers';
-import { registerCode } from '@/libs/lexical/CodePlugin';
-import { registerEmoji } from '@/libs/lexical/EmojiPlugin';
 
 import { useTimeouts } from '@/helpers/Misc';
 
@@ -85,7 +82,7 @@ let nextAutocompleteID = 0;
 
 let editor = null;
 const editorConfig = {
-    nodes: [AutocompleteNode, EmojiNode, UserNode, CodeNode],
+    nodes: [AutocompleteNode, EmojiNode, UserNode],
 };
 const editorElement = useTemplateRef('editor-div');
 const editorListeners = [];
@@ -110,8 +107,6 @@ onMounted(() => {
     // Register Plugins
     mergeRegister(
         registerPlainText(editor),
-        registerEmoji(editor),
-        ...registerCode(editor),
     );
 
     // Register Listeners
@@ -245,9 +240,6 @@ const maybeCreateCodeNode = (event) => {
             console.log('nodes', nodes);
             if (nodes[0].getType() === 'paragraph') {
                 console.log('createCode');
-                const codeNode = $createCodeNode('``');
-                nodes[0].append(codeNode);
-                codeNode.select(1, 1);
                 event.preventDefault();
                 return;
             }
@@ -258,12 +250,9 @@ const maybeCreateCodeNode = (event) => {
             console.log('test', nodes[0].getType() !== 'code', !nextSibling, offset, text.length);
             if (nodes[0].getType() !== 'code' && !nextSibling && offset === text.length) {
                 // const [, targetNode] = nodes[0].splitText(selection.anchor.offset);
-                const codeNode = $createCodeNode('``');
                 // nodes[0].spliceText(text.length, 0, '~', false);
                 // nodes[0].select(text.length - 1, text.length - 1);
                 // nodes[0].selectEnd();
-                nodes[0].insertAfter(codeNode);
-                codeNode.select(1, 1);
                 event.preventDefault();
             }
             // else {
@@ -276,10 +265,6 @@ const maybeCreateCodeNode = (event) => {
             // }
         } else {
             const codeText = selection.getTextContent();
-            const codeNode = $createCodeNode('`' + codeText + '`');
-            selection.insertNodes([codeNode]);
-            const position = codeNode.getTextContentSize() - 1;
-            codeNode.select(position, position);
             event.preventDefault();
         }
     });
@@ -743,7 +728,7 @@ defineExpose({
     border: 1px solid #b5b5b5;
     padding: 0 3px;
     border-radius: 3px;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgb(0, 0, 0, 0.05);
     font-family: monospace;
 }
 

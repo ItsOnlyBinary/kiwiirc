@@ -163,7 +163,7 @@ function ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff) {
         return '\x0f';
     }
 
-    if (ircStyleDiff.hasOwnProperty('fg')) {
+    if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'fg')) {
         if (ircStyleDiff.fg) {
             if (currentIrcStyle.bg && !ircStyleDiff.bg) {
                 ircCodes += '\x03';
@@ -176,7 +176,7 @@ function ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff) {
         } else {
             ircCodes += '\x03';
         }
-    } else if (ircStyleDiff.hasOwnProperty('bg')) {
+    } else if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'bg')) {
         if (!ircStyleDiff.bg && currentIrcStyle.fg) {
             ircCodes += `\x03\x03${currentIrcStyle.fg}`;
         } else if (ircStyleDiff.bg && currentIrcStyle.fg) {
@@ -184,16 +184,16 @@ function ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff) {
         }
     }
 
-    if (ircStyleDiff.hasOwnProperty('bold')) {
+    if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'bold')) {
         ircCodes += '\x02';
     }
-    if (ircStyleDiff.hasOwnProperty('italic')) {
+    if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'italic')) {
         ircCodes += '\x1d';
     }
-    if (ircStyleDiff.hasOwnProperty('underline')) {
+    if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'underline')) {
         ircCodes += '\x1f';
     }
-    if (ircStyleDiff.hasOwnProperty('strikethrough')) {
+    if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'strikethrough')) {
         ircCodes += '\x1e';
     }
 

@@ -44,6 +44,9 @@ import { $createAutocompleteNode, AutocompleteNode } from '@/libs/lexical/Autoco
 import { $createEmojiNode, EmojiNode } from '@/libs/lexical/EmojiNode';
 import { $createUserNode, UserNode } from '@/libs/lexical/UserNode';
 import { $getAllNodes } from '@/libs/lexical/helpers';
+import { CodeNode } from '@/libs/lexical/CodeNode';
+import { registerCode } from '@/libs/lexical/CodePlugin';
+import { registerEmoji } from '@/libs/lexical/EmojiPlugin';
 
 import { useTimeouts } from '@/helpers/Misc';
 
@@ -82,7 +85,7 @@ let nextAutocompleteID = 0;
 
 let editor = null;
 const editorConfig = {
-    nodes: [AutocompleteNode, EmojiNode, UserNode],
+    nodes: [AutocompleteNode, CodeNode, EmojiNode, UserNode],
 };
 const editorElement = useTemplateRef('editor-div');
 const editorListeners = [];
@@ -107,6 +110,8 @@ onMounted(() => {
     // Register Plugins
     mergeRegister(
         registerPlainText(editor),
+        registerCode(editor),
+        registerEmoji(editor),
     );
 
     // Register Listeners
@@ -133,7 +138,7 @@ onMounted(() => {
     editorListeners.push(
         editor.registerUpdateListener(({ editorState }) => {
             const requiredUpdates = editorState.read(() => {
-                isEmpty.value = !$getRoot().getTextContent();
+                isEmpty.value = !$getRoot().getTextContent().replace(/\u200B/g, '');
                 const selection = $getSelection();
                 if (!selection) {
                     return null;
@@ -220,62 +225,13 @@ const onKeyDown = (event) => {
 const onInput = (event) => {
     console.log('onInput', event);
 };
-const onBeforeInput = (event) => {
-    console.log('onBeforeInput', event);
-    if (event.inputType === 'insertText' && event.data === '`') {
-        // unused
-    }
-};
+const onBeforeInput = (event) => {};
 
 const onInsert = (event) => {
     console.log('onInsert', event);
 };
 
-const maybeCreateCodeNode = (event) => {
-    editor.update(() => {
-        const selection = $getSelection();
-        const nodes = selection.getNodes();
-
-        if (selection.isCollapsed()) {
-            console.log('nodes', nodes);
-            if (nodes[0].getType() === 'paragraph') {
-                console.log('createCode');
-                event.preventDefault();
-                return;
-            }
-
-            const text = nodes[0].getTextContent();
-            const offset = selection.anchor.offset;
-            const nextSibling = nodes[0].getNextSibling();
-            console.log('test', nodes[0].getType() !== 'code', !nextSibling, offset, text.length);
-            if (nodes[0].getType() !== 'code' && !nextSibling && offset === text.length) {
-                // const [, targetNode] = nodes[0].splitText(selection.anchor.offset);
-                // nodes[0].spliceText(text.length, 0, '~', false);
-                // nodes[0].select(text.length - 1, text.length - 1);
-                // nodes[0].selectEnd();
-                event.preventDefault();
-            }
-            // else {
-            //     let nextSibling = nodes[0].getNextSibling();
-            //     if (!nextSibling || nextSibling.getType() !== 'text') {
-            //         nextSibling = $createTextNode('');
-            //         nodes[0].insertAfter(nextSibling);
-            //     }
-            //     nextSibling.selectStart();
-            // }
-        } else {
-            const codeText = selection.getTextContent();
-            event.preventDefault();
-        }
-    });
-};
-
-const editorKeyDown = (event) => {
-    console.log('editorKeyDown', event);
-    if (event.key === '`') {
-        maybeCreateCodeNode(event);
-    }
-};
+const editorKeyDown = (event) => {};
 
 // const onKeyUp = editorKeyDown;
 
@@ -443,7 +399,7 @@ const getHTML = () => editor.read(() => $generateHtmlFromNodes(editor, null));
  *
  * @returns {string}
  */
-const getText = () => editor.read(() => $getRoot().getTextContent());
+const getText = () => editor.read(() => $getRoot().getTextContent().replace(/\u200B/g, ''));
 
 const getWord = () => editor.read(() => {
     const selection = $getSelection();

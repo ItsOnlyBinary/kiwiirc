@@ -13,8 +13,8 @@ const endsWithFgColourRegexp = /\x03\d+$/;
 const endsWithResetColourRegexp = /\x03$/;
 const startsWithCommaDecimalRegexp = /^,\d+/;
 const startsWithDecimalRegexp = /^\d+/;
-const trailingSpacesRegex = /(\s+)$/;
-const leadingSpacesRegex = /^(\03(?:\d{2},\d{2}|\d{2})?|[\x02\x1d\x1f\x1e\x11\x0f])+(\s+)/;
+// const trailingSpacesRegex = /(\s+)$/;
+// const leadingSpacesRegex = /^(\03(?:\d{2},\d{2}|\d{2})?|[\x02\x1d\x1f\x1e\x11\x0f])+(\s+)/;
 // const spaceAfterColoursRegexp = /(\03(?:\d{2},\d{2}|\d{2})?|[\x02\x1d\x1f\x1e\x11\x0f])(\s+)/g;
 
 const defaultIrcStyle = {
@@ -59,18 +59,15 @@ export default function html2irc(source) {
             const style = getStyleObjectFromCSS(attribs.style || '');
             const ircStyle = style2IrcStyle(style);
             const ircStyleDiff = getIrcStyleDiff(currentIrcStyle, ircStyle);
-            const styleChange = ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff);
+            // const styleChange = ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff);
 
             if (attribs.class === CODE_NODE_CLASS) {
                 openTags[openTags.length - 1] = 'code';
-                const match = trailingSpacesRegex.exec(ircText);
-                console.log('match', match);
-                if (match) {
-                    ircText = ircText.replace(trailingSpacesRegex, `${styleChange}$1`);
-                } else {
-                    ircText += `${styleChange} `;
+                if (ircText && !ircText.endsWith(' ')) {
+                    ircText += ' ';
                 }
-                checkSpace = true;
+                ircText += '`';
+                return;
             }
 
             if (!Object.keys(ircStyleDiff).length) {
@@ -95,15 +92,7 @@ export default function html2irc(source) {
                 ircText += '\u2008';
             }
 
-            let newText = text;
-            if (previousTag === 'code') {
-                const match = leadingSpacesRegex.exec(newText);
-                if (match) {
-                    newText = newText.replace(leadingSpacesRegex, '$2$1');
-                } else if (newText[0] !== ' ') {
-                    newText = ' ' + newText;
-                }
-            }
+            let newText = text.replace(/\u200B/g, '');
 
             if (checkSpace) {
                 checkSpace = false;
@@ -117,6 +106,10 @@ export default function html2irc(source) {
         },
         onclosetag: (name) => {
             previousTag = openTags.pop();
+            if (previousTag === 'code') {
+                ircText += '`';
+                checkSpace = true;
+            }
         },
     }, {
         decodeEntities: true,

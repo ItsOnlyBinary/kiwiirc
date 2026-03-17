@@ -9,11 +9,7 @@ import {
 import { mergeRegister } from '@lexical/utils';
 
 import { $createCodeNode, CodeNode } from '@/libs/lexical/CodeNode';
-
-// Used as a placeholder in boundary text nodes so Lexical's normalizer does
-// not remove them (it only removes nodes where text === ''). Stripped from
-// all IRC/text output — see getText() and Html2Irc.js.
-export const BOUNDARY_CHARACTER = '\u200B';
+import { BOUNDARY_CHARACTER } from '@/libs/lexical/BoundaryPlugin';
 
 function $codeNodeTransform(textNode) {
     if (textNode.getType() !== 'text' || !textNode.isSimpleText()) {
@@ -21,18 +17,6 @@ function $codeNodeTransform(textNode) {
     }
 
     const text = textNode.getTextContent();
-
-    // When the user types into a boundary node it gains real content alongside
-    // the placeholder — strip the placeholder now that it is no longer needed.
-    // selectEnd() is required: the cursor offset may point past the end of the
-    // shorter cleaned string, causing an IndexSizeError if left uncorrected.
-    const cleaned = text.replace(/\u200B/g, '');
-    if (cleaned && cleaned !== text) {
-        textNode.setTextContent(cleaned);
-        textNode.selectEnd();
-        return;
-    }
-
     const match = /`([^`]+)`/.exec(text);
     if (!match) {
         return;
@@ -44,7 +28,8 @@ function $codeNodeTransform(textNode) {
 
     const codeNode = $createCodeNode(codeText);
     // Use the boundary character when afterText is empty so the node is not
-    // normalised away, keeping a tappable/navigable position after the code node.
+    // normalised away. BoundaryPlugin's invariant enforcement will confirm the
+    // trailing boundary on the next update.
     const afterNode = $createTextNode(afterText || BOUNDARY_CHARACTER);
 
     if (beforeText) {
@@ -52,7 +37,7 @@ function $codeNodeTransform(textNode) {
         textNode.insertAfter(codeNode);
     } else {
         // No text before — insert a boundary node so the cursor can be placed
-        // before the code node (important on mobile where there are no arrow keys).
+        // before the code node immediately (before BoundaryPlugin's next update).
         textNode.replace(codeNode);
         codeNode.insertBefore($createTextNode(BOUNDARY_CHARACTER));
     }

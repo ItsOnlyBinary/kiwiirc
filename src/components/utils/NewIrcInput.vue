@@ -45,6 +45,7 @@ import { $createEmojiNode, EmojiNode } from '@/libs/lexical/EmojiNode';
 import { $createUserNode, UserNode } from '@/libs/lexical/UserNode';
 import { $getAllNodes } from '@/libs/lexical/helpers';
 import { CodeNode } from '@/libs/lexical/CodeNode';
+import { registerBoundary } from '@/libs/lexical/BoundaryPlugin';
 import { registerCode } from '@/libs/lexical/CodePlugin';
 import { registerEmoji } from '@/libs/lexical/EmojiPlugin';
 
@@ -112,6 +113,7 @@ onMounted(() => {
         registerPlainText(editor),
         registerCode(editor),
         registerEmoji(editor),
+        registerBoundary(editor),
     );
 
     // Register Listeners

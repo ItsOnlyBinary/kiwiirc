@@ -79,6 +79,7 @@ export default {
     height: 100%;
     text-align: center;
     display: flex;
+    flex-grow: 1;
 }
 
 .kiwi-startup-common-section {

@@ -69,7 +69,7 @@ export default class UserState {
 
     get avatar() {
         if (!this.avatarCache) {
-            this.avatar = { small: '', large: '' };
+            this.avatar = shallowReactive({ small: '', large: '' });
             getState().$emit('user.avatar.create', { user: this });
         }
         return this.avatarCache;

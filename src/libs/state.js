@@ -35,6 +35,9 @@ function createNewState() {
             input_history: [],
             input_history_pos: 0,
             show_advanced_tab: false,
+            warn_on_exit: true,
+            interacting: false,
+            show_statebrowser: true,
         }),
         networks: shallowReactive([]),
     };

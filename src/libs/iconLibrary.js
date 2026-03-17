@@ -5,6 +5,7 @@
 */
 
 import { faAngleRight as fasAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
+import { faAnglesLeft as fasAnglesLeft } from '@fortawesome/free-solid-svg-icons/faAnglesLeft';
 import { faArrowsRotate as fasArrowsRotate } from '@fortawesome/free-solid-svg-icons/faArrowsRotate';
 import { faBackwardStep as fasBackwardStep } from '@fortawesome/free-solid-svg-icons/faBackwardStep';
 import { faBan as fasBan } from '@fortawesome/free-solid-svg-icons/faBan';
@@ -23,6 +24,7 @@ import { faInfo as fasInfo } from '@fortawesome/free-solid-svg-icons/faInfo';
 import { faLock as fasLock } from '@fortawesome/free-solid-svg-icons/faLock';
 import { faMagnifyingGlass as fasMagnifyingGlass } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
 import { faMapPin as fasMapPin } from '@fortawesome/free-solid-svg-icons/faMapPin';
+import { faMinus as fasMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faPaperPlane as fasPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane';
 import { faPencil as fasPencil } from '@fortawesome/free-solid-svg-icons/faPencil';
 import { faPlus as fasPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
@@ -48,14 +50,13 @@ import { faCircleRight as farCircleRight } from '@fortawesome/free-regular-svg-i
 import { faComment as farComment } from '@fortawesome/free-regular-svg-icons/faComment';
 import { faFaceFrown as farFaceFrown } from '@fortawesome/free-regular-svg-icons/faFaceFrown';
 import { faFaceSmile as farFaceSmile } from '@fortawesome/free-regular-svg-icons/faFaceSmile';
-import { faSquareMinus as farSquareMinus } from '@fortawesome/free-regular-svg-icons/faSquareMinus';
-import { faSquarePlus as farSquarePlus } from '@fortawesome/free-regular-svg-icons/faSquarePlus';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons/faStar';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 
 library.add(
     fasAngleRight,
+    fasAnglesLeft,
     fasArrowsRotate,
     fasBackwardStep,
     fasBan,
@@ -74,6 +75,7 @@ library.add(
     fasLock,
     fasMagnifyingGlass,
     fasMapPin,
+    fasMinus,
     fasPaperPlane,
     fasPencil,
     fasPlus,
@@ -98,7 +100,5 @@ library.add(
     farComment,
     farFaceFrown,
     farFaceSmile,
-    farSquareMinus,
-    farSquarePlus,
     farStar,
 );

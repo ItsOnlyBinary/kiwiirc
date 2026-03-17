@@ -43,7 +43,7 @@
                         @click="sidebarState.toggleNicklist()"
                     >
                         <users-icon />
-                        <span v-if="!$state.ui.is_narrow" class="kiwi-stack">
+                        <span class="kiwi-stack">
                             <span class="kiwi-stack-hidden">8888</span>
                             <span class="kiwi-stack-content">{{ userCount }}</span>
                         </span>
@@ -276,13 +276,17 @@ export default {
 <style lang="less">
 .kiwi-header {
     padding: 0;
-    transition: all 0.3s;
     line-height: 10px;
     height: 44px;
     box-sizing: border-box;
     text-align: center;
     border-bottom: 1px solid;
     display: flex;
+    padding-left: 52px;
+
+    .kiwi-wrap--show-statebrowser & {
+        padding-left: 10px;
+    }
 }
 
 .kiwi-header-name .kiwi-header-awaystatus {
@@ -304,7 +308,6 @@ export default {
 .kiwi-header-name-container {
     font-weight: bold;
     cursor: default;
-    margin-left: 0.5em;
     max-width: 40%;
     min-width: 80px;
     opacity: 1;
@@ -509,26 +512,6 @@ export default {
 }
 
 @media screen and (max-width: 769px) {
-    .kiwi-container-toggledraw-statebrowser {
-        border-bottom: none;
-    }
-
-    .kiwi-container .kiwi-header {
-        margin-right: 0;
-        overflow: visible;
-        max-height: none;
-        padding-left: 0;
-        margin-left: 0;
-    }
-
-    .kiwi-header-name-container {
-        padding-left: 50px;
-    }
-
-    .kiwi-header-name {
-        padding: 0;
-    }
-
     .kiwi-header-server-connection .u-button {
         line-height: 32px;
         margin: 7px 0 0 0;

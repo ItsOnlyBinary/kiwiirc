@@ -8,23 +8,6 @@
         }" class="kiwi-container"
     >
         <template v-if="buffer">
-            <div class="kiwi-container-toggledraw-statebrowser" @click.stop="toggleStateBrowser">
-                <div
-                    :class="[
-                        unreadMessages.highlight
-                            ? 'kiwi-container-toggledraw-statebrowser-messagecount--highlight'
-                            : '',
-                    ]"
-                    class="kiwi-container-toggledraw-statebrowser-messagecount"
-                >
-                    <span class="kiwi-container-statebrowser-messagecount-alert">
-                        {{ unreadMessages.count > 999 ? '999+' : unreadMessages.count }}
-                    </span>
-                    <span class="kiwi-container-statebrowser-messagecount-close">
-                        <svg-icon icon="fa-solid fa-xmark" />
-                    </span>
-                </div>
-            </div>
             <container-header :buffer="buffer" :sidebar-state="sidebarState" />
 
             <slot name="before" />
@@ -247,12 +230,12 @@ export default {
     margin-right: 0;
 }
 
-.kiwi-container-toggledraw-statebrowser,
 .kiwi-container-toggledraw-sidebar {
     display: none;
     width: 50px;
     position: absolute;
     top: 0;
+    right: 0;
     height: 45px;
     box-sizing: border-box;
     cursor: pointer;
@@ -263,74 +246,18 @@ export default {
     transition-delay: 0.5s;
 }
 
-.kiwi-container-toggledraw-statebrowser {
-    left: 0;
-}
-
-.kiwi-container-toggledraw-sidebar {
-    right: 0;
-}
-
 .kiwi-container-toggledraw-sidebar--disabled {
     cursor: default;
-}
-
-.kiwi-container-toggledraw-statebrowser-messagecount {
-    position: absolute;
-    font-size: 0.6em;
-    border-radius: 3px;
-    line-height: 2em;
-    box-sizing: border-box;
-    top: 10px;
-    z-index: 3;
-    white-space: nowrap;
-    left: 14px;
-    width: 37px;
-    padding: 0;
-    transition: all 0.4s, z-index 0s;
-    transition-delay: 0.1s;
-}
-
-.kiwi-container-toggledraw-statebrowser-messagecount::after {
-    left: -15px;
-    top: 20%;
-    border: 0.6em solid transparent;
-    border-right-color: #ddd;
-    content: ' ';
-    height: 0;
-    width: 0;
-    position: absolute;
-    pointer-events: none;
 }
 
 .kiwi-container-statebrowser-messagecount-close {
     display: none;
 }
 
-/* When the Statebrowser is visible, apply new styles to the messagecount */
-.kiwi-wrap--statebrowser-drawopen .kiwi-container-toggledraw-statebrowser-messagecount {
-    left: -19px;
-    z-index: 100;
-}
-
-.kiwi-wrap--statebrowser-drawopen .kiwi-container-toggledraw-statebrowser-messagecount::after {
-    right: -15px;
-    left: auto;
-}
-
 @keyframes kiwi-wiggle {
     0% { margin-left: 5px; }
     50% { margin-left: 0; }
     100% { margin-left: 5px; }
-}
-
-.kiwi-container-toggledraw-statebrowser-messagecount--highlight {
-    animation: kiwi-wiggle 0.25s 4;
-    animation-timing-function: ease-in, linear, ease-out;
-}
-
-.kiwi-container-toggledraw-statebrowser-messagecount--highlight:hover {
-    animation: none;
 }
 
 .kiwi-container-empty {
@@ -381,13 +308,6 @@ export default {
         right: 0%;
     }
 
-    .kiwi-header {
-        margin-left: 50px;
-        margin-right: 50px;
-        max-height: 50px;
-    }
-
-    .kiwi-container-toggledraw-statebrowser,
     .kiwi-container-toggledraw-sidebar {
         display: block;
     }

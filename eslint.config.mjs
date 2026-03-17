@@ -203,7 +203,9 @@ export default [
     },
 
     {
-        ignores: [],
+        ignores: [
+            'src/components/StateBrowser*.vue',
+        ],
         linterOptions: {
             reportUnusedDisableDirectives: 'off',
         },

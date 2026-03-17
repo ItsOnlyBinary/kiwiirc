@@ -1,0 +1,77 @@
+.kiwi-button--small {
+    position: relative;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 6px;
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.kc-button {
+    display: inline-block;
+    padding: 8px 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    border-radius: 6px;
+    opacity: 1;
+    transition: opacity 0.3s;
+
+    &--positive {
+        background-color: var(--brand-primary);
+    }
+
+    &--neutral {
+        background-color: var(--brand-warning);
+    }
+
+    &--negative {
+        background-color: var(--brand-error);
+    }
+
+    &:hover {
+        opacity: 0.85;
+    }
+}
+
+.kc-label {
+    &--multiline {
+        input,
+        select,
+        textarea {
+            display: block;
+            width: 100%;
+            margin-top: 2px;
+        }
+    }
+}
+
+.kc-input {
+    box-sizing: border-box;
+    padding: 8px;
+    outline: none;
+    border: none;
+}
+
+.kc-link {
+    color: var(--brand-primary);
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.kc--hidden {
+    visibility: hidden;
+}

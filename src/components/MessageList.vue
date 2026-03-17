@@ -74,6 +74,7 @@
                     :is="item.message.template"
                     v-if="item.message.render() && item.message.template"
                     v-bind="item.message.templateProps"
+                    :key="'a'+item.message.id"
                     :buffer="buffer"
                     :message="item.message"
                     :ml="thisMl"
@@ -86,6 +87,7 @@
                 />
                 <message-list-message-modern
                     v-else-if="listType === 'modern'"
+                    :key="'b'+item.message.id"
                     :message="item.message"
                     :ml="thisMl"
                     :is-unread="isUnread(item.message)"
@@ -97,6 +99,7 @@
                 />
                 <message-list-message-inline
                     v-else-if="listType === 'inline'"
+                    :key="'c'+item.message.id"
                     :message="item.message"
                     :ml="thisMl"
                     :is-unread="isUnread(item.message)"
@@ -108,6 +111,7 @@
                 />
                 <message-list-message-compact
                     v-else-if="listType === 'compact'"
+                    :key="'d'+item.message.id"
                     :message="item.message"
                     :ml="thisMl"
                     :is-unread="isUnread(item.message)"
@@ -120,11 +124,9 @@
             </div>
 
             <!-- Joining loader (bottom of list) -->
-            <transition v-else-if="item.type === 'joining'" name="kiwi-messagelist-joinloadertrans">
-                <div v-if="item.type === 'joining'" :key="'e'+item.key" class="kiwi-messagelist-joinloader">
-                    <LoadingAnimation />
-                </div>
-            </transition>
+            <div v-else-if="item.type === 'joining'" :key="'e'+item.key" class="kiwi-messagelist-joinloader">
+                <LoadingAnimation />
+            </div>
 
             <!-- Channel key prompt (bottom of list) -->
             <buffer-key

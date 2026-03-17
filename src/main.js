@@ -5,8 +5,6 @@ import JSON5 from 'json5';
 import i18next from 'i18next';
 import i18nextHTTP from 'i18next-http-backend';
 import VueI18Next from 'i18next-vue';
-import VueVirtualScroller from 'vue-virtual-scroller';
-import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { config as faConfig } from '@fortawesome/fontawesome-svg-core';
@@ -73,8 +71,6 @@ const app = createApp(
     App,
     { startupComponent: null }
 );
-
-app.use(VueVirtualScroller);
 
 app.component('SvgSpinner', SvgSpinner);
 app.component('SvgIcon', FontAwesomeIcon);

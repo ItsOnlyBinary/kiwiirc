@@ -1,106 +1,111 @@
 <template>
     <div
         :class="[
-            $props.m().isRepeat()
+            isRepeat
                 ? 'kiwi-messagelist-message--authorrepeat'
                 : 'kiwi-messagelist-message--authorfirst',
-            `kiwi-messagelist-message-${$props.message.type}`,
-            $props.message.type_extra
-                ? `kiwi-messagelist-message-${$props.message.type}-${$props.message.type_extra}`
+            `kiwi-messagelist-message-${message.type}`,
+            message.type_extra
+                ? `kiwi-messagelist-message-${message.type}-${message.type_extra}`
                 : '',
-            $props.ml.isMessageHighlight($props.message)
+            ml.isMessageHighlight(message)
                 ? 'kiwi-messagelist-message--highlight'
                 : '',
-            $props.ml.isHoveringOverMessage($props.message)
+            isHover
                 ? 'kiwi-messagelist-message--hover'
                 : '',
-            $props.ml.buffer.last_read && $props.message.time > $props.ml.buffer.last_read
+            isUnread
                 ? 'kiwi-messagelist-message--unread'
                 : '',
-            $props.message.nick.toLowerCase() === $props.ml.ourNick.toLowerCase()
+            message.nick.toLowerCase() === ml.ourNick.toLowerCase()
                 ? 'kiwi-messagelist-message--own'
                 : '',
-            $props.ml.message_info_open === $props.message
+            isInfoOpen
                 ? 'kiwi-messagelist-message--info-open'
                 : '',
-            $props.ml.message_info_open && $props.ml.message_info_open !== $props.message
+            isBlur
                 ? 'kiwi-messagelist-message--blur'
                 : '',
-            ($props.message.user && $props.m().userMode($props.message.user))
-                ? `kiwi-messagelist-message--user-mode-${$props.m().userMode($props.message.user)}`
+            (message.user && userMode(message.user))
+                ? `kiwi-messagelist-message--user-mode-${userMode(message.user)}`
                 : '',
-            $data.staticClass ? $data.staticClass : '',
+            staticClass ? staticClass : '',
         ]"
-        :data-message-id="$props.message.id"
-        :data-nick="($props.message.nick || '').toLowerCase()"
+        :data-message-id="message.id"
+        :data-nick="(message.nick || '').toLowerCase()"
         class="kiwi-messagelist-message kiwi-messagelist-message--compact"
-        @click="$props.ml.onMessageClick($event, $props.message, true)"
-        @dblclick="$props.ml.onMessageDblClick($event, $props.message)"
+        @click="ml.onMessageClick($event, message, true)"
+        @dblclick="ml.onMessageDblClick($event, message)"
     >
         <div
-            v-if="$props.ml.bufferSetting('show_timestamps')"
-            :title="$props.ml.formatTimeFull($props.message.time)"
+            v-if="ml.bufferSetting('show_timestamps')"
+            :title="ml.formatTimeFull(message.time)"
             class="kiwi-messagelist-time"
         >
-            {{ $props.ml.formatTime($props.message.time) }}
+            {{ ml.formatTime(message.time) }}
         </div>
         <a
-            :style="{ 'color': $props.ml.userColour($props.message.user) }"
+            :style="{ 'color': ml.userColour(message.user) }"
             :class="[
                 'kiwi-messagelist-nick',
-                ($props.message.user && $props.m().userMode($props.message.user))
-                    ? `kiwi-messagelist-nick--mode-${$props.m().userMode($props.message.user)}`
+                (message.user && userMode(message.user))
+                    ? `kiwi-messagelist-nick--mode-${userMode(message.user)}`
                     : '',
             ]"
-            :data-nick="($props.message.nick || '').toLowerCase()"
-            @mouseover="$props.ml.hover_nick = $props.message.nick.toLowerCase();"
-            @mouseout="$props.ml.hover_nick = '';"
+            :data-nick="(message.nick || '').toLowerCase()"
+            @mouseover="ml.hover_nick = message.nick.toLowerCase();"
+            @mouseout="ml.hover_nick = '';"
         >
             <component
                 :is="$options.components.AwayStatusIndicator"
-                v-if="$props.message.user"
-                :network="$props.m().getNetwork()" :user="$props.message.user"
+                v-if="message.user"
+                :network="getNetwork()"
+                :user="message.user"
                 :toggle="false"
             />
             <span class="kiwi-messagelist-nick--prefix">
-                {{ $props.message.user ? $props.m().userModePrefix($props.message.user) : '' }}
+                {{ message.user ? userModePrefix(message.user) : '' }}
             </span>
-            {{ $props.message.nick }}
+            {{ message.nick }}
         </a>
         <div
-            v-if="$props.message.bodyTemplate
-                && $props.message.bodyTemplate.$el
-                && $props.ml.isTemplateVue($props.message.bodyTemplate)"
-            v-rawElement="$props.message.bodyTemplate.$el"
+            v-if="message.bodyTemplate
+                && message.bodyTemplate.$el
+                && ml.isTemplateVue(message.bodyTemplate)"
+            v-rawElement="message.bodyTemplate.$el"
             class="kiwi-messagelist-body"
         />
         <component
-            :is="$props.message.bodyTemplate"
-            v-else-if="$props.message.bodyTemplate"
-            v-bind="$props.message.bodyTemplateProps"
-            :buffer="$props.ml.buffer"
-            :message="$props.message"
-            :idx="$props.idx"
-            :ml="$props.ml"
+            :is="message.bodyTemplate"
+            v-else-if="message.bodyTemplate"
+            v-bind="message.bodyTemplateProps"
+            :buffer="ml.buffer"
+            :message="message"
+            :ml="ml"
+            :is-unread="isUnread"
+            :is-repeat="isRepeat"
+            :is-hover="isHover"
+            :is-info-open="isInfoOpen"
+            :is-blur="isBlur"
             class="kiwi-messagelist-body"
         />
-        <div v-else class="kiwi-messagelist-body" v-html="$props.ml.formatMessage($props.message)" />
+        <div v-else class="kiwi-messagelist-body" v-html="ml.formatMessage(message)" />
 
         <component
             :is="$options.components.MessageInfo"
-            v-if="$props.ml.message_info_open === $props.message"
-            :message="$props.message"
-            :buffer="$props.ml.buffer"
-            @close="$props.ml.toggleMessageInfo()"
+            v-if="ml.message_info_open === message"
+            :message="message"
+            :buffer="ml.buffer"
+            @close="ml.toggleMessageInfo()"
         />
 
-        <div v-if="$props.message.embed.payload && $props.ml.shouldAutoEmbed">
+        <div v-if="message.embed.payload && ml.shouldAutoEmbed">
             <component
                 :is="$options.components.MediaViewer"
-                :url="$props.message.embed.payload"
+                :url="message.embed.payload"
                 :show-pin="true"
-                @close="$props.message.embed.payload = ''"
-                @pin="$props.ml.openEmbedInPreview($props.message)"
+                @close="message.embed.payload = ''"
+                @pin="ml.openEmbedInPreview(message)"
             />
         </div>
     </div>
@@ -117,40 +122,6 @@ import MediaViewer from './MediaViewer';
 import AwayStatusIndicator from './AwayStatusIndicator';
 import MessageInfo from './MessageInfo';
 
-const methods = {
-    props: {},
-    getNetwork() {
-        let props = this.props;
-        return props.ml.buffer.getNetwork();
-    },
-    isRepeat() {
-        let props = this.props;
-        let ml = props.ml;
-        let idx = props.idx;
-        let message = props.message;
-        let prevMessage = ml.filteredMessages[idx - 1];
-
-        return !!prevMessage &&
-            prevMessage.nick === message.nick &&
-            message.time - prevMessage.time < 60000 &&
-            prevMessage.type !== 'traffic' &&
-            message.type !== 'traffic' &&
-            message.type === prevMessage.type;
-    },
-    isHoveringOverMessage(message) {
-        let props = this.props;
-        return message.nick && message.nick.toLowerCase() === props.hover_nick.toLowerCase();
-    },
-    userMode(user) {
-        let props = this.props;
-        return props.ml.buffer.userMode(user);
-    },
-    userModePrefix(user) {
-        let props = this.props;
-        return props.ml.buffer.userModePrefix(user);
-    },
-};
-
 export default {
     components: {
         AwayStatusIndicator,
@@ -160,18 +131,26 @@ export default {
     props: {
         ml: Object,
         message: Object,
-        idx: Number,
-        m: {
-            default: function m() {
-                // vue uses this function to generate the prop. `this`==null Return our own function
-                return function n() {
-                    // Give our methods some props context before its function is called.
-                    // This is only safe because the function on the methods object is called on
-                    // the same js tick
-                    methods.props = this;
-                    return methods;
-                };
-            },
+        isUnread: Boolean,
+        isRepeat: Boolean,
+        isHover: Boolean,
+        isInfoOpen: Boolean,
+        isBlur: Boolean,
+    },
+    data() {
+        return {
+            staticClass: '',
+        };
+    },
+    methods: {
+        getNetwork() {
+            return this.ml.buffer.getNetwork();
+        },
+        userMode(user) {
+            return this.ml.buffer.userMode(user);
+        },
+        userModePrefix(user) {
+            return this.ml.buffer.userModePrefix(user);
         },
     },
 };

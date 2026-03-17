@@ -26,21 +26,23 @@
                 {{ allUsersCount }}
             </div>
         </div>
-        <RecycleScroller
-            :items="sortedUsers"
+        <VList
+            ref="vlist"
+            v-slot="{ item }"
+            :data="sortedUsers"
             :item-size="shouldShowAvatars ? 38 : 26"
             :key-field="'id'"
             class="kiwi-nicklist-users"
         >
-            <template #default="{ item }">
-                <nicklist-user :key="item.id" :user="item" :nicklist="self" :network="network" />
-            </template>
-        </RecycleScroller>
+            <nicklist-user :key="item.id" :user="item" :nicklist="self" :network="network" />
+        </VList>
     </div>
 </template>
 
 <script>
 'kiwi public';
+
+import { VList } from 'virtua/vue';
 
 import Logger from '@/libs/Logger';
 import * as Misc from '@/helpers/Misc';
@@ -51,6 +53,7 @@ const log = Logger.namespace('Nicklist');
 
 export default {
     components: {
+        VList,
         NicklistUser,
     },
     props: ['network', 'buffer', 'sidebarState'],

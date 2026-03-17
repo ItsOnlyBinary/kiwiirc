@@ -33,7 +33,7 @@ module.exports = (env, argv, config) => {
             client: {
                 logging: 'info',
                 overlay: {
-                    runtimeErrors: true,
+                    runtimeErrors: false,
                     errors: true,
                     warnings: false,
                 },

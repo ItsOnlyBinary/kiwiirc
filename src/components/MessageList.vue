@@ -1,7 +1,7 @@
 <template>
     <div
         :key="`messagelist-${buffer.name}`"
-        ref="scroller"
+        ref="scrollerEl"
         v-resizeobserver="onListResize"
         class="kiwi-messagelist"
         :class="{
@@ -10,11 +10,27 @@
         }"
         @click.self="onListClick"
     >
-        <div v-resizeobserver="onListResize">
-            <div
-                v-if="shouldShowChathistoryTools"
-                class="kiwi-messagelist-scrollback"
+        <transition name="kiwi-messagelist-scrollbtn">
+            <button
+                v-if="!auto_scroll"
+                class="kiwi-messagelist-scroll-bottom"
+                @click="scrollToBottom"
             >
+                <svg-icon icon="fa-solid fa-angles-down" />
+            </button>
+        </transition>
+
+        <VList
+            ref="vlist"
+            v-slot="{ item }"
+            :data="messages.items"
+            :item-props="itemProps"
+            :keep-mounted="keepMounted"
+            class="kiwi-messagelist-vlist"
+            @scroll="onVListScroll"
+        >
+            <!-- Scrollback loader (top of list) -->
+            <div v-if="item.type === 'scrollback'" :key="'a'+item.key" class="kiwi-messagelist-scrollback">
                 <a
                     v-if="!buffer.flag('is_requesting_chathistory')"
                     class="u-link"
@@ -25,88 +41,109 @@
                 <a v-else>{{ $t('messages_loading') }}</a>
             </div>
 
-            <!-- <remove-before-update> -->
-            <div>
-                <template v-for="day in filteredMessagesGroupedDay" :key="`day-${day.dayNum}`">
-                    <div
-                        v-if="filteredMessagesGroupedDay.length > 1 && day.messages.length > 0"
-                        class="kiwi-messagelist-seperator"
-                    >
-                        <span>{{ (new Date(day.messages[0].time)).toDateString() }}</span>
-                    </div>
-                    <!-- <remove-before-update> -->
-                    <div>
-                        <template v-for="message in day.messages" :key="`msg-${message.id}`">
-                            <div
-                                v-if="shouldShowUnreadMarker(message)"
-                                class="kiwi-messagelist-seperator"
-                            >
-                                <span>{{ $t('unread_messages') }}</span>
-                            </div>
-
-                            <div
-                                :class="[
-                                    'kiwi-messagelist-item',
-                                    selectedMessages[message.id]
-                                        ? 'kiwi-messagelist-item--selected'
-                                        : '',
-                                ]"
-                            >
-                                <component
-                                    :is="message.template"
-                                    v-if="message.render() && message.template"
-                                    v-bind="message.templateProps"
-                                    :buffer="buffer"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-modern
-                                    v-else-if="listType === 'modern'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-inline
-                                    v-else-if="listType === 'inline'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                                <message-list-message-compact
-                                    v-else-if="listType === 'compact'"
-                                    :message="message"
-                                    :idx="filteredMessages.indexOf(message)"
-                                    :ml="thisMl"
-                                />
-                            </div>
-                        </template>
-                    <!-- </remove-before-update> -->
-                    </div>
-                </template>
-            <!-- </remove-before-update> -->
+            <!-- Day separator -->
+            <div
+                v-else-if="item.type === 'day'"
+                :key="'b'+item.key"
+                class="kiwi-messagelist-seperator"
+            >
+                <span>{{ (new Date(item.date)).toDateString() }}</span>
             </div>
 
-            <transition name="kiwi-messagelist-joinloadertrans">
-                <div v-if="shouldShowJoiningLoader" class="kiwi-messagelist-joinloader">
+            <!-- Unread marker -->
+            <div
+                v-else-if="item.type === 'unread'"
+                :key="'c'+item.key"
+                class="kiwi-messagelist-seperator"
+            >
+                <span>{{ $t('unread_messages') }}</span>
+            </div>
+
+            <!-- Message item -->
+            <div
+                v-else-if="item.type === 'message'"
+                :key="'d'+item.key"
+                :class="[
+                    'kiwi-messagelist-item',
+                    selectedMessages[item.message.id]
+                        ? 'kiwi-messagelist-item--selected'
+                        : '',
+                ]"
+            >
+                <component
+                    :is="item.message.template"
+                    v-if="item.message.render() && item.message.template"
+                    v-bind="item.message.templateProps"
+                    :buffer="buffer"
+                    :message="item.message"
+                    :ml="thisMl"
+                    :is-unread="isUnread(item.message)"
+                    :is-repeat="item.isRepeat"
+                    :is-hover="isHoveringOverMessage(item.message)"
+                    :is-info-open="isInfoOpen(item.message)"
+                    :is-blur="isBlur(item.message)"
+                    @hover-nick="setHoverNick"
+                />
+                <message-list-message-modern
+                    v-else-if="listType === 'modern'"
+                    :message="item.message"
+                    :ml="thisMl"
+                    :is-unread="isUnread(item.message)"
+                    :is-repeat="item.isRepeat"
+                    :is-hover="isHoveringOverMessage(item.message)"
+                    :is-info-open="isInfoOpen(item.message)"
+                    :is-blur="isBlur(item.message)"
+                    @hover-nick="setHoverNick"
+                />
+                <message-list-message-inline
+                    v-else-if="listType === 'inline'"
+                    :message="item.message"
+                    :ml="thisMl"
+                    :is-unread="isUnread(item.message)"
+                    :is-repeat="item.isRepeat"
+                    :is-hover="isHoveringOverMessage(item.message)"
+                    :is-info-open="isInfoOpen(item.message)"
+                    :is-blur="isBlur(item.message)"
+                    @hover-nick="setHoverNick"
+                />
+                <message-list-message-compact
+                    v-else-if="listType === 'compact'"
+                    :message="item.message"
+                    :ml="thisMl"
+                    :is-unread="isUnread(item.message)"
+                    :is-repeat="item.isRepeat"
+                    :is-hover="isHoveringOverMessage(item.message)"
+                    :is-info-open="isInfoOpen(item.message)"
+                    :is-blur="isBlur(item.message)"
+                    @hover-nick="setHoverNick"
+                />
+            </div>
+
+            <!-- Joining loader (bottom of list) -->
+            <transition v-else-if="item.type === 'joining'" name="kiwi-messagelist-joinloadertrans">
+                <div v-if="item.type === 'joining'" :key="'e'+item.key" class="kiwi-messagelist-joinloader">
                     <LoadingAnimation />
                 </div>
             </transition>
 
+            <!-- Channel key prompt (bottom of list) -->
             <buffer-key
-                v-if="shouldRequestChannelKey"
+                v-else-if="item.type === 'bufferkey'"
+                :key="'f'+item.key"
                 :buffer="buffer"
                 :network="buffer.getNetwork()"
             />
-        </div>
+        </VList>
     </div>
 </template>
 
 <script>
 'kiwi public';
 
-import { watch } from 'vue';
+import { debounce } from 'lodash';
+import { watch, nextTick } from 'vue';
 import strftime from 'strftime';
+import { VList } from 'virtua/vue';
 import Logger from '@/libs/Logger';
 import * as bufferTools from '@/libs/bufferTools';
 import MessageListMessageCompact from './MessageListMessageCompact';
@@ -123,6 +160,7 @@ const BOTTOM_SCROLL_MARGIN = 60;
 
 export default {
     components: {
+        VList,
         MessageListMessageModern,
         MessageListMessageCompact,
         MessageListMessageInline,
@@ -135,13 +173,10 @@ export default {
             smooth_scroll: false,
             auto_scroll: true,
             force_smooth_scroll: null,
-            chathistoryAvailable: true,
             hover_nick: '',
             message_info_open: null,
-            timeToClose: false,
-            startClosing: false,
             selectedMessages: Object.create(null),
-            showMessages: false,
+            activeSeparator: null,
         };
     },
     computed: {
@@ -165,7 +200,9 @@ export default {
         },
         listType() {
             if (this.$state.setting('messageLayout')) {
-                log.info('Deprecation Warning: The config option \'messageLayout\' has been moved to buffers.messageLayout');
+                log.info(
+                    'Deprecation Warning: The config option \'messageLayout\' has been moved to buffers.messageLayout'
+                );
             }
             return this.buffer.setting('messageLayout') || this.$state.setting('messageLayout');
         },
@@ -173,15 +210,19 @@ export default {
             // Enables simple markdown formatting
             return this.buffer.setting('extra_formatting');
         },
-        shouldShowChathistoryTools() {
-            // Only show it if we're connected
+        shouldShowHistoryTools() {
             if (this.buffer.getNetwork().state !== 'connected') {
                 return false;
             }
 
-            let isCorrectBufferType = (this.buffer.isChannel() || this.buffer.isQuery());
-            let isSupported = !!this.buffer.getNetwork().ircClient.chathistory.isSupported();
-            return isCorrectBufferType && isSupported && this.buffer.flags.chathistory_available;
+            if (!this.buffer.isChannel() && !this.buffer.isQuery()) {
+                return false;
+            }
+
+            const isSupported = this.buffer.getNetwork().ircClient.chathistory.isSupported();
+            const isAvailable = this.buffer.flags.chathistory_available;
+
+            return isSupported && isAvailable;
         },
         shouldRequestChannelKey() {
             return this.buffer.getNetwork().state === 'connected' &&
@@ -193,33 +234,66 @@ export default {
                 this.buffer.getNetwork().nick :
                 '';
         },
-        filteredMessagesGroupedDay() {
-            // Group messages by day
+        messages() {
+            const items = [];
+            const embeds = [];
+            const dayMarkers = [];
 
-            const days = [];
-            let lastDay = null;
-            this.filteredMessages.forEach((message) => {
-                if (!lastDay || message.day_num !== lastDay) {
-                    days.push({ dayNum: message.day_num, messages: [] });
-                    lastDay = message.day_num;
+            const orderedMsgs = bufferTools.orderedMessages(this.buffer);
+            const showDayMarkers = this.shouldShowDayMarkers(orderedMsgs);
+
+            if (this.shouldShowHistoryTools) {
+                items.push({ type: 'scrollback', key: 'scrollback' });
+            }
+
+            let dayLast = null;
+            orderedMsgs.forEach((message, msgIdx) => {
+                if (showDayMarkers && (!dayLast || message.day_num !== dayLast)) {
+                    dayLast = message.day_num;
+                    dayMarkers.unshift(items.length);
+                    items.push({
+                        type: 'day',
+                        key: `day-${message.day_num}`,
+                        date: message.time,
+                    });
                 }
 
-                days[days.length - 1].messages.push(message);
+                if (this.shouldShowUnreadMarker(orderedMsgs, msgIdx)) {
+                    items.push({
+                        type: 'unread',
+                        key: 'unread',
+                    });
+                }
+
+                if (message.embed.payload) {
+                    embeds.push(items.length);
+                }
+
+                items.push({
+                    type: 'message',
+                    key: `msg-${message.id}`,
+                    message,
+                    msgIdx,
+                    isRepeat: this.isRepeat(orderedMsgs, msgIdx),
+                });
             });
 
-            return days;
-        },
-        filteredMessages() {
-            // Hack; We need to make vue aware that we depend on buffer.message_count in order to
-            // get the messagelist to update its DOM, as the change of message_count alerts
-            // us that the messages have changed. This is done so that vue does not have to make
-            // every emssage reactive which gets very expensive.
+            // Footer items
+            if (this.shouldShowJoiningLoader) {
+                items.push({ type: 'joining', key: 'joining' });
+            }
+            if (this.shouldRequestChannelKey) {
+                items.push({ type: 'bufferkey', key: 'bufferkey' });
+            }
 
-            /* eslint-disable no-unused-vars */
-            let ignoredVar = this.buffer.message_count;
-
-            return bufferTools.orderedMessages(this.buffer);
+            return { items, embeds, dayMarkers };
         },
+        keepMounted() {
+            return this.activeSeparator !== null
+                ? this.messages.embeds.concat(this.activeSeparator)
+                : this.messages.embeds;
+        },
+
         shouldShowJoiningLoader() {
             return this.buffer.isChannel() &&
                 this.buffer.enabled &&
@@ -245,35 +319,44 @@ export default {
 
             this.auto_scroll = true;
             this.force_smooth_scroll = false;
-            this.$nextTick(() => {
+            nextTick(() => {
                 this.scrollToBottom();
             });
         },
     },
+    created() {
+        this.setHoverNick = debounce(
+            (nick) => {
+                this.hover_nick = nick;
+            },
+            600,
+            {
+                maxWait: 600,
+                leading: true,
+                trailing: true,
+            }
+        );
+    },
     mounted() {
         this.addCopyListeners();
 
-        this.$nextTick(() => {
+        nextTick(() => {
             this.scrollToBottom();
-            // this.smooth_scroll = true;
         });
 
-        // this watcher was moved here due to it firing before mounted() could scroll
-        // to the bottom, this resulted in auto_scroll being set to false
+        // Watch message_count to trigger auto-scroll when new messages arrive.
+        // With virtua we don't need a separate ResizeObserver for content height changes —
+        // virtua measures each item internally via its own ResizeObserver, and
+        // scrollToIndex will always land at the true bottom.
         watch(() => this.buffer.message_count, () => {
-            // Data has changed and now preparing to update the DOM.
-            // Check our scrolling state before the DOM updates so that we know
-            // if we're scrolled at the bottom before new messages are added
             this.checkScrollingState();
-            // Wait until after the DOM has updated before possibly scrolling down based on the
-            // previous check
-            this.$nextTick(() => {
+            nextTick(() => {
                 this.maybeScrollToBottom();
             });
         }, { deep: true });
 
         this.listen(this.$state, 'mediaviewer.opened', () => {
-            this.$nextTick(this.maybeScrollToBottom.apply(this));
+            nextTick(this.maybeScrollToBottom.apply(this));
         });
 
         this.listen(this.$state, 'messagelist.scrollto', (opt) => {
@@ -283,8 +366,52 @@ export default {
         });
     },
     methods: {
+        isUnread(message) {
+            return this.buffer.last_read && message.time > this.buffer.last_read;
+        },
+        shouldShowDayMarkers(messages) {
+            let dayNum = null;
+            return messages.some((m) => {
+                if (dayNum == null) {
+                    dayNum = m.day_num;
+                }
+                return m.day_num != null && m.day_num !== dayNum;
+            });
+        },
+        isRepeat(messages, idx) {
+            if (idx <= 1) {
+                return false;
+            }
+
+            const current = messages[idx];
+            const previous = messages[idx - 1];
+
+            if (current.nick !== previous.nick) {
+                return false;
+            }
+
+            if (current.type !== previous.type) {
+                return false;
+            }
+
+            if (current.type === 'traffic') {
+                return false;
+            }
+
+            if (current.time - previous.time >= 60000) {
+                return false;
+            }
+
+            return true;
+        },
         isHoveringOverMessage(message) {
-            return message.nick && message.nick.toLowerCase() === this.hover_nick.toLowerCase();
+            return message.nick && message.nick.toLowerCase() === this.hover_nick;
+        },
+        isInfoOpen(message) {
+            return this.message_info_open === message;
+        },
+        isBlur(message) {
+            return this.message_info_open && this.message_info_open !== message;
         },
         toggleMessageInfo(message) {
             if (!message) {
@@ -302,48 +429,37 @@ export default {
                 }
 
                 this.message_info_open = message;
-                this.$nextTick(() => this.maybeScrollToId(message.id));
+                nextTick(() => this.maybeScrollToId(message.id));
             }
         },
-        shouldShowUnreadMarker(message) {
-            let idx = this.filteredMessages.indexOf(message);
-            let previous = this.filteredMessages[idx - 1];
-            let current = this.filteredMessages[idx];
-            let lastRead = this.buffer.last_read;
-
-            if (!lastRead) {
+        shouldShowUnreadMarker(messages, idx) {
+            const lastRead = this.buffer.last_read;
+            if (!lastRead || idx <= 1) {
                 return false;
             }
 
-            if (!current) {
-                return false;
-            }
+            const current = messages[idx];
+            const previous = messages[idx - 1];
 
-            // If the last message has been read, and this message not read
-            if (previous && previous.time < lastRead && current.time > lastRead) {
+            if (previous.time < lastRead && current.time > lastRead) {
                 return true;
             }
 
             return false;
         },
-        shouldShowDateChangeMarker(idx) {
-            let previous = this.filteredMessages[idx - 1];
-            let current = this.filteredMessages[idx];
-
-            if (!previous && (new Date(current.time)).getDay() !== (new Date()).getDay()) {
-                // The first message of the lsit and it's not today
-                return true;
-            } else if (!previous) {
-                // The first message of the lsit but it's today
-                return false;
+        itemProps(item) {
+            if (this.activeSeparator === null || item.index !== this.activeSeparator) {
+                return {};
             }
 
-            // If the last message has been read, and this message not read
-            if ((new Date(previous.time)).getDay() !== (new Date(current.time)).getDay()) {
-                return true;
-            }
-
-            return false;
+            return {
+                style: {
+                    position: 'sticky',
+                    top: '-1px',
+                    zIndex: 1,
+                    backgroundColor: 'var(--brand-default-bg)',
+                },
+            };
         },
         canShowInfoForMessage(message) {
             let showInfoForTypes = ['privmsg', 'notice', 'action'];
@@ -406,6 +522,13 @@ export default {
             this.$state.$emit('input.insertnick', nick);
         },
         onMessageClick(event, message, delay) {
+            if (this.message_info_open && this.message_info_open !== message) {
+                // Clicking on another message while another info is open, just close the info
+                this.toggleMessageInfo();
+                event.preventDefault();
+                return;
+            }
+
             // Delaying the click for 200ms allows us to check for a second click. ie. double click
             // Quick hack as we only need double click for nicks, nothing else
             if (delay && event.target.getAttribute('data-nick')) {
@@ -449,13 +572,6 @@ export default {
                 return;
             }
 
-            if (this.message_info_open && this.message_info_open !== message) {
-                // Clicking on another message while another info is open, just close the info
-                this.toggleMessageInfo();
-                event.preventDefault();
-                return;
-            }
-
             if (this.$state.ui.is_touch && this.$state.setting('buffers.show_message_info')) {
                 if (this.canShowInfoForMessage(message) && event.target.nodeName === 'A') {
                     // We show message info boxes on touch screen devices so that the user has an
@@ -466,14 +582,33 @@ export default {
                 this.toggleMessageInfo(message);
             }
         },
-        checkScrollingState() {
-            let el = this.$refs.scroller;
-            let scrolledUpByPx = el.scrollHeight - (el.offsetHeight + el.scrollTop);
+        /**
+         * Called from VList's @scroll event (virtua emits scroll as the container scrolls).
+         * We derive auto_scroll from how close we are to the bottom.
+         */
+        onVListScroll() {
+            if (!this.$refs.vlist) {
+                return;
+            }
+            const start = this.$refs.vlist.findItemIndex(this.$refs.vlist.scrollOffset);
+            this.activeSeparator = this.messages.dayMarkers.find((index) => start >= index) || null;
 
-            // We need to know at this point (before the DOM has updated with new messages) if we
-            // are at the bottom of the messagelist or not, otherwise once the DOM has updated then
-            // it is too late to determine if we should auto scroll down
-            if (scrolledUpByPx > BOTTOM_SCROLL_MARGIN) {
+            this.checkScrollingState();
+        },
+
+        checkScrollingState() {
+            const vlist = this.$refs.vlist;
+            if (!vlist) return;
+
+            // virtua exposes scrollOffset (pixels from top) and scrollSize (total virtual height)
+            // The viewport size is the VList element's own clientHeight
+            const scrollOffset = vlist.scrollOffset;
+            const totalSize = vlist.scrollSize;
+            const viewportSize = vlist.$el ? vlist.$el.clientHeight : 0;
+
+            const distanceFromBottom = totalSize - scrollOffset - viewportSize;
+
+            if (distanceFromBottom > BOTTOM_SCROLL_MARGIN) {
                 this.auto_scroll = false;
                 this.buffer.isMessageTrimming = false;
             } else {
@@ -484,12 +619,6 @@ export default {
             if (this.force_smooth_scroll !== null) {
                 this.smooth_scroll = this.force_smooth_scroll;
                 this.force_smooth_scroll = null;
-            // TODO: Enabling smooth_scroll breaks the auto-scroll-to-bottom on fast buffers as
-            //       it takes time to scroll down and it looks like we're scrolled too far up when
-            //       detecting if were scrolled up or not. Look into ways around this so that we
-            //       can enable it as it does look a lot better.
-            // } else if (scrolledUpByPx < BOTTOM_SCROLL_MARGIN) {
-            //    this.smooth_scroll = true;
             } else {
                 this.smooth_scroll = false;
             }
@@ -500,69 +629,61 @@ export default {
             this.maybeScrollToBottom();
         },
         scrollToBottom() {
-            // This is triggered from a $nextTick, ensure scroller still exists
-            if (!this.$refs.scroller) {
-                return;
-            }
-            this.$refs.scroller.scrollTop = this.$refs.scroller.scrollHeight;
+            const vlist = this.$refs.vlist;
+            if (!vlist) return;
+            // scrollToIndex with { align: 'end' } snaps to the last item's bottom edge.
+            // This is O(1) regardless of list size — virtua knows item positions mathematically.
+            // vlist.scrollToIndex(this.flatItems.length - 1, { align: 'end' });
+            vlist.scrollTo(Number.MAX_SAFE_INTEGER);
         },
         maybeScrollToBottom() {
             if (this.auto_scroll) {
                 this.scrollToBottom();
             }
         },
+        /**
+         * Scroll to a specific message by id.
+         * We find its index in flatItems then use virtua's scrollToIndex.
+         */
         maybeScrollToId(id, position = 'middle') {
-            // This is triggered from a $nextTick, ensure scroller still exists
-            if (!this.$refs.scroller) {
-                return;
-            }
-            let msgEl = this.$refs.scroller.querySelector('.kiwi-messagelist-message[data-message-id="' + id + '"]');
-            if (!msgEl) {
-                return;
-            }
+            const vlist = this.$refs.vlist;
+            if (!vlist) return;
 
-            let newTop = 0;
-            if (position === 'top') {
-                // There maybe a sticky unread marker at the top
-                newTop = msgEl.offsetTop;
-            } else if (position === 'bottom') {
-                newTop = Math.floor(
-                    msgEl.offsetTop - this.$refs.scroller.offsetHeight + msgEl.offsetHeight
-                );
-            } else {
-                newTop = Math.floor(
-                    msgEl.offsetTop - ((this.$refs.scroller.offsetHeight - msgEl.offsetHeight) / 2)
-                );
-            }
+            const idx = this.messages.items.findIndex(
+                (item) => item.type === 'message' && item.message.id === id
+            );
+            if (idx === -1) return;
+
+            const alignMap = { top: 'start', middle: 'center', bottom: 'end' };
+            const align = alignMap[position] || 'center';
 
             this.auto_scroll = false;
-            this.$refs.scroller.scrollTo({ top: newTop, behavior: 'smooth' });
+            vlist.scrollToIndex(idx, { align, smooth: true });
         },
         getSelectedMessages() {
             let sel = document.getSelection();
             let r = sel.getRangeAt(0);
-            let messageEls = [...this.$refs.scroller.querySelectorAll('.kiwi-messagelist-message')];
+            // VList still renders real DOM nodes for visible items, so querySelector still works
+            let messageEls = [...(this.$refs.vlist?.$el || this.$refs.scrollerEl).querySelectorAll('.kiwi-messagelist-message')];
             let selectedMessageEls = messageEls.filter((el) => r.intersectsNode(el));
             return selectedMessageEls;
         },
-        restrictTextSelection() { // Prevents the selection cursor escaping the message list.
+        restrictTextSelection() {
             document.querySelector('body').classList.add('kiwi-unselectable');
-            this.$refs.scroller.style.userSelect = 'text';
+            if (this.$refs.vlist?.$el) this.$refs.vlist.$el.style.userSelect = 'text';
         },
-        unrestrictTextSelection() { // Allows all page elements to be selected again.
+        unrestrictTextSelection() {
             document.querySelector('body').classList.remove('kiwi-unselectable');
-            this.$refs.scroller.style.userSelect = 'auto';
+            if (this.$refs.vlist?.$el) this.$refs.vlist.$el.style.userSelect = 'auto';
         },
         removeSelections(removeNative = false) {
             this.selectedMessages = Object.create(null);
-
             let selection = document.getSelection();
             if (removeNative && selection) {
-                // stops the native browser selection being left behind after ctrl+c
                 selection.removeAllRanges();
             }
         },
-        addCopyListeners() { // Better copy pasting
+        addCopyListeners() {
             const LogFormatter = (msg) => {
                 let text = '';
 
@@ -590,13 +711,12 @@ export default {
             let selectionChangeOff = null;
 
             this.listen(document, 'selectstart', (e) => {
-                if (!this.$refs.scroller.contains(e.target)) {
-                    // Selected elsewhere on the page
+                const listEl = this.$refs.vlist?.$el || this.$refs.scrollerEl;
+                if (!listEl || !listEl.contains(e.target)) {
                     copyData = '';
                     this.removeSelections();
                     return;
                 }
-
                 this.removeSelections();
                 selectionChangeOff = this.listen(document, 'selectionchange', onSelectionChange);
             });
@@ -611,17 +731,18 @@ export default {
             });
 
             let onSelectionChange = (e) => {
-                if (!this.$refs.scroller) {
+                if (!this.$refs.scrollerEl) {
                     return true;
                 }
 
-                copyData = ''; // Store the text data to be copied in this.
-
+                copyData = '';
                 let selection = document.getSelection();
 
+                const listEl = this.$refs.vlist?.$el || this.$refs.scrollerEl;
                 if (!selection
-                || !selection.anchorNode
-                || !selection.anchorNode.parentNode.closest('.' + this.$refs.scroller.className)) {
+                    || !selection.anchorNode
+                    || !listEl
+                    || !listEl.contains(selection.anchorNode)) {
                     this.unrestrictTextSelection();
                     this.removeSelections();
                     return true;
@@ -630,6 +751,7 @@ export default {
                 this.removeSelections();
                 // Prevent the selection escaping the message list
                 this.restrictTextSelection();
+
                 if (selection.rangeCount > 0) {
                     selecting = true;
 
@@ -667,11 +789,10 @@ export default {
             };
 
             this.listen(document, 'copy', (e) => {
-                if (!copyData || !copyData.length) { // Just do a normal copy if no special data
+                if (!copyData || !copyData.length) {
                     return true;
                 }
-
-                if (navigator.clipboard) { // Supports Clipboard API
+                if (navigator.clipboard) {
                     navigator.clipboard.writeText(copyData);
                 } else {
                     let input = document.createElement('textarea');
@@ -738,10 +859,20 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
 }
 
 .kiwi-messagelist {
-    overflow-y: auto;
-    overflow-x: hidden;
+    /* No overflow here — VList owns the scroll container internally.
+       This div is a layout-only wrapper that gives VList its height. */
+    overflow: hidden;
     box-sizing: border-box;
     position: relative;
+    height: 100%;
+}
+
+/* VList renders its own div; we make it fill the wrapper completely */
+.kiwi-messagelist-vlist {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .kiwi-messagelist--showtyping {
@@ -908,9 +1039,6 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     text-align: center;
     display: block;
     margin: 1em auto;
-    position: sticky;
-    top: -1px;
-    z-index: 1;
 }
 
 .kiwi-messagelist-seperator > span {
@@ -1060,6 +1188,41 @@ div.kiwi-messagelist-item.kiwi-messagelist-item--selected .kiwi-messagelist-mess
     .kiwi-messagelist-message {
         margin: 0;
     }
+}
+
+.kiwi-messagelist-scroll-bottom {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    z-index: 10;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--brand-primary);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    opacity: 0.9;
+    transition: opacity 0.15s;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.kiwi-messagelist-scrollbtn-enter-active,
+.kiwi-messagelist-scrollbtn-leave-active {
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.kiwi-messagelist-scrollbtn-enter-from,
+.kiwi-messagelist-scrollbtn-leave-to {
+    opacity: 0;
+    transform: translateY(8px);
 }
 
 </style>

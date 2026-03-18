@@ -2,6 +2,7 @@ import { TextNode } from 'lexical';
 import { CodeNode } from '@/libs/lexical/CodeNode';
 import { EmojiNode } from '@/libs/lexical/EmojiNode';
 import { UserNode } from '@/libs/lexical/UserNode';
+import { BufferNode } from '@/libs/lexical/BufferNode';
 import { AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
 import { BOUNDARY_CHARACTER, $isSpecialOrFormatted } from '@/libs/lexical/BoundaryPlugin';
 
@@ -41,6 +42,10 @@ describe('$isSpecialOrFormatted', () => {
 
     it('returns true for UserNode', () => {
         expect($isSpecialOrFormatted(makeNode(UserNode))).toBe(true);
+    });
+
+    it('returns true for BufferNode', () => {
+        expect($isSpecialOrFormatted(makeNode(BufferNode))).toBe(true);
     });
 
     // AutocompleteNode extends TextNode, so the exemption guard must fire

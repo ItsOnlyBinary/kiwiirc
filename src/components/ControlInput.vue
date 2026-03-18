@@ -74,6 +74,7 @@
                         @focus="focusChanged"
                         @blur="focusChanged"
                         @autocompleteEnded="onAutocompleteCancel"
+                        @autocompleteReverted="onAutocompleteReverted"
                     />
                 </div>
                 <div
@@ -428,6 +429,17 @@ export default {
             }
             this.autocomplete_open = false;
         },
+        onAutocompleteReverted(type) {
+            let items = [];
+            if (type === 'user') {
+                items = this.buildAutoCompleteItems({ users: true });
+            } else if (type === 'buffer') {
+                items = this.buildAutoCompleteItems({ buffers: true });
+            }
+            this.openAutoComplete(items);
+            this.autocomplete_filtering = true;
+            this.autocomplete_filter = '';
+        },
         onAutocompleteTemp(selectedValue, selectedItem) {
             console.log('autocompleteTemp', selectedValue);
             this.$refs.input.updateAutocomplete(selectedItem);
@@ -439,7 +451,7 @@ export default {
                 this.$refs.input.finaliseAutocomplete(
                     selectedItem,
                     this.network,
-                    !wasSpaceTriggered,
+                    wasSpaceTriggered,
                 );
             } else {
                 this.$refs.input.cancelAutocomplete();
@@ -561,20 +573,54 @@ export default {
                 if (currentToken[0] === '@') {
                     currentToken = currentToken.substr(1);
                 }
-            } else if (currentToken === '@' && autocompleteTokens.includes('@')) {
+            } else if (event.key === '@' && currentToken === '@' && autocompleteTokens.includes('@')) {
                 // Just typed @ so start the nick auto completion
                 const items = this.buildAutoCompleteItems({ users: true });
                 this.$refs.input.createAutocomplete();
                 this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
-            } else if (inputVal === '/' && autocompleteTokens.includes('/')) {
+            } else if (event.key === '/' && inputVal === '/' && autocompleteTokens.includes('/')) {
                 // Just typed / so start the command auto completion
                 const items = this.buildAutoCompleteItems({ commands: true });
                 this.$refs.input.createAutocomplete();
                 this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
-            } else if (currentToken === '#' && autocompleteTokens.includes('#')) {
-                // Just typed # so start the command auto completion
+            } else if (event.key === '#' && currentToken === '#' && autocompleteTokens.includes('#')) {
+                // Just typed # so start the buffer auto completion
+                const items = this.buildAutoCompleteItems({ buffers: true });
+                this.$refs.input.createAutocomplete();
+                this.openAutoComplete(items);
+                this.autocomplete_filtering = true;
+            } else if (
+                (event.key === 'Backspace' || event.key === 'Delete') &&
+                inputVal.length > 1 &&
+                inputVal.startsWith('/') &&
+                !inputVal.includes(' ') &&
+                autocompleteTokens.includes('/')
+            ) {
+                // Deleted back into an in-progress command — re-open command autocomplete
+                const items = this.buildAutoCompleteItems({ commands: true });
+                this.$refs.input.createAutocomplete();
+                this.openAutoComplete(items);
+                this.autocomplete_filtering = true;
+            } else if (
+                (event.key === 'Backspace' || event.key === 'Delete') &&
+                currentToken.length > 1 &&
+                currentToken.startsWith('@') &&
+                autocompleteTokens.includes('@')
+            ) {
+                // Deleted back into an in-progress @nick — re-open user autocomplete
+                const items = this.buildAutoCompleteItems({ users: true });
+                this.$refs.input.createAutocomplete();
+                this.openAutoComplete(items);
+                this.autocomplete_filtering = true;
+            } else if (
+                (event.key === 'Backspace' || event.key === 'Delete') &&
+                currentToken.length > 1 &&
+                currentToken.startsWith('#') &&
+                autocompleteTokens.includes('#')
+            ) {
+                // Deleted back into an in-progress #channel — re-open buffer autocomplete
                 const items = this.buildAutoCompleteItems({ buffers: true });
                 this.$refs.input.createAutocomplete();
                 this.openAutoComplete(items);

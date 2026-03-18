@@ -180,9 +180,7 @@ export default {
                     this.selectCurrentItem(
                         event.key === ' '
                     );
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                    }
+                    event.preventDefault();
                     handled = true;
                 }
             } else if (event.key === 'ArrowUp' || (event.key === 'Tab' && event.shiftKey)) {

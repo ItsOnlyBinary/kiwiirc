@@ -8,6 +8,7 @@ module.exports = {
             if_return: true,
             sequences: true,
             unused: true,
+            pure_getters: false,
         },
         mangle: {
             safari10: true,

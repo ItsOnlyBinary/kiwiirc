@@ -31,6 +31,8 @@ export default function html2irc(source) {
 
     const openTags = [];
     let checkSpace = false;
+    let pendingIrcText = '';
+    let pendingCurrentIrcStyle = Object.assign({}, defaultIrcStyle);
 
     const parser = new htmlparser.Parser({
         onopentag: (name, attribs) => {
@@ -52,55 +54,93 @@ export default function html2irc(source) {
                 return;
             }
 
+            const style = getStyleObjectFromCSS(attribs.style || '');
+            const ircStyle = style2IrcStyle(style);
+            const ircStyleDiff = getIrcStyleDiff(currentIrcStyle, ircStyle);
+
             if (attribs.class === CODE_NODE_CLASS) {
                 openTags.push('code');
-                if (ircText && !ircText.endsWith(' ')) {
-                    ircText += ' ';
+
+                if (ircStyleDiff) {
+                    pendingIrcText += '\x0f';
+                    pendingCurrentIrcStyle = ircStyleDiff;
+                    if (ircText && ircText.endsWith(' ')) {
+                        // Steal space from end of ircText, it will be added back after reset char
+                        ircText = ircText.slice(0, -1);
+                        pendingIrcText += ' ';
+                    }
+                    pendingIrcText += '`';
+                } else if (ircText && !ircText.endsWith(' ')) {
+                    ircText += ' `';
+                } else {
+                    ircText += '`';
                 }
-                ircText += '`';
+
                 return;
             }
 
             openTags.push(name);
 
-            const style = getStyleObjectFromCSS(attribs.style || '');
-            const ircStyle = style2IrcStyle(style);
-            const ircStyleDiff = getIrcStyleDiff(currentIrcStyle, ircStyle);
-
             if (!ircStyleDiff) {
                 return;
             }
 
-            ircText += ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff);
-
-            Object.assign(currentIrcStyle, ircStyleDiff);
+            pendingIrcText += ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff);
+            pendingCurrentIrcStyle = ircStyleDiff;
         },
         ontext: (text) => {
+            let newText = text;
             const tag = openTags[openTags.length - 1];
             if (tag === 'emoji') {
                 return;
             }
 
-            if (
-                (startsWithCommaDecimalRegexp.test(text) && endsWithFgColourRegexp.test(ircText))
-                || (startsWithDecimalRegexp.test(text) && endsWithResetColourRegexp.test(ircText))
-            ) {
-                ircText += '\u2008';
+            const normalized = text.replace(zeroWidthSpaceRegexp, '');
+            if (normalized === '') {
+                // Empty node skip
+                return;
             }
 
-            const newText = text.replace(zeroWidthSpaceRegexp, '');
+            if (normalized.trim() === '') {
+                // Only whitespace, no formatting needed
+                ircText += normalized;
+                return;
+            }
 
             if (checkSpace) {
                 checkSpace = false;
-                if (ircText.slice(-1) !== ' ') {
+                if (!ircText.endsWith(' ')) {
+                    // Needs to start with space
                     ircText += ' ';
+
+                    if (newText.startsWith(' ')) {
+                        // Space was stolen from start of newText
+                        newText = newText.slice(1);
+                    }
                 }
+            }
+
+            if (pendingIrcText) {
+                ircText += pendingIrcText;
+                pendingIrcText = '';
+
+                Object.assign(currentIrcStyle, pendingCurrentIrcStyle);
+            }
+
+            if (
+                (startsWithCommaDecimalRegexp.test(newText) && endsWithFgColourRegexp.test(ircText))
+                || (startsWithDecimalRegexp.test(newText) && endsWithResetColourRegexp.test(ircText))
+            ) {
+                ircText += '\u2008';
             }
 
             ircText += newText;
         },
         onclosetag: () => {
             const previousTag = openTags.pop();
+
+            pendingIrcText = '';
+
             if (previousTag === 'code') {
                 ircText += '`';
                 checkSpace = true;

@@ -41,14 +41,26 @@ const tests = [
         html: '<p dir="ltr"><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test</span><span style="color: var(--irc-colour-04); background-color: var(--irc-colour-01); white-space: pre-wrap;">test</span><span style="color: var(--irc-colour-03); white-space: pre-wrap;">test</span></p>',
         irc: '\x0304test\x0304,01test\x03\x0303test',
     },
-    // {
-    //     html: '<p dir="ltr"><span class="code-node" style="white-space: pre-wrap;">`test`</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;"> test</span></p>',
-    //     irc: '`test` \x0304test',
-    // },
-    // {
-    //     html: '<p dir="ltr"><span class="code-node" style="white-space: pre-wrap;">`test`</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test</span></p>',
-    //     irc: '`test` \x0304test',
-    // },
+    {
+        html: '<p><span style="white-space: pre-wrap;">\u200B</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test </span><span style="white-space: pre-wrap;">\u200B</span><span style="color: var(--irc-colour-02); white-space: pre-wrap;"> </span><span style="white-space: pre-wrap;">\u200B</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test</span><span style="white-space: pre-wrap;">\u200B</span></p>',
+        irc: '\u000304test  test',
+    },
+    {
+        html: '<p dir="ltr"><span class="code-node" style="white-space: pre-wrap;">test</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;"> test</span></p>',
+        irc: '`test` \x0304test',
+    },
+    {
+        html: '<p dir="ltr"><span class="code-node" style="white-space: pre-wrap;">test</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test</span></p>',
+        irc: '`test` \x0304test',
+    },
+    {
+        html: '<p><span style="white-space: pre-wrap;">\u200B</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test </span><span style="white-space: pre-wrap;">\u200B</span><span class="emoji-node" data-code=":)" style="background-image: url(&quot;https://kiwiirc.com/shared/emoji/1f642.png&quot;); white-space: pre-wrap;"> </span><span style="white-space: pre-wrap;">\u200B</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;"> test</span><span style="white-space: pre-wrap;">\u200B</span></p>',
+        irc: '\x0304test :) test',
+    },
+    {
+        html: '<p><span style="white-space: pre-wrap;">\u200B</span><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test </span><span style="white-space: pre-wrap;">\u200B</span><span class="code-node" spellcheck="false" style="white-space: pre-wrap;">test</span><span style="white-space: pre-wrap;"> </span><span style="color: var(--irc-colour-04); white-space: pre-wrap;">test</span><span style="white-space: pre-wrap;">\u200B</span></p>',
+        irc: '\x0304test\x0f `test` \x0304test'
+    }
 ];
 
 describe('Html2Irc.js', () => {
@@ -56,9 +68,9 @@ describe('Html2Irc.js', () => {
         it(`should output valid irc formatting codes [${idx}]`, () => {
             const irc = html2irc(test.html);
             expect(
-                inspect(test.irc, { showHidden: true, colors: true })
-            ).toEqual(
                 inspect(irc, { showHidden: true, colors: true })
+            ).toEqual(
+                inspect(test.irc, { showHidden: true, colors: true })
             );
         });
     });

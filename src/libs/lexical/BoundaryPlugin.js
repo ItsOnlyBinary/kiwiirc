@@ -4,7 +4,7 @@ import {
     $getSelection,
     COMMAND_PRIORITY_NORMAL,
     KEY_DOWN_COMMAND,
-    TextNode,
+    TextNode
 } from 'lexical';
 import { $patchStyleText } from '@lexical/selection';
 import { mergeRegister } from '@lexical/utils';
@@ -137,7 +137,7 @@ function $boundaryCleanupTransform(node) {
 // keystroke would inherit the split node's formatting, making the boundary node
 // styled and immediately triggering the ZWS cleanup loop.
 const CLEAR_STYLE = {
-    color: null,
+    'color': null,
     'background-color': null,
     'font-weight': null,
     'font-style': null,

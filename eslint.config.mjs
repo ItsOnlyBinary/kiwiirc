@@ -11,6 +11,7 @@ import pluginVueA11y from 'eslint-plugin-vuejs-accessibility';
 import pluginImport from 'eslint-plugin-import';
 import pluginStylistic from '@stylistic/eslint-plugin';
 import kiwiirc from '@kiwiirc/eslint-plugin';
+import pluginVitest from 'eslint-plugin-vitest';
 
 import * as utils from './build/utils.js';
 
@@ -284,6 +285,22 @@ export default [
     },
 
     {
-        ignores: ['dist', 'tests', '**.old.**'],
+        files: ['tests/**/*.spec.js'],
+        languageOptions: {
+            globals: {
+                ...globals.vitest,
+            },
+        },
+        plugins: { vitest: pluginVitest },
+        rules: {
+            ...pluginVitest.configs.recommended.rules,
+            // import rules don't apply to test files
+            'import/extensions': 'off',
+            'import/no-unresolved': 'off',
+        },
+    },
+
+    {
+        ignores: ['dist', '**.old.**'],
     },
 ];

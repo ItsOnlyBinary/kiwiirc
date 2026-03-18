@@ -94,7 +94,9 @@ describe('MessageParser.js', () => {
             nick: user.nick,
             username: user.username,
             colour: user.colour || '',
-            getColour: function getColour() { return this.colour; },
+            getColour: function getColour() {
+                return this.colour;
+            },
         });
 
         // mock users list

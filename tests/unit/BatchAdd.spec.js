@@ -32,57 +32,53 @@ describe('batchedAdd.vue', () => {
         expect(batch.queue()).toEqual([]);
     });
 
-    it('should process three items without a batch', (done) => {
+    it('should process three items without a batch', () => {
         let itemCount = 0;
+        let batchCalled = false;
         let singleItem = () => {
             itemCount++;
-            if (itemCount === 3) {
-                done();
-            }
         };
         let batchItems = () => {
-            done(new Error('batch item caught'));
+            batchCalled = true;
         };
 
         let batch = batchedAdd(singleItem, batchItems);
         batch('item1');
         batch('item2');
         batch('item3');
+
+        expect(itemCount).toBe(3);
+        expect(batchCalled).toBe(false);
     });
 
-    it('should process 100 items on the same js tick without a batch', (done) => {
+    it('should process 100 items on the same js tick without a batch', () => {
         let itemCount = 0;
+        let batchCalled = false;
         let singleItem = () => {
             itemCount++;
-            if (itemCount === 100) {
-                done();
-            }
         };
         let batchItems = () => {
-            done(new Error('batch item caught'));
+            batchCalled = true;
         };
 
         let batch = batchedAdd(singleItem, batchItems);
         for (let i = 0; i < 100; i++) {
             batch('item' + i);
         }
+
+        expect(itemCount).toBe(100);
+        expect(batchCalled).toBe(false);
     });
 
-    it('should process 102 single items, then a batch of 3', (done) => {
+    it('should process 102 single items, then a batch of 3', () => new Promise((resolve) => {
         let singleCount = 0;
         let singleItem = () => {
             singleCount++;
         };
         let batchItems = (items) => {
-            if (singleCount !== 102) {
-                return done(new Error('Expected 102 single items, found ' + singleCount));
-            }
-
-            if (items.length === 1) {
-                return done(new Error('Expected 3 batched items, found ' + items.length));
-            }
-
-            return done();
+            expect(singleCount).toBe(102);
+            expect(items.length).toBeGreaterThan(1);
+            resolve();
         };
 
         let batch = batchedAdd(singleItem, batchItems);
@@ -90,55 +86,45 @@ describe('batchedAdd.vue', () => {
             batch('item' + i);
         }
         outOfTickItems(batch, 5);
-    });
+    }));
 
-    it('should process a batched item after three single items on different js ticks', (done) => {
+    it('should process a batched item after three single items on different js ticks', () => new Promise((resolve) => {
         let singleCount = 0;
         let singleItem = () => {
             singleCount++;
-            if (singleCount > 3) {
-                done(new Error('Expected 3 single items before a batch, found ' + singleCount));
-            }
+            expect(singleCount).toBeLessThanOrEqual(3);
         };
         let batchItems = () => {
-            if (singleCount !== 3) {
-                done(new Error('Expected 3 single items before a batch, found ' + singleCount));
-            } else {
-                done();
-            }
+            expect(singleCount).toBe(3);
+            resolve();
         };
 
         let batch = batchedAdd(singleItem, batchItems);
         outOfTickItems(batch, 4);
-    });
+    }));
 
-    it('should process 3 items in a batch', (done) => {
-        let singleItem = (item) => {};
+    it('should process 3 items in a batch', () => new Promise((resolve) => {
+        let singleItem = () => {};
         let batchItems = (items) => {
-            if (items.length !== 3) {
-                done(new Error(`Expected 3 items in a batch, found ${items.length}`));
-            } else {
-                done();
-            }
+            expect(items.length).toBe(3);
+            resolve();
         };
 
         let batch = batchedAdd(singleItem, batchItems);
         outOfTickItems(batch, 6);
-    });
+    }));
 
-    it('should process a single item after a batch has finished', (done) => {
+    it('should process a single item after a batch has finished', () => new Promise((resolve) => {
         let singleCount = 0;
         let batchCount = 0;
         let singleItem = () => {
             if (singleCount === 3 && batchCount === 1) {
-                done();
+                resolve();
             }
             singleCount++;
         };
-        let batchItems = (items) => {
-            if (batchCount > 0) {
-                done(new Error('Processing a batch more than once'));
-            }
+        let batchItems = () => {
+            expect(batchCount).toBe(0);
             batchCount++;
         };
 
@@ -149,18 +135,19 @@ describe('batchedAdd.vue', () => {
                 batch('item7');
             }, 1200);
         });
-    });
+    }));
 
-    it('should process 4 single items', (done) => {
+    it('should process 4 single items', () => new Promise((resolve) => {
         let singleCount = 0;
         let singleItem = () => {
             singleCount++;
             if (singleCount === 4) {
-                done();
+                expect(singleCount).toBe(4);
+                resolve();
             }
         };
-        let batchItems = (items) => {
-            done(new Error('Items should not be batched'));
+        let batchItems = () => {
+            expect.unreachable('Items should not be batched');
         };
 
         let batch = batchedAdd(singleItem, batchItems);
@@ -170,5 +157,5 @@ describe('batchedAdd.vue', () => {
                 batch('item4');
             }, 1200);
         });
-    }, 3000);
+    }), 3000);
 });

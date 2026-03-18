@@ -158,7 +158,8 @@ function ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff) {
 
     if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'fg')) {
         if (ircStyleDiff.fg) {
-            if (currentIrcStyle.bg && !ircStyleDiff.bg) {
+            const bgBeingRemoved = Object.prototype.hasOwnProperty.call(ircStyleDiff, 'bg') && !ircStyleDiff.bg;
+            if (currentIrcStyle.bg && bgBeingRemoved) {
                 ircCodes += '\x03';
             }
             ircCodes += `\x03${ircStyleDiff.fg}`;
@@ -171,7 +172,11 @@ function ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff) {
         }
     } else if (Object.prototype.hasOwnProperty.call(ircStyleDiff, 'bg')) {
         if (!ircStyleDiff.bg && currentIrcStyle.fg) {
-            ircCodes += `\x03\x03${currentIrcStyle.fg}`;
+            const hasActiveFormatting = currentIrcStyle.bold || currentIrcStyle.italic
+                || currentIrcStyle.underline || currentIrcStyle.strikethrough;
+            ircCodes += hasActiveFormatting
+                ? `\x03${currentIrcStyle.fg}`
+                : `\x03\x03${currentIrcStyle.fg}`;
         } else if (ircStyleDiff.bg && currentIrcStyle.fg) {
             ircCodes += `\x03${currentIrcStyle.fg},${ircStyleDiff.bg}`;
         }

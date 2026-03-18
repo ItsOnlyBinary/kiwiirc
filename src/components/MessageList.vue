@@ -272,6 +272,18 @@ export default {
             });
         }, { deep: true });
 
+        watch(
+            () => this.messages,
+            () => {
+                nextTick(
+                    () => requestAnimationFrame(
+                        () => this.$refs.vlist?.refresh()
+                    )
+                );
+            },
+            { deep: true }
+        );
+
         this.listen(this.$state, 'mediaviewer.opened', () => {
             this.$nextTick(this.maybeScrollToBottom.apply(this));
         });

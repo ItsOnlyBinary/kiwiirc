@@ -41,8 +41,10 @@ import { mergeRegister } from '@lexical/utils';
 import { registerPlainText } from '@lexical/plain-text';
 
 import { $createAutocompleteNode, AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
+import { $createBufferNode, BufferNode } from '@/libs/lexical/BufferNode';
 import { $createEmojiNode, EmojiNode } from '@/libs/lexical/EmojiNode';
 import { $createUserNode, UserNode } from '@/libs/lexical/UserNode';
+import { registerBuffer, registerUser } from '@/libs/lexical/IrcTokenPlugin';
 import { $getAllNodes } from '@/libs/lexical/helpers';
 import { CodeNode } from '@/libs/lexical/CodeNode';
 import { registerBoundary } from '@/libs/lexical/BoundaryPlugin';
@@ -79,6 +81,7 @@ const emit = defineEmits([
     'keyup',
     'textInput',
     'autocompleteEnded',
+    'autocompleteReverted',
 ]);
 
 let activeAutocompleteID = 0;
@@ -86,7 +89,7 @@ let nextAutocompleteID = 0;
 
 let editor = null;
 const editorConfig = {
-    nodes: [AutocompleteNode, CodeNode, EmojiNode, UserNode],
+    nodes: [AutocompleteNode, BufferNode, CodeNode, EmojiNode, UserNode],
 };
 const editorElement = useTemplateRef('editor-div');
 const editorListeners = [];
@@ -114,6 +117,44 @@ onMounted(() => {
         registerCode(editor),
         registerEmoji(editor),
         registerBoundary(editor),
+        registerUser(editor, {
+            onEdit: (node, text) => {
+                // Runs inside editor.update() — node.replace() is safe here.
+                // Prepend '@' so the user can see the trigger char and escape if needed.
+                activeAutocompleteID = ++nextAutocompleteID;
+                const ac = $createAutocompleteNode('@' + text, null, activeAutocompleteID);
+                node.replace(ac);
+                ac.selectEnd();
+                emit('autocompleteReverted', 'user');
+            },
+            onRevert: (textNode) => {
+                // Runs inside editor.update() — textNode is the plain-text replacement
+                // for the UserNode. Wrap it as an autocomplete node with '@' restored.
+                activeAutocompleteID = ++nextAutocompleteID;
+                const ac = $createAutocompleteNode('@' + textNode.getTextContent(), null, activeAutocompleteID);
+                textNode.replace(ac);
+                ac.selectEnd();
+                emit('autocompleteReverted', 'user');
+            },
+        }),
+        registerBuffer(editor, {
+            onEdit: (node, text) => {
+                activeAutocompleteID = ++nextAutocompleteID;
+                const ac = $createAutocompleteNode(text, null, activeAutocompleteID);
+                node.replace(ac);
+                ac.selectEnd();
+                emit('autocompleteReverted', 'buffer');
+            },
+            onRevert: (textNode) => {
+                // Runs inside editor.update() — textNode is the plain-text replacement
+                // for the BufferNode. Wrap it as an autocomplete node.
+                activeAutocompleteID = ++nextAutocompleteID;
+                const ac = $createAutocompleteNode(textNode.getTextContent(), null, activeAutocompleteID);
+                textNode.replace(ac);
+                ac.selectEnd();
+                emit('autocompleteReverted', 'buffer');
+            },
+        }),
     );
 
     // Register Listeners
@@ -150,11 +191,6 @@ onMounted(() => {
 
                 if (selection.isCollapsed() && nodes[0].getType() === 'autocomplete') {
                     insideAutocomplete = true;
-
-                    if (selection.anchor.offset !== nodes[0].getTextContent().length) {
-                        // Move cursor to end of autocomplete
-                        return { autocomplete: true };
-                    }
                 } else if (insideAutocomplete) {
                     insideAutocomplete = false;
                     emit('autocompleteEnded');
@@ -184,10 +220,7 @@ onMounted(() => {
                 const selection = $getSelection();
                 const nodes = selection.getNodes();
 
-                if (requiredUpdates.autocomplete) {
-                    console.log('updating caret position');
-                    nodes[0].selectEnd();
-                } else if (requiredUpdates.codeStyle) {
+                if (requiredUpdates.codeStyle) {
                     $patchStyleText(selection, defaultStyle);
                 }
             });
@@ -513,28 +546,66 @@ const findAutocompleteNode = () => {
 };
 
 const createAutocomplete = () => {
+    // If cursor is already inside an AutocompleteNode, re-register it rather than
+    // splitting it (which would corrupt the node and produce duplicate text).
+    let reuseId = null;
+    editor.read(() => {
+        const selection = $getSelection();
+        if (!selection?.isCollapsed()) return;
+        const node = selection.anchor.getNode();
+        if (node.getType() === 'autocomplete') reuseId = node.id;
+    });
+    if (reuseId !== null) {
+        activeAutocompleteID = reuseId;
+        return;
+    }
+
     if (activeAutocompleteID) {
         log.error('new autocomplete id overwrote existing');
     }
     activeAutocompleteID = ++nextAutocompleteID;
+    const id = activeAutocompleteID;
     editor.update(() => {
         const selection = $getSelection();
-        const node = selection.getNodes()[0];
+        if (!selection?.isCollapsed()) {
+            return;
+        }
+        const node = selection.anchor.getNode();
         const offset = selection.anchor.offset;
+        const text = node.getTextContent();
 
+        // Find the start of the current word (after last space, or beginning of node)
+        const textBeforeCursor = text.slice(0, offset);
+        const spaceIdx = textBeforeCursor.lastIndexOf(' ');
+        const wordStart = spaceIdx === -1 ? 0 : spaceIdx + 1;
+
+        // Isolate just the word segment [wordStart, offset) as its own node
         let targetNode;
-        if (offset === 1) {
-            [targetNode] = node.splitText(offset - 1, offset);
+        if (wordStart === 0 && offset === text.length) {
+            targetNode = node;
+        } else if (wordStart === 0) {
+            [targetNode] = node.splitText(offset);
+        } else if (offset === text.length) {
+            const splits = node.splitText(wordStart);
+            targetNode = splits[1];
         } else {
-            [, targetNode] = node.splitText(offset - 1, offset);
+            const splits = node.splitText(wordStart, offset);
+            targetNode = splits[1];
         }
 
         const autocompleteNode = $createAutocompleteNode(
             targetNode.getTextContent(),
             null,
-            activeAutocompleteID
+            id
         );
         targetNode.replace(autocompleteNode);
+        autocompleteNode.selectEnd();
+
+        // Clear any active text styling so the autocomplete node is unstyled
+        const newSelection = $getSelection();
+        if (newSelection) {
+            $patchStyleText(newSelection, defaultStyle);
+        }
     });
 };
 
@@ -550,11 +621,15 @@ const updateAutocomplete = (value) => {
 };
 
 const cancelAutocomplete = () => {
+    const id = activeAutocompleteID;
     activeAutocompleteID = null;
     editor.update(() => {
-        const node = findAutocompleteNode();
+        if (!id) {
+            return;
+        }
+        const node = $getAllNodes().find((n) => n.id === id);
         if (!node) {
-            log.error('could not find autocomplete node to cancel', activeAutocompleteID);
+            log.error('could not find autocomplete node to cancel', id);
             return;
         }
         const textNode = $createTextNode(node.getTextContent());
@@ -563,17 +638,24 @@ const cancelAutocomplete = () => {
 };
 
 const finaliseAutocomplete = (item, network, appendSpace) => {
+    const id = activeAutocompleteID;
     activeAutocompleteID = null;
     editor.update(() => {
-        const node = findAutocompleteNode();
+        if (!id) {
+            log.error('could not find autocomplete node to finalise, no id stored');
+            return;
+        }
+        const node = $getAllNodes().find((n) => n.id === id);
         if (!node) {
-            log.error('could not find autocomplete node to finalise', activeAutocompleteID);
+            log.error('could not find autocomplete node to finalise', id);
             return;
         }
 
         let finalNode;
         if (item.type === 'user') {
             finalNode = $createUserNode(network, item.user);
+        } else if (item.type === 'buffer') {
+            finalNode = $createBufferNode(item.value ?? item.text);
         } else {
             finalNode = $createTextNode(item.value ?? item.text);
         }
@@ -679,6 +761,10 @@ defineExpose({
 }
 
 .user-node {
+    cursor: pointer;
+}
+
+.buffer-node {
     cursor: pointer;
 }
 

@@ -13,6 +13,7 @@ import { AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
 import { $createCodeNode, CodeNode } from '@/libs/lexical/CodeNode';
 import { EmojiNode } from '@/libs/lexical/EmojiNode';
 import { UserNode } from '@/libs/lexical/UserNode';
+import { BufferNode } from '@/libs/lexical/BufferNode';
 
 // Placed in otherwise-empty text nodes so Lexical's normalizer does not remove
 // them (it only removes nodes where text === ''). Stripped from all IRC/text
@@ -31,6 +32,7 @@ export function $isSpecialOrFormatted(node) {
     if (node instanceof CodeNode) return true;
     if (node instanceof EmojiNode) return true;
     if (node instanceof UserNode) return true;
+    if (node instanceof BufferNode) return true;
     if (node instanceof TextNode) return node.getStyle() !== '';
     return true; // any other non-TextNode type is treated as special
 }
@@ -115,6 +117,7 @@ function $boundaryCleanupTransform(node) {
         node instanceof CodeNode ||
         node instanceof EmojiNode ||
         node instanceof UserNode ||
+        node instanceof BufferNode ||
         node instanceof AutocompleteNode
     ) {
         return;
@@ -169,6 +172,7 @@ export function $makeCtrlTHandler(editor) {
             const node = selection.anchor.getNode();
             if (node instanceof AutocompleteNode) return;
             if (node instanceof UserNode) return;
+            if (node instanceof BufferNode) return;
             if (node instanceof EmojiNode) return;
             if (node instanceof TextNode && !(node instanceof CodeNode) && node.getStyle() === '') return;
             shouldHandle = true;

@@ -66,7 +66,7 @@ export class AutocompleteNode extends TextNode {
     exportJSON() {
         return {
             ...super.exportJSON(),
-            type: 'text',
+            type: 'autocomplete',
         };
     }
 }
@@ -77,7 +77,10 @@ export function $createAutocompleteNode(content, item, id) {
 
 function updateRemainText(element, item, value) {
     if (item.type === 'user') {
-        element.innerText = item.text.slice(value.length - 1);
+        // When the autocomplete was triggered with '@', the value includes it as a
+        // prefix that is not part of the nick text — subtract 1 to align the slice.
+        const offset = value.startsWith('@') ? value.length - 1 : value.length;
+        element.innerText = item.text.slice(offset);
     } else {
         element.innerText = item.text.slice(value.length);
     }

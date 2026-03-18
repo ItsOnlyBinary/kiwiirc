@@ -27,128 +27,149 @@ const defaultIrcStyle = {
 export default function html2irc(source) {
     let ircText = '';
 
-    const currentIrcStyle = Object.assign({}, defaultIrcStyle);
-
     const openTags = [];
+    const currentStyle = { ...defaultIrcStyle };
+    let pendingStyle = { ...defaultIrcStyle };
+    let pendingText = '';
     let checkSpace = false;
-    let pendingIrcText = '';
-    let pendingCurrentIrcStyle = Object.assign({}, defaultIrcStyle);
 
-    const parser = new htmlparser.Parser({
-        onopentag: (name, attribs) => {
-            if (name === 'br') {
-                ircText += '\n';
-                return;
+    const append = (text) => {
+        ircText += text;
+    };
+
+    const appendPending = () => {
+        if (!pendingText) return;
+
+        append(pendingText);
+        pendingText = '';
+        Object.assign(currentStyle, pendingStyle);
+    };
+
+    const ensureLeadingSpace = (text) => {
+        if (!checkSpace) return text;
+
+        checkSpace = false;
+
+        if (!ircText.endsWith(' ')) {
+            append(' ');
+            if (text.startsWith(' ')) {
+                return text.slice(1);
+            }
+        }
+        return text;
+    };
+
+    const handleEmoji = (attribs) => {
+        openTags.push('emoji');
+
+        const emoji = attribs['data-code'];
+        if (!emoji) return;
+
+        const lastChar = ircText.slice(-1);
+        const needsSpace = lastChar && lastChar !== ' ';
+        append(needsSpace ? ` ${emoji}` : emoji);
+
+        checkSpace = true;
+    };
+
+    const handleCodeOpen = (ircStyleDiff) => {
+        openTags.push('code');
+
+        if (ircStyleDiff) {
+            pendingText += '\x0f';
+            pendingStyle = ircStyleDiff;
+
+            if (ircText.endsWith(' ')) {
+                ircText = ircText.slice(0, -1);
+                pendingText += ' ';
             }
 
-            if (attribs.class === EMOJI_NODE_CLASS) {
-                openTags.push('emoji');
-                const emoji = attribs['data-code'];
-                if (!emoji) {
+            pendingText += '`';
+            return;
+        }
+
+        if (ircText && !ircText.endsWith(' ')) {
+            append(' `');
+        } else {
+            append('`');
+        }
+    };
+
+    const handleStyleOpen = (name, attribs) => {
+        openTags.push(name);
+
+        const style = getStyleObjectFromCSS(attribs.style || '');
+        const ircStyle = style2IrcStyle(style);
+        const diff = getIrcStyleDiff(currentStyle, ircStyle);
+
+        if (!diff) return;
+
+        pendingText += ircStyleDiff2IrcCodes(currentStyle, diff);
+        pendingStyle = diff;
+    };
+
+    const parser = new htmlparser.Parser(
+        {
+            onopentag: (name, attribs) => {
+                if (name === 'br') {
+                    append('\n');
                     return;
                 }
-                const lastChar = ircText.slice(-1);
-                const needSpace = lastChar !== '' && lastChar !== ' ';
-                ircText += needSpace ? ` ${emoji}` : emoji;
-                checkSpace = true;
-                return;
-            }
 
-            const style = getStyleObjectFromCSS(attribs.style || '');
-            const ircStyle = style2IrcStyle(style);
-            const ircStyleDiff = getIrcStyleDiff(currentIrcStyle, ircStyle);
-
-            if (attribs.class === CODE_NODE_CLASS) {
-                openTags.push('code');
-
-                if (ircStyleDiff) {
-                    pendingIrcText += '\x0f';
-                    pendingCurrentIrcStyle = ircStyleDiff;
-                    if (ircText && ircText.endsWith(' ')) {
-                        // Steal space from end of ircText, it will be added back after reset char
-                        ircText = ircText.slice(0, -1);
-                        pendingIrcText += ' ';
-                    }
-                    pendingIrcText += '`';
-                } else if (ircText && !ircText.endsWith(' ')) {
-                    ircText += ' `';
-                } else {
-                    ircText += '`';
+                if (attribs.class === EMOJI_NODE_CLASS) {
+                    handleEmoji(attribs);
+                    return;
                 }
 
-                return;
-            }
+                const style = getStyleObjectFromCSS(attribs.style || '');
+                const ircStyle = style2IrcStyle(style);
+                const diff = getIrcStyleDiff(currentStyle, ircStyle);
 
-            openTags.push(name);
-
-            if (!ircStyleDiff) {
-                return;
-            }
-
-            pendingIrcText += ircStyleDiff2IrcCodes(currentIrcStyle, ircStyleDiff);
-            pendingCurrentIrcStyle = ircStyleDiff;
-        },
-        ontext: (text) => {
-            let newText = text;
-            const tag = openTags[openTags.length - 1];
-            if (tag === 'emoji') {
-                return;
-            }
-
-            const normalized = text.replace(zeroWidthSpaceRegexp, '');
-            if (normalized === '') {
-                // Empty node skip
-                return;
-            }
-
-            if (normalized.trim() === '') {
-                // Only whitespace, no formatting needed
-                ircText += normalized;
-                return;
-            }
-
-            if (checkSpace) {
-                checkSpace = false;
-                if (!ircText.endsWith(' ')) {
-                    // Needs to start with space
-                    ircText += ' ';
-
-                    if (newText.startsWith(' ')) {
-                        // Space was stolen from start of newText
-                        newText = newText.slice(1);
-                    }
+                if (attribs.class === CODE_NODE_CLASS) {
+                    handleCodeOpen(diff);
+                    return;
                 }
-            }
 
-            if (pendingIrcText) {
-                ircText += pendingIrcText;
-                pendingIrcText = '';
+                handleStyleOpen(name, attribs);
+            },
 
-                Object.assign(currentIrcStyle, pendingCurrentIrcStyle);
-            }
+            ontext: (text) => {
+                const currentTag = openTags[openTags.length - 1];
+                if (currentTag === 'emoji') return;
 
-            if (
-                (startsWithCommaDecimalRegexp.test(newText) && endsWithFgColourRegexp.test(ircText))
-                || (startsWithDecimalRegexp.test(newText) && endsWithResetColourRegexp.test(ircText))
-            ) {
-                ircText += '\u2008';
-            }
+                const normalized = text.replace(zeroWidthSpaceRegexp, '');
+                if (!normalized) return;
 
-            ircText += newText;
+                if (normalized.trim() === '') {
+                    append(normalized);
+                    return;
+                }
+
+                let newText = ensureLeadingSpace(text);
+
+                appendPending();
+
+                if (
+                    (startsWithCommaDecimalRegexp.test(newText) && endsWithFgColourRegexp.test(ircText)) ||
+                    (startsWithDecimalRegexp.test(newText) && endsWithResetColourRegexp.test(ircText))
+                ) {
+                    append('\u2008');
+                }
+
+                append(newText);
+            },
+            onclosetag: () => {
+                const tag = openTags.pop();
+                pendingText = '';
+
+                if (tag === 'code') {
+                    append('`');
+                    checkSpace = true;
+                }
+            },
         },
-        onclosetag: () => {
-            const previousTag = openTags.pop();
-
-            pendingIrcText = '';
-
-            if (previousTag === 'code') {
-                ircText += '`';
-                checkSpace = true;
-            }
-        },
-    }, {
-        decodeEntities: true,
-    });
+        { decodeEntities: true }
+    );
 
     parser.write(source);
     parser.end();

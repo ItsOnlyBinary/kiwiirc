@@ -27,11 +27,11 @@
             </div>
         </div>
         <VList
+            :key="vlistKey"
             ref="vlist"
             v-slot="{ item }"
             :data="sortedUsers"
             :item-size="shouldShowAvatars ? 38 : 26"
-            :key-field="'id'"
             class="kiwi-nicklist-users"
         >
             <nicklist-user :key="item.id" :user="item" :nicklist="self" :network="network" />
@@ -62,7 +62,15 @@ export default {
             self: this,
             userFilter: '',
             userFilterVisible: false,
+            vlistKey: 0,
         };
+    },
+    watch: {
+        'sortedUsers.length'(newVal, oldVal) {
+            if (newVal !== oldVal) {
+                this.vlistKey++;
+            }
+        },
     },
     computed: {
         sortedUsers() {
@@ -166,6 +174,9 @@ export default {
         useColouredNicks() {
             return this.buffer.setting('coloured_nicklist');
         },
+    },
+    mounted() {
+        window.vtest = this.$refs.vlist;
     },
     methods: {
         openQuery(user) {

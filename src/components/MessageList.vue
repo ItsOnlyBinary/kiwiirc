@@ -21,6 +21,7 @@
         </transition>
 
         <VList
+            :key="vlistKey"
             ref="vlist"
             v-slot="{ item }"
             :data="messages.items"
@@ -179,6 +180,7 @@ export default {
             message_info_open: null,
             selectedMessages: Object.create(null),
             activeSeparator: null,
+            vlistKey: 0,
         };
     },
     computed: {
@@ -302,8 +304,16 @@ export default {
                 !this.buffer.joined &&
                 this.buffer.getNetwork().state === 'connected';
         },
+        messageItemCount() {
+            return this.messages.items.length;
+        },
     },
     watch: {
+        messageItemCount(newVal, oldVal) {
+            if (newVal < oldVal) {
+                this.vlistKey++;
+            }
+        },
         buffer(newBuffer, oldBuffer) {
             if (oldBuffer) {
                 oldBuffer.isMessageTrimming = true;
@@ -356,18 +366,6 @@ export default {
                 this.maybeScrollToBottom();
             });
         }, { deep: true });
-
-        watch(
-            () => this.messages,
-            () => {
-                nextTick(
-                    () => requestAnimationFrame(
-                        () => this.$refs.vlist?.refresh()
-                    )
-                );
-            },
-            { deep: true }
-        );
 
         this.listen(this.$state, 'mediaviewer.opened', () => {
             nextTick(this.maybeScrollToBottom.apply(this));

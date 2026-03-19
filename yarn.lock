@@ -9189,7 +9189,7 @@ __metadata:
     terser-webpack-plugin: "npm:^5.4.0"
     thread-loader: "npm:^4.0.4"
     tinycon: "npm:^0.6.8"
-    virtua: "npm:^0.48.8"
+    virtua: "ItsOnlyBinary/virtua#vue3-kiwiirc"
     vue: "npm:^3.5.30"
     vue-eslint-parser: "npm:^10.4.0"
     vue-loader: "npm:^17.4.2"
@@ -13783,9 +13783,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"virtua@npm:^0.48.8":
+"virtua@ItsOnlyBinary/virtua#vue3-kiwiirc":
   version: 0.48.8
-  resolution: "virtua@npm:0.48.8"
+  resolution: "virtua@https://github.com/ItsOnlyBinary/virtua.git#commit=bcde121802f65c4b41bd985f419ad8368483659c"
   peerDependencies:
     react: ">=16.14.0"
     react-dom: ">=16.14.0"
@@ -13803,7 +13803,7 @@ __metadata:
       optional: true
     vue:
       optional: true
-  checksum: 10c0/c92fff36c8775e6ce6672eb76aec5a1e29a974756b5a7f345921ab7d087a0c678c64e0fe46a36ae7cbf7df102db3f3445a92054fb590b7beae94d6cc01059de7
+  checksum: 10c0/93e7897bf452ccc87d5ee0f390f38360dcc02106fb0df3202bd2acb09071da077c4e7e884e5aa3e9c34d3c40324282510da2b7a2d8d4b511e97695fb9da7d44d
   languageName: node
   linkType: hard
 

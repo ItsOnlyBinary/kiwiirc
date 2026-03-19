@@ -44,7 +44,7 @@
         "stream-browserify": "^3.0.0",
         "strftime": "^0.10.3",
         "tinycon": "^0.6.8",
-        "virtua": "^0.48.8",
+        "virtua": "ItsOnlyBinary/virtua#vue3-kiwiirc",
         "vue": "^3.5.30"
     },
     "devDependencies": {

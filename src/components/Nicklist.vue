@@ -40,8 +40,6 @@
 </template>
 
 <script>
-'kiwi public';
-
 import { VList } from 'virtua/vue';
 
 import Logger from '@/libs/Logger';

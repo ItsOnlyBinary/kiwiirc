@@ -154,6 +154,9 @@ module.exports = (env, argv, config) => {
                 {
                     test: /\.m?jsx?$/,
                     exclude: (file) => {
+                        if (/(Nicklist|MessageList)\.vue/.test(file)) {
+                            return true;
+                        }
                         // always transpile js in vue files
                         if (/\.vue\.jsx?$/.test(file)) {
                             return false;

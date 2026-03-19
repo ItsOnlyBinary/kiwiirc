@@ -140,8 +140,6 @@
 </template>
 
 <script>
-'kiwi public';
-
 import { debounce } from 'lodash';
 import { watch, nextTick } from 'vue';
 import strftime from 'strftime';

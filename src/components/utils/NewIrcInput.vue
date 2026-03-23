@@ -42,6 +42,7 @@ import { mergeRegister } from '@lexical/utils';
 import { registerPlainText } from '@lexical/plain-text';
 
 import { $createEmojiNode, EmojiNode } from '@/libs/lexical/EmojiNode';
+import { $createImageNode, ImageNode } from '@/libs/lexical/ImageNode';
 import { $createUserNode, UserNode } from '@/libs/lexical/UserNode';
 import { registerBuffer, registerUser } from '@/libs/lexical/IrcTokenPlugin';
 import { AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
@@ -89,7 +90,7 @@ const emit = defineEmits([
 let ac = null;
 let editor = null;
 const editorConfig = {
-    nodes: [AutocompleteNode, BufferNode, CodeNode, EmojiNode, UserNode],
+    nodes: [AutocompleteNode, BufferNode, CodeNode, EmojiNode, ImageNode, UserNode],
 };
 const editorElement = useTemplateRef('editor-div');
 const editorListeners = [];
@@ -619,6 +620,47 @@ const addEmoji = (emoji) => editor.update(() => {
     emojiNode.selectEnd();
 });
 
+/**
+ * Insert an image thumbnail into the editor at the current cursor position.
+ * The image is displayed as a thumbnail but sends as plain text over IRC.
+ *
+ * @param   {string}          text  IRC text representation (defaults to url if omitted)
+ * @param   {string}          [url] Image URL to display; if omitted, text is used as the URL
+ *
+ * @returns {void}
+ */
+const addImage = (text, url) => editor.update(() => {
+    const resolvedUrl = url ?? text;
+    const imageNode = $createImageNode(resolvedUrl, url ? text : undefined);
+    const selection = $getSelection();
+    if (!selection) {
+        return;
+    }
+
+    if (!selection.isCollapsed()) {
+        selection.removeText();
+    }
+
+    const nodes = selection.getNodes();
+    const node = nodes[0];
+    if (node instanceof RootNode) {
+        const paragraph = $createParagraphNode();
+        paragraph.append(imageNode);
+        $getRoot().append(paragraph);
+    } else if (node instanceof ParagraphNode) {
+        node.clear();
+        node.append(imageNode);
+    } else if (!node.isSimpleText()) {
+        node.insertAfter(imageNode);
+    } else {
+        const offset = selection.anchor.offset;
+        const splitNodes = node.splitText(offset, offset);
+        splitNodes[0].insertAfter(imageNode);
+    }
+
+    imageNode.selectEnd();
+});
+
 const errorCatcher = (event) => {
     console.log(event.error.stack, getState());
 };
@@ -654,6 +696,7 @@ defineExpose({
     resetState,
 
     addEmoji,
+    addImage,
 
     createAutocomplete: (...args) => ac.createAutocomplete(...args),
     updateAutocomplete: (...args) => ac.updateAutocomplete(...args),
@@ -716,6 +759,24 @@ defineExpose({
     border-radius: 3px;
     background: rgb(0, 0, 0, 0.05);
     font-family: monospace;
+}
+
+.image-node {
+    display: block;
+    font-size: 0;
+    color: transparent;
+    line-height: 0;
+    padding: 2px 0;
+    caret-color: var(--brand-default-fg);
+}
+
+.image-node img {
+    display: block;
+    height: 60px;
+    width: auto;
+    max-width: min(100%, 120px);
+    object-fit: contain;
+    border-radius: 3px;
 }
 
 .kiwi-ircinput-editor .user-node .kiwi-awaystatusindicator {

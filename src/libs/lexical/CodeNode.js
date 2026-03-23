@@ -7,7 +7,7 @@ export class CodeNode extends TextNode {
     }
 
     static clone(node) {
-        return new CodeNode(node.__text, node.__key);
+        return new CodeNode(node.__text, node.getKey());
     }
 
     createDOM(config) {

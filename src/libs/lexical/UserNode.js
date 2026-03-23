@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-
 import { TextNode } from 'lexical';
 import getState from '@/libs/state';
 import UserState from '@/libs/state/UserState';
@@ -12,21 +10,21 @@ export class UserNode extends TextNode {
     }
 
     static clone(node) {
-        return new UserNode(node.__network, node.__user, node.__key);
+        return new UserNode(node.network, node.user, node.getKey());
     }
 
     constructor(network, user, key) {
         super(user.nick, key);
-        this.__network = network;
-        this.__user = user;
+        this.network = network;
+        this.user = user;
     }
 
     getNetwork() {
-        return this.__network;
+        return this.network;
     }
 
     getUser() {
-        return this.__user;
+        return this.user;
     }
 
     createDOM(config) {
@@ -34,13 +32,13 @@ export class UserNode extends TextNode {
         element.className = 'user-node';
         element.spellcheck = false;
 
-        const user = this.__user;
+        const { user } = this;
         if (user instanceof UserState) {
             element.style.color = user.getColour();
 
-            if (this.__network && getState().setting('input.showAwayStatus')) {
+            if (this.network && getState().setting('input.showAwayStatus')) {
                 const awayStatus = mountComponent(AwayStatusIndicator, {
-                    network: this.__network,
+                    network: this.network,
                     user,
                 });
                 element.prepend(awayStatus.vNode.el);
@@ -55,7 +53,7 @@ export class UserNode extends TextNode {
         if (needsRecreate) {
             return true;
         }
-        const user = this.__user;
+        const { user } = this;
         if (user instanceof UserState) {
             dom.style.color = user.getColour();
         }
@@ -76,8 +74,8 @@ export class UserNode extends TextNode {
         return {
             ...super.exportJSON(),
             type: 'user',
-            network: { id: this.__network?.id },
-            user: { nick: this.__user?.nick },
+            network: { id: this.network?.id },
+            user: { nick: this.user?.nick },
         };
     }
 }

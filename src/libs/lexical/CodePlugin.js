@@ -11,12 +11,9 @@ import {
 } from 'lexical';
 import { mergeRegister } from '@lexical/utils';
 
-import { AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
-import { BufferNode } from '@/libs/lexical/BufferNode';
 import { $createCodeNode, CodeNode } from '@/libs/lexical/CodeNode';
-import { EmojiNode } from '@/libs/lexical/EmojiNode';
 import { BOUNDARY_CHARACTER } from '@/libs/lexical/BoundaryPlugin';
-import { UserNode } from '@/libs/lexical/UserNode';
+import { $isCustomNode, $setTextAndAdjustCursor } from '@/libs/lexical/helpers';
 
 export function $findUnmatchedBacktick(cursorNode, cursorOffset) {
     const cursorText = cursorNode.getTextContent();
@@ -45,13 +42,7 @@ export function $findUnmatchedBacktick(cursorNode, cursorOffset) {
 
     while (sibling) {
         // Stop at any disallowed node type.
-        if (
-            sibling instanceof CodeNode ||
-            sibling instanceof EmojiNode ||
-            sibling instanceof UserNode ||
-            sibling instanceof BufferNode ||
-            sibling instanceof AutocompleteNode
-        ) {
+        if ($isCustomNode(sibling)) {
             return null;
         }
 
@@ -101,16 +92,7 @@ function $codeNodeZWSTransform(node) {
         // Adjust cursor before shortening the node. The selection offset may now
         // exceed the cleaned text length (e.g. cursor at offset 2 of '\u200Ba'
         // becomes offset 1 of 'a' after the ZWS is removed).
-        const selection = $getSelection();
-        let newOffset = -1;
-        if (selection?.isCollapsed() && selection.anchor.key === node.getKey()) {
-            const zwsBeforeCursor = (text.slice(0, selection.anchor.offset).match(/\u200B/g) || []).length;
-            newOffset = selection.anchor.offset - zwsBeforeCursor;
-        }
-        node.setTextContent(cleaned);
-        if (newOffset >= 0) {
-            node.select(newOffset, newOffset);
-        }
+        $setTextAndAdjustCursor(node, text, cleaned);
     }
 }
 
@@ -278,13 +260,7 @@ function $makeBacktickHandler(editor) {
             if (!selection.isCollapsed()) {
                 // Case (a): non-collapsed selection.
                 const nodes = selection.getNodes();
-                const hasDisallowed = nodes.some(
-                    (n) => n instanceof CodeNode ||
-                        n instanceof EmojiNode ||
-                        n instanceof UserNode ||
-                        n instanceof BufferNode ||
-                        n instanceof AutocompleteNode
-                );
+                const hasDisallowed = nodes.some($isCustomNode);
                 if (hasDisallowed) {
                     // Consume the keystroke without mutation. Returning false
                     // here would let the browser replace the selection with a

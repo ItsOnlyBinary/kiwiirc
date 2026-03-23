@@ -4,18 +4,10 @@ import { $patchStyleText } from '@lexical/selection';
 import { $createAutocompleteNode } from '@/libs/lexical/AutocompleteNode';
 import { $createBufferNode } from '@/libs/lexical/BufferNode';
 import { $createUserNode } from '@/libs/lexical/UserNode';
-import { $getAllNodes } from '@/libs/lexical/helpers';
+import { $getAllNodes, CLEAR_STYLE } from '@/libs/lexical/helpers';
 import Logger from '@/libs/Logger';
 
 const log = Logger.namespace('AutocompletePlugin');
-
-const clearStyle = {
-    'color': null,
-    'background-color': null,
-    'font-weight': null,
-    'font-style': null,
-    'text-decoration': null,
-};
 
 /**
  * Registers autocomplete behaviour on the given editor.
@@ -133,7 +125,7 @@ export function registerAutocomplete(editor, { onEnd } = {}) {
             // Clear any active text styling so the autocomplete node is unstyled
             const newSelection = $getSelection();
             if (newSelection) {
-                $patchStyleText(newSelection, clearStyle);
+                $patchStyleText(newSelection, CLEAR_STYLE);
             }
         });
     }

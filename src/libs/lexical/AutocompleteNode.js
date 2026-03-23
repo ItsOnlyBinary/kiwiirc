@@ -42,6 +42,9 @@ export class AutocompleteNode extends TextNode {
     }
 
     updateDOM(prevNode, dom, config) {
+        if (super.updateDOM(prevNode, dom, config)) {
+            return true;
+        }
         const remainEl = dom.lastChild;
         if (remainEl === null) {
             return true;
@@ -51,7 +54,6 @@ export class AutocompleteNode extends TextNode {
         } else {
             remainEl.innerText = '';
         }
-        super.updateDOM(prevNode, dom, config);
         return false;
     }
 

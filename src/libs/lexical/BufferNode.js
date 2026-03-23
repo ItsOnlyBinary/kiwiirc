@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-
 import { TextNode } from 'lexical';
 
 export class BufferNode extends TextNode {
@@ -8,16 +6,16 @@ export class BufferNode extends TextNode {
     }
 
     static clone(node) {
-        return new BufferNode(node.__channel, node.__key);
+        return new BufferNode(node.channel, node.getKey());
     }
 
     constructor(channel, key) {
         super(channel, key);
-        this.__channel = channel;
+        this.channel = channel;
     }
 
     getChannel() {
-        return this.__channel;
+        return this.channel;
     }
 
     createDOM(config) {
@@ -35,7 +33,7 @@ export class BufferNode extends TextNode {
         return {
             ...super.exportJSON(),
             type: 'buffer',
-            channel: this.__channel,
+            channel: this.channel,
         };
     }
 }

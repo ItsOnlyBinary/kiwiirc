@@ -8,7 +8,7 @@ export class EmojiNode extends TextNode {
     }
 
     static clone(node) {
-        return new EmojiNode(node.emoji, node.word, node.__key);
+        return new EmojiNode(node.emoji, node.word, node.getKey());
     }
 
     constructor(emoji, word, key) {
@@ -20,6 +20,7 @@ export class EmojiNode extends TextNode {
     createDOM(config) {
         const element = super.createDOM(config);
         element.className = 'emoji-node';
+        element.spellcheck = false;
         element.dataset.code = this.emoji.ircValue;
         element.style.backgroundImage = `url("${this.emoji.url}")`;
         Object.assign(element, {

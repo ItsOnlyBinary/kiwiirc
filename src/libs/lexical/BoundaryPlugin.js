@@ -12,8 +12,10 @@ import { mergeRegister } from '@lexical/utils';
 import { AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
 import { $createCodeNode, CodeNode } from '@/libs/lexical/CodeNode';
 import { EmojiNode } from '@/libs/lexical/EmojiNode';
+import { ImageNode } from '@/libs/lexical/ImageNode';
 import { UserNode } from '@/libs/lexical/UserNode';
 import { BufferNode } from '@/libs/lexical/BufferNode';
+import { CLEAR_STYLE, $isCustomNode, $setTextAndAdjustCursor } from '@/libs/lexical/helpers';
 
 // Placed in otherwise-empty text nodes so Lexical's normalizer does not remove
 // them (it only removes nodes where text === ''). Stripped from all IRC/text
@@ -29,10 +31,7 @@ export const BOUNDARY_CHARACTER = '\u200B';
 // because AutocompleteNode extends TextNode.
 export function $isSpecialOrFormatted(node) {
     if (node instanceof AutocompleteNode) return false; // exempt — check first
-    if (node instanceof CodeNode) return true;
-    if (node instanceof EmojiNode) return true;
-    if (node instanceof UserNode) return true;
-    if (node instanceof BufferNode) return true;
+    if ($isCustomNode(node)) return true;
     if (node instanceof TextNode) return node.getStyle() !== '';
     return true; // any other non-TextNode type is treated as special
 }
@@ -113,13 +112,7 @@ function $enforceInvariants() {
 // any mutated node, and falling through would cause the CodePlugin backtick
 // transform to fire on the already-cleaned text.
 function $boundaryCleanupTransform(node) {
-    if (
-        node instanceof CodeNode ||
-        node instanceof EmojiNode ||
-        node instanceof UserNode ||
-        node instanceof BufferNode ||
-        node instanceof AutocompleteNode
-    ) {
+    if ($isCustomNode(node)) {
         return;
     }
 
@@ -152,38 +145,14 @@ function $boundaryCleanupTransform(node) {
     // cleaned === '' (falsy), so the block is skipped and the boundary node is
     // preserved. Do NOT remove the `cleaned &&` condition.
     if (cleaned && cleaned !== text) {
-        // Adjust cursor before shortening the node — same pattern as
-        // $codeNodeZWSTransform. selectEnd() is wrong here: it clobbers the
-        // cursor position when this transform fires after a delete/backspace
-        // operation that explicitly placed the cursor elsewhere (e.g.
-        // $handleDelete merging code text into the preceding boundary node,
-        // which then gets merged with the trailing boundary by Lexical's
-        // normalizer, causing this transform to fire on the combined string).
-        const sel = $getSelection();
-        let newOffset = -1;
-        if (sel?.isCollapsed() && sel.anchor.key === node.getKey()) {
-            const zwsBeforeCursor = (text.slice(0, sel.anchor.offset).match(/\u200B/g) || []).length;
-            newOffset = sel.anchor.offset - zwsBeforeCursor;
-        }
-        node.setTextContent(cleaned);
-        if (newOffset >= 0) {
-            node.select(newOffset, newOffset);
-        }
+        // Adjust cursor before shortening the node. selectEnd() is wrong here:
+        // it clobbers the cursor when this transform fires after a delete that
+        // explicitly placed the cursor elsewhere (e.g. $handleDelete merging
+        // code text into the preceding boundary node).
+        $setTextAndAdjustCursor(node, text, cleaned);
         // Return immediately — do not fall through.
     }
 }
-
-// Matches defaultStyle in NewIrcInput.vue. Clears the selection's typing style
-// after Ctrl+T so the new boundary node stays plain — without this, the next
-// keystroke would inherit the split node's formatting, making the boundary node
-// styled and immediately triggering the ZWS cleanup loop.
-const CLEAR_STYLE = {
-    'color': null,
-    'background-color': null,
-    'font-weight': null,
-    'font-style': null,
-    'text-decoration': null,
-};
 
 // Returns a KEY_DOWN_COMMAND handler closed over `editor`.
 //
@@ -212,6 +181,7 @@ export function $makeCtrlTHandler(editor) {
             if (node instanceof UserNode) return;
             if (node instanceof BufferNode) return;
             if (node instanceof EmojiNode) return;
+            if (node instanceof ImageNode) return;
             if (node instanceof TextNode && !(node instanceof CodeNode) && node.getStyle() === '') return;
             shouldHandle = true;
         });

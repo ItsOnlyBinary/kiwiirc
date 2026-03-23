@@ -152,8 +152,23 @@ function $boundaryCleanupTransform(node) {
     // cleaned === '' (falsy), so the block is skipped and the boundary node is
     // preserved. Do NOT remove the `cleaned &&` condition.
     if (cleaned && cleaned !== text) {
+        // Adjust cursor before shortening the node — same pattern as
+        // $codeNodeZWSTransform. selectEnd() is wrong here: it clobbers the
+        // cursor position when this transform fires after a delete/backspace
+        // operation that explicitly placed the cursor elsewhere (e.g.
+        // $handleDelete merging code text into the preceding boundary node,
+        // which then gets merged with the trailing boundary by Lexical's
+        // normalizer, causing this transform to fire on the combined string).
+        const sel = $getSelection();
+        let newOffset = -1;
+        if (sel?.isCollapsed() && sel.anchor.key === node.getKey()) {
+            const zwsBeforeCursor = (text.slice(0, sel.anchor.offset).match(/\u200B/g) || []).length;
+            newOffset = sel.anchor.offset - zwsBeforeCursor;
+        }
         node.setTextContent(cleaned);
-        node.selectEnd();
+        if (newOffset >= 0) {
+            node.select(newOffset, newOffset);
+        }
         // Return immediately — do not fall through.
     }
 }

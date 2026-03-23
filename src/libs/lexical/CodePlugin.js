@@ -193,10 +193,22 @@ function $handleDelete() {
     if (offset === node.getTextContent().length) {
         const nextSibling = node.getNextSibling();
         if (nextSibling instanceof CodeNode) {
-            const text = nextSibling.getCodeText();
-            const textNode = $createTextNode('`' + text);
-            nextSibling.replace(textNode);
-            // Cursor stays at its current offset in the current node.
+            const codeText = nextSibling.getCodeText();
+            const nodeText = node.getTextContent();
+            // Strip ZWS from the current node (e.g. boundary '\u200B') to get the
+            // clean prefix text and the correct cursor landing offset.
+            const cleanedNodeText = nodeText.replace(/\u200B/g, '');
+            // Merge code text directly into the current node rather than replacing
+            // the CodeNode with a new TextNode. This avoids the adjacent-TextNode
+            // merge cycle that would fire $boundaryCleanupTransform and call
+            // selectEnd(), which would move the cursor to the end of the input.
+            // Symmetric with $handleBackspace: Delete at the opening backtick
+            // position converts the CodeNode back to plain text with a leading
+            // backtick (the user "deleted" the opening backtick).
+            node.setTextContent(cleanedNodeText + '`' + codeText);
+            nextSibling.remove();
+            // Place cursor at the junction (right where the backtick now sits).
+            node.select(cleanedNodeText.length, cleanedNodeText.length);
             return true;
         }
     }

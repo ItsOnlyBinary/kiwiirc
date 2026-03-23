@@ -125,6 +125,29 @@ function $boundaryCleanupTransform(node) {
 
     const text = node.getTextContent();
     const cleaned = text.replace(/\u200B/g, '');
+
+    // Plain TextNodes immediately after a CodeNode must keep a leading \u200B.
+    // Without it the browser treats offset 0 of this node as identical to the
+    // end of the CodeNode's DOM span, making it impossible to position the
+    // cursor at the start of the text without appearing to be inside the code
+    // block. The leading \u200B gives the browser an unambiguous anchor.
+    if (node.getPreviousSibling() instanceof CodeNode) {
+        if (!cleaned) {
+            // Boundary-only content ('\u200B') — preserve as-is.
+            return;
+        }
+        const target = BOUNDARY_CHARACTER + cleaned;
+        if (target !== text) {
+            node.setTextContent(target);
+            // Shift the cursor offset by 1 to account for the prepended \u200B.
+            const sel = $getSelection();
+            if (sel?.isCollapsed() && sel.anchor.key === node.getKey()) {
+                node.select(sel.anchor.offset + 1, sel.anchor.offset + 1);
+            }
+        }
+        return;
+    }
+
     // The `cleaned &&` guard protects boundary-only nodes: when text === '\u200B',
     // cleaned === '' (falsy), so the block is skipped and the boundary node is
     // preserved. Do NOT remove the `cleaned &&` condition.
@@ -261,5 +284,6 @@ export function registerBoundary(editor) {
             $makeCtrlTHandler(editor),
             COMMAND_PRIORITY_NORMAL,
         ),
+
     );
 }

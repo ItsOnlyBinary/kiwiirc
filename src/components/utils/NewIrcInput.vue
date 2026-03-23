@@ -48,6 +48,7 @@ import { registerBuffer, registerUser } from '@/libs/lexical/IrcTokenPlugin';
 import { $getAllNodes } from '@/libs/lexical/helpers';
 import { CodeNode } from '@/libs/lexical/CodeNode';
 import { registerBoundary } from '@/libs/lexical/BoundaryPlugin';
+import { registerClipboard } from '@/libs/lexical/ClipboardPlugin';
 import { registerCode } from '@/libs/lexical/CodePlugin';
 import { registerEmoji } from '@/libs/lexical/EmojiPlugin';
 
@@ -117,6 +118,7 @@ onMounted(() => {
         registerCode(editor),
         registerEmoji(editor),
         registerBoundary(editor),
+        registerClipboard(editor),
         registerUser(editor, {
             onEdit: (node, text) => {
                 // Runs inside editor.update() — node.replace() is safe here.

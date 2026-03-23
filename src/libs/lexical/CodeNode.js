@@ -17,6 +17,13 @@ export class CodeNode extends TextNode {
         return element;
     }
 
+    // Raw code text without backtick delimiters. Use this for all internal
+    // logic (transforms, keyboard handlers, and clipboard building) instead
+    // of getTextContent() so that Lexical's offset arithmetic is unaffected.
+    getCodeText() {
+        return super.getTextContent();
+    }
+
     static importJSON(serialisedNode) {
         return $createCodeNode(serialisedNode.text);
     }

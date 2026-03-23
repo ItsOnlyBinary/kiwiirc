@@ -86,15 +86,31 @@ export function $findUnmatchedBacktick(cursorNode, cursorOffset) {
 }
 
 function $codeNodeZWSTransform(node) {
-    const text = node.getTextContent();
+    const text = node.getCodeText();
     if (text === BOUNDARY_CHARACTER) {
         return; // keep empty placeholder alive — do not strip
     }
     const cleaned = text.replace(/\u200B/g, '');
+    if (!cleaned) {
+        // All content was ZWS — normalize to a single placeholder rather than
+        // setting empty text, which Lexical would remove.
+        node.setTextContent(BOUNDARY_CHARACTER);
+        return;
+    }
     if (cleaned !== text) {
+        // Adjust cursor before shortening the node. The selection offset may now
+        // exceed the cleaned text length (e.g. cursor at offset 2 of '\u200Ba'
+        // becomes offset 1 of 'a' after the ZWS is removed).
+        const selection = $getSelection();
+        let newOffset = -1;
+        if (selection?.isCollapsed() && selection.anchor.key === node.getKey()) {
+            const zwsBeforeCursor = (text.slice(0, selection.anchor.offset).match(/\u200B/g) || []).length;
+            newOffset = selection.anchor.offset - zwsBeforeCursor;
+        }
         node.setTextContent(cleaned);
-        // Do not move cursor — user is actively typing; Lexical has already
-        // placed the cursor at the correct offset.
+        if (newOffset >= 0) {
+            node.select(newOffset, newOffset);
+        }
     }
 }
 
@@ -143,7 +159,7 @@ function $handleBackspace() {
 
     // Case A: cursor at start of a CodeNode.
     if (node instanceof CodeNode && offset === 0) {
-        const text = node.getTextContent();
+        const text = node.getCodeText();
         const textNode = $createTextNode(text + '`');
         node.replace(textNode);
         textNode.select(0, 0);
@@ -154,7 +170,7 @@ function $handleBackspace() {
     if (offset === 0) {
         const prevSibling = node.getPreviousSibling();
         if (prevSibling instanceof CodeNode) {
-            const text = prevSibling.getTextContent();
+            const text = prevSibling.getCodeText();
             const textNode = $createTextNode(text + '`');
             prevSibling.replace(textNode);
             // Cursor stays at offset 0 of the current node — no select() call needed.
@@ -177,7 +193,7 @@ function $handleDelete() {
     if (offset === node.getTextContent().length) {
         const nextSibling = node.getNextSibling();
         if (nextSibling instanceof CodeNode) {
-            const text = nextSibling.getTextContent();
+            const text = nextSibling.getCodeText();
             const textNode = $createTextNode('`' + text);
             nextSibling.replace(textNode);
             // Cursor stays at its current offset in the current node.
@@ -201,7 +217,7 @@ function $handleArrowRight() {
         return false;
     }
 
-    if (selection.anchor.offset !== node.getTextContent().length) {
+    if (selection.anchor.offset !== node.getCodeText().length) {
         return false;
     }
 
@@ -258,7 +274,10 @@ function $makeBacktickHandler(editor) {
                         n instanceof AutocompleteNode
                 );
                 if (hasDisallowed) {
-                    // action stays null — browser inserts backtick normally.
+                    // Consume the keystroke without mutation. Returning false
+                    // here would let the browser replace the selection with a
+                    // backtick, destroying the CodeNode or other special content.
+                    action = 'prevent';
                     return;
                 }
                 const text = selection.getTextContent().replace(/\u200B/g, '');
@@ -314,6 +333,12 @@ function $makeBacktickHandler(editor) {
 
         event.preventDefault();
 
+        // 'prevent': disallowed nodes in selection — swallow the keystroke so
+        // the browser cannot replace the selection with a backtick character.
+        if (action === 'prevent') {
+            return true;
+        }
+
         editor.update(() => {
             const selection = $getSelection();
 
@@ -333,7 +358,11 @@ function $makeBacktickHandler(editor) {
                     const [leftNode] = node.splitText(offset);
                     leftNode.insertAfter(codeNode);
                 }
-                codeNode.select(0, 0);
+                // selectEnd() places cursor at offset 1 (after the \u200B placeholder),
+                // unambiguously inside the code node's styled box. select(0, 0) would
+                // be the same DOM position as the end of the previous sibling, causing
+                // the cursor to appear before the code block visually.
+                codeNode.selectEnd();
                 return;
             }
 
@@ -341,7 +370,7 @@ function $makeBacktickHandler(editor) {
                 const node = $getSelection()?.anchor.getNode();
                 if (!(node instanceof CodeNode)) return;
 
-                const nodeText = node.getTextContent();
+                const nodeText = node.getCodeText();
                 const nextSibling = node.getNextSibling();
 
                 // Remove the CodeNode if effectively empty (placeholder-only or
@@ -351,7 +380,20 @@ function $makeBacktickHandler(editor) {
                 }
 
                 if (nextSibling) {
-                    nextSibling.selectStart();
+                    const siblingText = nextSibling.getTextContent();
+                    if (!siblingText || siblingText === BOUNDARY_CHARACTER) {
+                        // Boundary-only sibling: append a space so the cursor lands
+                        // after it (offset 2 of '\u200B '). BoundaryPlugin's cleanup
+                        // transform fires synchronously and strips the \u200B, leaving
+                        // just ' ' with the cursor at offset 1 (after the space).
+                        nextSibling.setTextContent(siblingText + ' ');
+                        nextSibling.selectEnd();
+                    } else {
+                        // Sibling has real content: insert a dedicated space node.
+                        const spaceNode = $createTextNode(' ');
+                        nextSibling.insertBefore(spaceNode);
+                        spaceNode.selectEnd();
+                    }
                 }
                 return;
             }

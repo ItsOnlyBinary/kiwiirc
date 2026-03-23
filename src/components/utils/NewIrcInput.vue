@@ -25,6 +25,7 @@ import {
     $createTextNode,
     $getRoot,
     $getSelection,
+    $selectAll,
     $setSelection,
     COMMAND_PRIORITY_NORMAL,
     CONTROLLED_TEXT_INSERTION_COMMAND,
@@ -34,19 +35,19 @@ import {
     RootNode,
     createEditor
 } from 'lexical';
-import { $patchStyleText, $selectAll, getStyleObjectFromCSS } from '@lexical/selection';
+import { $patchStyleText, getStyleObjectFromCSS } from '@lexical/selection';
 import { markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef } from 'vue';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { mergeRegister } from '@lexical/utils';
 import { registerPlainText } from '@lexical/plain-text';
 
-import { $createAutocompleteNode, AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
-import { $createBufferNode, BufferNode } from '@/libs/lexical/BufferNode';
 import { $createEmojiNode, EmojiNode } from '@/libs/lexical/EmojiNode';
 import { $createUserNode, UserNode } from '@/libs/lexical/UserNode';
 import { registerBuffer, registerUser } from '@/libs/lexical/IrcTokenPlugin';
-import { $getAllNodes } from '@/libs/lexical/helpers';
+import { AutocompleteNode } from '@/libs/lexical/AutocompleteNode';
+import { BufferNode } from '@/libs/lexical/BufferNode';
 import { CodeNode } from '@/libs/lexical/CodeNode';
+import { registerAutocomplete } from '@/libs/lexical/AutocompletePlugin';
 import { registerBoundary } from '@/libs/lexical/BoundaryPlugin';
 import { registerClipboard } from '@/libs/lexical/ClipboardPlugin';
 import { registerCode } from '@/libs/lexical/CodePlugin';
@@ -85,9 +86,7 @@ const emit = defineEmits([
     'autocompleteReverted',
 ]);
 
-let activeAutocompleteID = 0;
-let nextAutocompleteID = 0;
-
+let ac = null;
 let editor = null;
 const editorConfig = {
     nodes: [AutocompleteNode, BufferNode, CodeNode, EmojiNode, UserNode],
@@ -112,6 +111,9 @@ onMounted(() => {
         paragraphNode.selectEnd();
     });
 
+    ac = registerAutocomplete(editor, { onEnd: () => emit('autocompleteEnded') });
+    editorListeners.push(ac.unregister);
+
     // Register Plugins
     mergeRegister(
         registerPlainText(editor),
@@ -123,37 +125,25 @@ onMounted(() => {
             onEdit: (node, text) => {
                 // Runs inside editor.update() — node.replace() is safe here.
                 // Prepend '@' so the user can see the trigger char and escape if needed.
-                activeAutocompleteID = ++nextAutocompleteID;
-                const ac = $createAutocompleteNode('@' + text, null, activeAutocompleteID);
-                node.replace(ac);
-                ac.selectEnd();
+                ac.revertToAutocomplete(node, '@' + text);
                 emit('autocompleteReverted', 'user');
             },
             onRevert: (textNode) => {
                 // Runs inside editor.update() — textNode is the plain-text replacement
                 // for the UserNode. Wrap it as an autocomplete node with '@' restored.
-                activeAutocompleteID = ++nextAutocompleteID;
-                const ac = $createAutocompleteNode('@' + textNode.getTextContent(), null, activeAutocompleteID);
-                textNode.replace(ac);
-                ac.selectEnd();
+                ac.revertToAutocomplete(textNode, '@' + textNode.getTextContent());
                 emit('autocompleteReverted', 'user');
             },
         }),
         registerBuffer(editor, {
             onEdit: (node, text) => {
-                activeAutocompleteID = ++nextAutocompleteID;
-                const ac = $createAutocompleteNode(text, null, activeAutocompleteID);
-                node.replace(ac);
-                ac.selectEnd();
+                ac.revertToAutocomplete(node, text);
                 emit('autocompleteReverted', 'buffer');
             },
             onRevert: (textNode) => {
                 // Runs inside editor.update() — textNode is the plain-text replacement
                 // for the BufferNode. Wrap it as an autocomplete node.
-                activeAutocompleteID = ++nextAutocompleteID;
-                const ac = $createAutocompleteNode(textNode.getTextContent(), null, activeAutocompleteID);
-                textNode.replace(ac);
-                ac.selectEnd();
+                ac.revertToAutocomplete(textNode, textNode.getTextContent());
                 emit('autocompleteReverted', 'buffer');
             },
         }),
@@ -179,24 +169,17 @@ onMounted(() => {
         ),
     );
 
-    let insideAutocomplete = false;
     editorListeners.push(
         editor.registerUpdateListener(({ editorState }) => {
             const requiredUpdates = editorState.read(() => {
                 isEmpty.value = !$getRoot().getTextContent().replace(/\u200B/g, '');
+                emit('input', $getRoot().getTextContent().replace(/\u200B/g, ''));
                 const selection = $getSelection();
                 if (!selection) {
                     return null;
                 }
                 console.log('selection update', selection);
                 const nodes = selection.getNodes();
-
-                if (selection.isCollapsed() && nodes[0].getType() === 'autocomplete') {
-                    insideAutocomplete = true;
-                } else if (insideAutocomplete) {
-                    insideAutocomplete = false;
-                    emit('autocompleteEnded');
-                }
 
                 let style = null;
                 if (nodes.length && !selection.isCollapsed()) {
@@ -253,6 +236,64 @@ const onBlur = (event) => {
     // the blur is so this cannot be fired before onFocus
     blurTimeout(() => (hasFocus.value = false), 0);
     emit('blur', event);
+};
+
+const getCaretIdx = () => editor.read(() => {
+    const selection = $getSelection();
+    if (!selection?.isCollapsed()) return 0;
+
+    const anchor = selection.anchor;
+    let pos = anchor.offset;
+    let sibling = anchor.getNode().getPreviousSibling?.();
+    while (sibling) {
+        pos += sibling.getTextContent().length;
+        sibling = sibling.getPreviousSibling?.();
+    }
+    return pos;
+});
+
+const selectionToEnd = () => {
+    editor.update(() => {
+        const paragraph = $getRoot().getFirstChild();
+        if (paragraph) {
+            paragraph.selectEnd();
+        }
+    });
+};
+
+const insertText = (text) => {
+    focus();
+    editor.update(() => {
+        const selection = $getSelection();
+        if (!selection) {
+            return;
+        }
+        selection.insertText(text);
+    });
+};
+
+const insertUser = (network, user, suffix) => {
+    focus();
+    editor.update(() => {
+        const selection = $getSelection();
+        if (!selection) {
+            return;
+        }
+        if (!selection.isCollapsed()) {
+            selection.removeText();
+        }
+        // Don't insert a UserNode inside a code span — fall back to plain text
+        const anchorNode = selection.anchor.getNode();
+        if (anchorNode.getType() === 'code') {
+            selection.insertText(user.nick + (suffix || ''));
+            return;
+        }
+        const userNode = $createUserNode(network, user);
+        selection.insertNodes([userNode]);
+        const suffixNode = $createTextNode(suffix || '');
+        userNode.insertAfter(suffixNode);
+        suffixNode.selectEnd();
+    });
 };
 
 const onKeyUp = () => {};
@@ -438,6 +479,31 @@ const getHTML = () => editor.read(() => $generateHtmlFromNodes(editor, null));
  */
 const getText = () => editor.read(() => $getRoot().getTextContent().replace(/\u200B/g, ''));
 
+const IRC_TOKEN_PREFIXES = new Set(['@', '#', '/']);
+
+/**
+ * Gets the token under the cursor (from last space to cursor position),
+ * split into its IRC trigger prefix and the text after it.
+ *
+ * @returns {{ full: string, prefix: string, text: string }}
+ *   full   — the whole token as typed (e.g. '@neil')
+ *   prefix — the IRC trigger char if recognised ('@', '#', '/'), else ''
+ *   text   — the token without the prefix (e.g. 'neil')
+ */
+const getCurrentToken = () => editor.read(() => {
+    const selection = $getSelection();
+    if (!selection?.isCollapsed()) {
+        return { full: '', prefix: '', text: '' };
+    }
+    const node = selection.anchor.getNode();
+    const textBeforeCursor = node.getTextContent().slice(0, selection.anchor.offset);
+    let start = textBeforeCursor.lastIndexOf(' ');
+    start = start === -1 ? 0 : start + 1;
+    const full = textBeforeCursor.slice(start);
+    const prefix = IRC_TOKEN_PREFIXES.has(full[0]) ? full[0] : '';
+    return { full, prefix, text: prefix ? full.slice(1) : full };
+});
+
 const getWord = () => editor.read(() => {
     const selection = $getSelection();
     if (!selection?.isCollapsed()) {
@@ -480,10 +546,24 @@ const getState = () => editor.read(() => {
  *
  * @returns {void}
  */
-const setState = (state) => {}; // TODO
+const setState = (state) => {
+    if (!state) {
+        return;
+    }
+    try {
+        const editorState = editor.parseEditorState(state);
+        editor.setEditorState(editorState);
+    } catch (e) {
+        log.error('Failed to restore editor state', e);
+    }
+};
 
 const resetState = (restoreCurrentStyle) => editor.update(() => {
-    $getRoot().clear();
+    const root = $getRoot();
+    root.clear();
+    const paragraph = $createParagraphNode();
+    root.append(paragraph);
+    paragraph.selectEnd();
     if (!restoreCurrentStyle) {
         return;
     }
@@ -539,155 +619,13 @@ const addEmoji = (emoji) => editor.update(() => {
     emojiNode.selectEnd();
 });
 
-const findAutocompleteNode = () => {
-    if (!activeAutocompleteID) {
-        log.error('could not find autocomplete node, no id stored');
-        return null;
-    }
-    return $getAllNodes().find((node) => node.id === activeAutocompleteID);
+const errorCatcher = (event) => {
+    console.log(event.error.stack, getState());
 };
-
-const createAutocomplete = () => {
-    // If cursor is already inside an AutocompleteNode, re-register it rather than
-    // splitting it (which would corrupt the node and produce duplicate text).
-    let reuseId = null;
-    editor.read(() => {
-        const selection = $getSelection();
-        if (!selection?.isCollapsed()) return;
-        const node = selection.anchor.getNode();
-        if (node.getType() === 'autocomplete') reuseId = node.id;
-    });
-    if (reuseId !== null) {
-        activeAutocompleteID = reuseId;
-        return;
-    }
-
-    if (activeAutocompleteID) {
-        log.error('new autocomplete id overwrote existing');
-    }
-    activeAutocompleteID = ++nextAutocompleteID;
-    const id = activeAutocompleteID;
-    editor.update(() => {
-        const selection = $getSelection();
-        if (!selection?.isCollapsed()) {
-            return;
-        }
-        const node = selection.anchor.getNode();
-        const offset = selection.anchor.offset;
-        const text = node.getTextContent();
-
-        // Find the start of the current word (after last space, or beginning of node)
-        const textBeforeCursor = text.slice(0, offset);
-        const spaceIdx = textBeforeCursor.lastIndexOf(' ');
-        const wordStart = spaceIdx === -1 ? 0 : spaceIdx + 1;
-
-        // Isolate just the word segment [wordStart, offset) as its own node
-        let targetNode;
-        if (wordStart === 0 && offset === text.length) {
-            targetNode = node;
-        } else if (wordStart === 0) {
-            [targetNode] = node.splitText(offset);
-        } else if (offset === text.length) {
-            const splits = node.splitText(wordStart);
-            targetNode = splits[1];
-        } else {
-            const splits = node.splitText(wordStart, offset);
-            targetNode = splits[1];
-        }
-
-        const autocompleteNode = $createAutocompleteNode(
-            targetNode.getTextContent(),
-            null,
-            id
-        );
-        targetNode.replace(autocompleteNode);
-        autocompleteNode.selectEnd();
-
-        // Clear any active text styling so the autocomplete node is unstyled
-        const newSelection = $getSelection();
-        if (newSelection) {
-            $patchStyleText(newSelection, defaultStyle);
-        }
-    });
-};
-
-const updateAutocomplete = (value) => {
-    editor.update(() => {
-        const node = findAutocompleteNode();
-        if (!node) {
-            log.error('could not find autocomplete node to update', activeAutocompleteID);
-            return;
-        }
-        node.setSuggestion(value);
-    });
-};
-
-const cancelAutocomplete = () => {
-    const id = activeAutocompleteID;
-    activeAutocompleteID = null;
-    editor.update(() => {
-        if (!id) {
-            return;
-        }
-        const node = $getAllNodes().find((n) => n.id === id);
-        if (!node) {
-            log.error('could not find autocomplete node to cancel', id);
-            return;
-        }
-        const textNode = $createTextNode(node.getTextContent());
-        node.replace(textNode);
-    });
-};
-
-const finaliseAutocomplete = (item, network, appendSpace) => {
-    const id = activeAutocompleteID;
-    activeAutocompleteID = null;
-    editor.update(() => {
-        if (!id) {
-            log.error('could not find autocomplete node to finalise, no id stored');
-            return;
-        }
-        const node = $getAllNodes().find((n) => n.id === id);
-        if (!node) {
-            log.error('could not find autocomplete node to finalise', id);
-            return;
-        }
-
-        let finalNode;
-        if (item.type === 'user') {
-            finalNode = $createUserNode(network, item.user);
-        } else if (item.type === 'buffer') {
-            finalNode = $createBufferNode(item.value ?? item.text);
-        } else {
-            finalNode = $createTextNode(item.value ?? item.text);
-        }
-
-        node.replace(finalNode);
-
-        if (!appendSpace) {
-            finalNode.selectEnd();
-            return;
-        }
-
-        const sibling = finalNode.getNextSibling();
-        if (!sibling) {
-            const nextNode = $createTextNode(' ');
-            finalNode.insertAfter(nextNode);
-            nextNode.selectEnd();
-            return;
-        }
-
-        if (sibling?.getType() === 'text' && sibling.isSimpleText()) {
-            const text = sibling.getTextContent();
-            if (!text.startsWith(' ')) {
-                // Add a space to beginning of next node
-                sibling.setTextContent(` ${text}`);
-            }
-        }
-
-        finalNode.selectEnd();
-    });
-};
+window.addEventListener('error', errorCatcher);
+onBeforeUnmount(() => {
+    window.removeEventListener('error', errorCatcher);
+});
 
 defineExpose({
     currentStyle,
@@ -696,9 +634,11 @@ defineExpose({
     lock,
     unlock,
 
-    // getCaretIdx,
-    // setSelectionEnd,
-    // setSelectionStart,
+    getCaretIdx,
+    selectionToEnd,
+    insertText,
+    insertUser,
+    getCurrentToken,
 
     setStyle,
     toggleColourStyle,
@@ -715,10 +655,10 @@ defineExpose({
 
     addEmoji,
 
-    createAutocomplete,
-    updateAutocomplete,
-    cancelAutocomplete,
-    finaliseAutocomplete,
+    createAutocomplete: (...args) => ac.createAutocomplete(...args),
+    updateAutocomplete: (...args) => ac.updateAutocomplete(...args),
+    cancelAutocomplete: (...args) => ac.cancelAutocomplete(...args),
+    finaliseAutocomplete: (...args) => ac.finaliseAutocomplete(...args),
 });
 </script>
 

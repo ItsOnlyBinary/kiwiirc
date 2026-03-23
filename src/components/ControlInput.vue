@@ -278,9 +278,12 @@ export default {
     },
     watch: {
         history_pos(newVal) {
-            // let val = this.history[this.history_pos];
-            // this.$refs.input.setValue(val || '');
-            // TODO history
+            const state = this.history[newVal];
+            if (state) {
+                this.$refs.input.setState(state);
+            } else {
+                this.$refs.input.resetState(false);
+            }
         },
         buffer() {
             if (!this.$state.setting('buffers.shared_input')) {
@@ -335,16 +338,9 @@ export default {
                 return;
             }
 
-            let val = nick;
-            if (this.current_input_value === '') {
-                val += ': ';
-            } else {
-                val += ' ';
-            }
-
-            // TODO text insertion
-            console.log('input.insertnick', val);
-            // this.$refs.input.insertText(val);
+            const suffix = this.current_input_value === '' ? ': ' : ' ';
+            const user = this.network.userByName(nick);
+            this.$refs.input.insertUser(this.network, user, suffix);
         });
 
         this.listen(this.$state, 'input.tool', (toolComponent) => {
@@ -360,10 +356,11 @@ export default {
         inputUpdate(val) {
             this.current_input_value = val;
 
+            const state = this.$refs.input.getState();
             if (this.$state.setting('buffers.shared_input')) {
-                this.$state.ui.current_input = val;
+                this.$state.ui.current_input = state;
             } else {
-                this.buffer.current_input = val;
+                this.buffer.current_input = state;
             }
 
             // Clear the command warning on any new input
@@ -371,13 +368,18 @@ export default {
             this.maybeHidePlugins();
         },
         inputRestore() {
-            // let currentInput = this.$state.setting('buffers.shared_input') ?
-            //     this.$state.ui.current_input :
-            //     this.buffer.current_input;
+            const state = this.$state.setting('buffers.shared_input') ?
+                this.$state.ui.current_input :
+                this.buffer.current_input;
 
-            // TODO history
-            // this.$refs.input.reset(currentInput, this.keep_focus);
-            // this.$refs.input.selectionToEnd();
+            if (state) {
+                this.$refs.input.setState(state);
+                if (this.keep_focus) {
+                    this.$refs.input.selectionToEnd();
+                }
+            } else {
+                this.$refs.input.resetState(false);
+            }
         },
         toggleSelfUser() {
             if (this.networkState === 'connected') {
@@ -515,8 +517,7 @@ export default {
             ) {
                 // Tab and no other keys as tab+other is often a keyboard shortcut
                 // Tab key was just pressed, start general auto completion
-                let currentWord = this.$refs.input.getWord();
-                let currentToken = currentWord.word.substr(0, currentWord.position);
+                let { full: currentToken } = this.$refs.input.getCurrentToken();
                 let inputText = this.$refs.input.getText();
 
                 let items = [];
@@ -557,23 +558,17 @@ export default {
         },
         inputKeyUp(event) {
             let inputVal = this.$refs.input.getText();
-            let currentWord = this.$refs.input.getWord();
-            let currentToken = currentWord.word.substr(0, currentWord.position);
+            let { full, prefix, text: tokenText } = this.$refs.input.getCurrentToken();
             let autocompleteTokens = this.$state.setting('autocompleteTokens');
 
             if (event.key === 'Escape' && this.autocomplete_open) {
                 this.autocomplete_open = false;
                 this.$refs.input.cancelAutocomplete();
-            } else if (this.autocomplete_open && currentToken === '') {
+            } else if (this.autocomplete_open && full === '') {
                 this.autocomplete_open = false;
             } else if (this.autocomplete_open) {
-                // @ is a shortcut to open the nicklist autocomplete. It's not part
-                // of the nick so strip it out before passing currentToken to the
-                // filter.
-                if (currentToken[0] === '@') {
-                    currentToken = currentToken.substr(1);
-                }
-            } else if (event.key === '@' && currentToken === '@' && autocompleteTokens.includes('@')) {
+                // filter updates at the bottom of the function
+            } else if (event.key === '@' && full === '@' && autocompleteTokens.includes('@')) {
                 // Just typed @ so start the nick auto completion
                 const items = this.buildAutoCompleteItems({ users: true });
                 this.$refs.input.createAutocomplete();
@@ -585,7 +580,7 @@ export default {
                 this.$refs.input.createAutocomplete();
                 this.openAutoComplete(items);
                 this.autocomplete_filtering = true;
-            } else if (event.key === '#' && currentToken === '#' && autocompleteTokens.includes('#')) {
+            } else if (event.key === '#' && full === '#' && autocompleteTokens.includes('#')) {
                 // Just typed # so start the buffer auto completion
                 const items = this.buildAutoCompleteItems({ buffers: true });
                 this.$refs.input.createAutocomplete();
@@ -605,8 +600,7 @@ export default {
                 this.autocomplete_filtering = true;
             } else if (
                 (event.key === 'Backspace' || event.key === 'Delete') &&
-                currentToken.length > 1 &&
-                currentToken.startsWith('@') &&
+                prefix === '@' && full.length > 1 &&
                 autocompleteTokens.includes('@')
             ) {
                 // Deleted back into an in-progress @nick — re-open user autocomplete
@@ -616,8 +610,7 @@ export default {
                 this.autocomplete_filtering = true;
             } else if (
                 (event.key === 'Backspace' || event.key === 'Delete') &&
-                currentToken.length > 1 &&
-                currentToken.startsWith('#') &&
+                prefix === '#' && full.length > 1 &&
                 autocompleteTokens.includes('#')
             ) {
                 // Deleted back into an in-progress #channel — re-open buffer autocomplete
@@ -648,7 +641,8 @@ export default {
             }
 
             if (this.autocomplete_open && this.autocomplete_filtering) {
-                this.autocomplete_filter = currentToken;
+                // @ is the trigger char but not part of the nick — filter without it
+                this.autocomplete_filter = prefix === '@' ? tokenText : full;
             }
         },
         submitForm() {
@@ -683,11 +677,11 @@ export default {
                 }
             }
 
-            this.$refs.input.getState();
+            const inputState = this.$refs.input.getState();
 
             this.$state.$emit('input.raw', ircText);
 
-            // this.historyAdd(rawInput);
+            this.historyAdd(inputState);
 
             this.$refs.input.resetState(true);
 
@@ -702,9 +696,8 @@ export default {
         },
         historyBack() {
             let rawText = this.$refs.input.getText();
-            let rawInput = this.$refs.input.getHTML();
             if (rawText.trim() && this.history_pos === this.history.length) {
-                this.historyAdd(rawInput);
+                this.historyAdd(this.$refs.input.getState());
                 this.history_pos--;
             }
             if (this.history_pos > 0) {
